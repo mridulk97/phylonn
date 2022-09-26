@@ -7,7 +7,7 @@ model:
     ddconfig:
       double_z: False
       z_channels: 256
-      resolution: 256
+      resolution: 512
       in_channels: 3
       out_ch: 3
       ch: 128
@@ -33,11 +33,11 @@ data:
     train:
       target: taming.data.custom.CustomTrain
       params:
-        training_images_list_file: /home/elhamod/data/Fish/taming_transforms_fish_train.txt
-        size: 256
+        training_images_list_file: /home/elhamod/data/Fish/taming_transforms_fish_train_padded_512.txt
+        size: 512
     validation:
       target: taming.data.custom.CustomTest
       params:
-        test_images_list_file: /home/elhamod/data/Fish/taming_transforms_fish_test.txt
-        size: 256
+        test_images_list_file: /home/elhamod/data/Fish/taming_transforms_fish_test_padded_512.txt
+        size: 512
 

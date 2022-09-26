@@ -408,3 +408,9 @@ Thanks to everyone who makes their code and models available. In particular,
       primaryClass={cs.CV}
 }
 ```
+### Other
+embed_dim: n_z
+
+n_embed: |Z|
+
+z_channels: n_e
