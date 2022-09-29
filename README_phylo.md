@@ -1,15 +1,23 @@
-### Installation.
+# Installation.
 Please, look at the `README.md` file, especially `environment.yaml`
 
-### How to run an experiment
-I have only run this on ARC, but will probably work on lambdapgml too. 
+# How to run an experiment
+I have only run this on ARC, but will probably work on `lambdapgml` too. 
 If you would like to use ARC, please refer to [this link](https://docs.google.com/document/d/1_EJmQGZimb1zFLvXwR7Lcl84soiReyrBauSbtuOCLA4/edit?usp=sharing)  
 
-Look at run `run_disentangler.sh` to see what command needs to be run.
+Look at run `run_disentangler.sh` to see what python command needs to be run.
 The parameters for the model are defined in `configs/custom_vqgan-256emb-512img-phylo-vqvae.yaml`
 For an experiment, you can find the results under `logs/` folder.
 
-### Meaning of different parameters for PhyloVQVEA
+# The model
+`Phylo-VQVAE-model_summary.txt` shows the architecture of `Phylo-VQVAE`.
+
+![Phylo-VQVAE initial scheme](assets/schematic_phyloVQVAE.png)
+
+# The data
+The data can be found on `lambdapgml` at `/raid/elhamod/Fish/phylo-VQVAE`.
+
+# Meaning of different parameters for PhyloVQVEA
 ## The codebook definition 
  - `embed_dim`: `n_z` from the paper.
  - `n_embed`: `|Z|` from the paper.
