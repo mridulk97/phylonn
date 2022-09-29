@@ -13,6 +13,7 @@ from pytorch_lightning.utilities.distributed import rank_zero_only
 
 from taming.data.utils import custom_collate
 
+import wandb
 
 def get_obj_from_str(string, reload=False):
     module, cls = string.rsplit(".", 1)
@@ -231,12 +232,41 @@ class ImageLogger(Callback):
 
     @rank_zero_only
     def _wandb(self, pl_module, images, batch_idx, split):
-        raise ValueError("No way wandb")
-        grids = dict()
+        #TODO: remove this once fixed.
+        # raise ValueError("No way wandb")
+
+        # grids = dict()
+        # for k in images:
+        #     grid = torchvision.utils.make_grid(images[k])
+        #     # print('grid', grid.shape, grid.dtype)
+        #     grid = grid.permute(1, 2, 0)
+        #     grid = (grid+1.0)/2.0 # -1,1 -> 0,1; c,h,w
+        #     # print('grid', grid.shape, grid.dtype)
+        #     grids[f"{split}/{k}"] = wandb.Image(grid.numpy())
+        # # print(grids)
+        # pl_module.logger.experiment.log(grids)
+        # # pl_module.logger.experiment.log({
+        # #     "samples": [wandb.Image(grids[key]) for key in grids]
+        # #     })
+
         for k in images:
-            grid = torchvision.utils.make_grid(images[k])
-            grids[f"{split}/{k}"] = wandb.Image(grid)
-        pl_module.logger.experiment.log(grids)
+            grid = torchvision.utils.make_grid(images[k].detach())
+            # print('grid', grid.shape, grid.dtype)
+            grid = grid.cpu().numpy().transpose((1, 2, 0))
+            grid = (grid+1.0)/2.0 # -1,1 -> 0,1; c,h,w
+            grid = (grid * 255).astype(np.uint8)
+            grid = Image.fromarray(grid)
+            # print('grid', grid.shape, grid.dtype)
+            # grids[f"{split}/{k}"] = wandb.Image(grid)
+        # print(grids)
+            pl_module.logger.experiment.log({f"{split}/{k}": wandb.Image(grid)})
+            # pl_module.logger.experiment.log({"hi": wandb.Image(grid)})
+        # pl_module.logger.experiment.log({
+        #     "samples": [wandb.Image(grids[key]) for key in grids]
+        #     })
+    
+
+
 
     @rank_zero_only
     def _testtube(self, pl_module, images, batch_idx, split):
@@ -461,13 +491,22 @@ if __name__ == "__main__":
                 }
             },
         }
-        default_logger_cfg = default_logger_cfgs["testtube"]
+        default_logger_cfg = default_logger_cfgs["wandb"] # "testtube" "wandb"
         logger_cfg = lightning_config.logger or OmegaConf.create()
         logger_cfg = OmegaConf.merge(default_logger_cfg, logger_cfg)
         trainer_kwargs["logger"] = instantiate_from_config(logger_cfg)
 
+        # wandb extra configs TODO: maybe move this to the wanfblogger class.
+        trainer_kwargs["logger"].experiment.config["lr"]=config.model.base_learning_rate
+        trainer_kwargs["logger"].experiment.config["batch_size"]=config.data.params.batch_size
+        trainer_kwargs["logger"].watch(model, log_freq=100) # TODO: maybe too often. Make it less frequent.
+        #TODO: log_graph=True not working because old torch-lightning   
+        # TypeError: watch() got an unexpected keyword argument 'log_graph'
+
         # modelcheckpoint - use TrainResult/EvalResult(checkpoint_on=metric) to
         # specify which metric is used to determine best models
+        # https://pytorch-lightning.readthedocs.io/en/stable/api/pytorch_lightning.callbacks.ModelCheckpoint.html
+        # https://pytorch-lightning.readthedocs.io/en/stable/common/checkpointing_intermediate.html
         default_modelckpt_cfg = {
             "target": "pytorch_lightning.callbacks.ModelCheckpoint",
             "params": {
@@ -475,6 +514,7 @@ if __name__ == "__main__":
                 "filename": "{epoch:06}",
                 "verbose": True,
                 "save_last": True,
+                #"every_n_epochs": 10, #TODO: didnt work because pl version 1.0.8 is too old? what can I do about this?
             }
         }
         if hasattr(model, "monitor"):

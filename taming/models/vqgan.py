@@ -9,6 +9,11 @@ from taming.modules.vqvae.quantize import VectorQuantizer2 as VectorQuantizer
 from taming.modules.vqvae.quantize import GumbelQuantize
 from taming.modules.vqvae.quantize import EMAVectorQuantizer
 
+# from torchsummary import summary
+from torchinfo import summary
+
+PHYLOCONFIG_KEY = "phylonetconfig"
+
 class VQModel(pl.LightningModule):
     def __init__(self,
                  ddconfig,
@@ -41,6 +46,11 @@ class VQModel(pl.LightningModule):
         if monitor is not None:
             self.monitor = monitor
 
+        # # print model
+        # print('model', self)
+        # summary(self.cuda(), (1, 3, 512, 512))
+        # raise
+        
     def init_from_ckpt(self, path, ignore_keys=list()):
         sd = torch.load(path, map_location="cpu")["state_dict"]
         keys = list(sd.keys())
@@ -84,7 +94,7 @@ class VQModel(pl.LightningModule):
         x = self.get_input(batch, self.image_key)
         xrec, qloss = self(x)
 
-        if optimizer_idx == 0:
+        if optimizer_idx == 0 or (not self.loss.has_discriminator):
             # autoencode
             aeloss, log_dict_ae = self.loss(qloss, x, xrec, optimizer_idx, self.global_step,
                                             last_layer=self.get_last_layer(), split="train")
@@ -93,7 +103,7 @@ class VQModel(pl.LightningModule):
             self.log_dict(log_dict_ae, prog_bar=False, logger=True, on_step=True, on_epoch=True)
             return aeloss
 
-        if optimizer_idx == 1:
+        if optimizer_idx == 1 and self.loss.has_discriminator:
             # discriminator
             discloss, log_dict_disc = self.loss(qloss, x, xrec, optimizer_idx, self.global_step,
                                             last_layer=self.get_last_layer(), split="train")
@@ -107,15 +117,18 @@ class VQModel(pl.LightningModule):
         aeloss, log_dict_ae = self.loss(qloss, x, xrec, 0, self.global_step,
                                             last_layer=self.get_last_layer(), split="val")
 
-        discloss, log_dict_disc = self.loss(qloss, x, xrec, 1, self.global_step,
-                                            last_layer=self.get_last_layer(), split="val")
         rec_loss = log_dict_ae["val/rec_loss"]
         self.log("val/rec_loss", rec_loss,
                    prog_bar=True, logger=True, on_step=True, on_epoch=True, sync_dist=True)
         self.log("val/aeloss", aeloss,
                    prog_bar=True, logger=True, on_step=True, on_epoch=True, sync_dist=True)
         self.log_dict(log_dict_ae)
-        self.log_dict(log_dict_disc)
+
+        if self.loss.has_discriminator:
+            discloss, log_dict_disc = self.loss(qloss, x, xrec, 1, self.global_step,
+                                    last_layer=self.get_last_layer(), split="val")
+            self.log_dict(log_dict_disc)
+
         return self.log_dict
 
     def configure_optimizers(self):
@@ -137,7 +150,8 @@ class VQModel(pl.LightningModule):
         log = dict()
         x = self.get_input(batch, self.image_key)
         x = x.to(self.device)
-        xrec, _ = self(x)
+        r = self(x)
+        xrec = r[0]
         if x.shape[1] > 3:
             # colorize with random projection
             assert xrec.shape[1] > 3
@@ -154,6 +168,83 @@ class VQModel(pl.LightningModule):
         x = F.conv2d(x, weight=self.colorize)
         x = 2.*(x-x.min())/(x.max()-x.min()) - 1.
         return x
+
+
+#NOTE: This model assumes the base VQModel is frozen and there is no discriminator.
+class VQModelWithPhylo(VQModel):
+    def __init__(self, **args):
+        phylo_args = args[PHYLOCONFIG_KEY]
+        del args[PHYLOCONFIG_KEY]
+
+        super().__init__(**args)
+        self.freeze()
+
+        self.phylo_net = VQModel(**phylo_args)
+
+        # print model
+        print('model', self)
+        summary(self.cuda(), (1, 3, 512, 512))
+
+    def encode(self, x):
+        encoder_out = self.encoder(x)
+        phylo_out, phylo_quantizer_loss = self.phylo_net(encoder_out)
+        h = self.quant_conv(phylo_out)
+        quant, base_quantizer_loss, info = self.quantize(h)
+        return quant, phylo_quantizer_loss + base_quantizer_loss, encoder_out, phylo_out, info # TODO: Should be fine for now to just add them. but probably separate them later as they can have different weights.
+
+    def forward(self, input):
+        quant, diff, encoder_out, phylo_out, _ = self.encode(input)
+        dec = self.decode(quant)
+        return dec, diff, encoder_out, phylo_out
+
+    def training_step(self, batch, batch_idx):
+        x = self.get_input(batch, self.image_key)
+        xrec, total_qloss, encoder_out, phylo_out = self(x)
+
+        # autoencode
+        aeloss, log_dict_ae = self.phylo_net.loss(total_qloss, encoder_out, phylo_out, 0, self.global_step,
+                                        last_layer=self.get_last_layer(), split="train")
+
+        self.log("train/phylo_aeloss", aeloss, prog_bar=True, logger=True, on_step=True, on_epoch=True)
+        self.log_dict(log_dict_ae, prog_bar=False, logger=True, on_step=True, on_epoch=True)
+        return aeloss
+
+    def validation_step(self, batch, batch_idx):
+        x = self.get_input(batch, self.image_key)
+        xrec, total_qloss, encoder_out, phylo_out = self(x)
+        aeloss, log_dict_ae = self.phylo_net.loss(total_qloss, encoder_out, phylo_out, 0, self.global_step,
+                                            last_layer=self.get_last_layer(), split="val")
+
+        rec_loss = log_dict_ae["val/rec_loss"]
+        self.log("val/rec_loss", rec_loss,
+                   prog_bar=True, logger=True, on_step=True, on_epoch=True, sync_dist=True)
+        self.log("val/aeloss", aeloss,
+                   prog_bar=True, logger=True, on_step=True, on_epoch=True, sync_dist=True)
+        self.log_dict(log_dict_ae)
+        return self.log_dict
+
+    
+    def configure_optimizers(self):
+        lr = self.learning_rate
+        opt_ae = torch.optim.Adam(list(self.phylo_net.encoder.parameters())+
+                                list(self.phylo_net.decoder.parameters())+
+                                list(self.phylo_net.quantize.parameters())+
+                                list(self.phylo_net.quant_conv.parameters())+
+                                list(self.phylo_net.post_quant_conv.parameters()),
+                                lr=lr, betas=(0.5, 0.9))
+        
+        return [opt_ae], []
+
+
+        
+
+
+
+
+
+
+
+
 
 
 class VQSegmentationModel(VQModel):
