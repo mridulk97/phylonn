@@ -2,8 +2,8 @@
 
 #SBATCH --account=ml4science
 #SBATCH --partition=a100_normal_q
-#SBATCH --time=0-01:00:00 
-#SBATCH --gres=gpu:1 
+#SBATCH --time=1-00:00:00 
+#SBATCH --gres=gpu:1
 #SBATCH --nodes=1 --ntasks-per-node=1 --cpus-per-task=8
 #SBATCH -o ./SLURM/slurm-%j.out
 
@@ -17,7 +17,8 @@ module load gcc/8.2.0
 
 source activate taming3 
 
-python main.py --base configs/custom_vqgan-256emb-512img-phylo-vqvae.yaml -t True --gpus 0, #1
+python main.py --name Phylo-VQVAE --base configs/custom_vqgan-256emb-512img-phylo-vqvae-afterhyperp.yaml -t True --gpus 0, #1
+# python main.py --name Phylo-VQVAE --base configs/custom_vqgan-256emb-512img-phylo-vqvae.yaml -t True --gpus 0, #1
 
 exit;
 
