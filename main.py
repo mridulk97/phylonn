@@ -483,6 +483,7 @@ if __name__ == "__main__":
                     "save_dir": logdir,
                     "offline": opt.debug,
                     "id": nowname,
+                    "project": config.model.project
                 }
             },
             "testtube": {

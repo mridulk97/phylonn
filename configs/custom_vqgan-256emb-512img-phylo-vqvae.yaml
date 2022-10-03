@@ -1,7 +1,7 @@
 model:
   base_learning_rate: 4.5e-6 #we tried 4.5e-3 #4.5e-6
   target: taming.models.phyloautoencoder.PhyloVQVAE
-  
+  project: Phylo-VQVAE
   params:
     ckpt_path: /home/elhamod/projects/taming-transformers/logs/512pixels_256embedding/checkpoints/last.ckpt
     embed_dim: 256
