@@ -499,9 +499,10 @@ if __name__ == "__main__":
         logger_cfg = OmegaConf.merge(default_logger_cfg, logger_cfg)
         trainer_kwargs["logger"] = instantiate_from_config(logger_cfg)
 
-        # wandb extra configs TODO: maybe move this to the wanfblogger class.
-        trainer_kwargs["logger"].experiment.config["lr"]=config.model.base_learning_rate
-        trainer_kwargs["logger"].experiment.config["batch_size"]=config.data.params.batch_size
+        # wandb extra configs TODO: maybe move this to the wandblogger class.
+        if rank_zero_only.rank == 0:
+            trainer_kwargs["logger"].experiment.config["lr"]=config.model.base_learning_rate
+            trainer_kwargs["logger"].experiment.config["batch_size"]=config.data.params.batch_size
         trainer_kwargs["logger"].watch(model, log_freq=100) # TODO: maybe too often. Make it less frequent.
         #TODO: log_graph=True not working because old torch-lightning   
         # TypeError: watch() got an unexpected keyword argument 'log_graph'
