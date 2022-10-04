@@ -106,8 +106,6 @@ class PhyloVQVAE(VQModel):
         super().__init__(**args)
 
         ckpt_path = args['ckpt_path']
-        if ckpt_path is not None:
-            self.init_from_ckpt(ckpt_path)
         self.freeze()
 
         self.phylo_disentangler = PhyloDisentangler(**phylo_args)
