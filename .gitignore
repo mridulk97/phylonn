@@ -4,3 +4,4 @@ logs/**
 slurm*
 **checkpoint.ipynb
 wandb/**
+taming3/**
