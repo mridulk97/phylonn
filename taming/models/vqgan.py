@@ -171,6 +171,7 @@ class VQModel(pl.LightningModule):
 
 
 #NOTE: This model assumes the base VQModel is frozen and there is no discriminator.
+#NOTE: This is depricated. Might delete later.
 class VQModelWithPhylo(VQModel):
     def __init__(self, **args):
         phylo_args = args[PHYLOCONFIG_KEY]
@@ -190,7 +191,7 @@ class VQModelWithPhylo(VQModel):
         phylo_out, phylo_quantizer_loss = self.phylo_net(encoder_out)
         h = self.quant_conv(phylo_out)
         quant, base_quantizer_loss, info = self.quantize(h)
-        return quant, phylo_quantizer_loss + base_quantizer_loss, encoder_out, phylo_out, info # TODO: Should be fine for now to just add them. but probably separate them later as they can have different weights.
+        return quant, phylo_quantizer_loss + base_quantizer_loss, encoder_out, phylo_out, info
 
     def forward(self, input):
         quant, diff, encoder_out, phylo_out, _ = self.encode(input)

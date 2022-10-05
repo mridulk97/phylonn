@@ -15,6 +15,8 @@ from taming.data.utils import custom_collate
 
 import wandb
 
+# import gc
+
 def get_obj_from_str(string, reload=False):
     module, cls = string.rsplit(".", 1)
     if reload:
@@ -232,8 +234,8 @@ class ImageLogger(Callback):
 
     @rank_zero_only
     def _wandb(self, pl_module, images, batch_idx, split):
-        #TODO: remove this once fixed.
-        # raise ValueError("No way wandb")
+
+        #TODO: check when this is fixed by wandb
 
         # grids = dict()
         # for k in images:
@@ -503,8 +505,8 @@ if __name__ == "__main__":
         if rank_zero_only.rank == 0:
             trainer_kwargs["logger"].experiment.config["lr"]=config.model.base_learning_rate
             trainer_kwargs["logger"].experiment.config["batch_size"]=config.data.params.batch_size
-        trainer_kwargs["logger"].watch(model, log_freq=100) # TODO: maybe too often. Make it less frequent.
-        #TODO: log_graph=True not working because old torch-lightning   
+        trainer_kwargs["logger"].watch(model, log_freq=100)
+        #NOTE: log_graph=True not working because old torch-lightning   
         # TypeError: watch() got an unexpected keyword argument 'log_graph'
 
         # modelcheckpoint - use TrainResult/EvalResult(checkpoint_on=metric) to
@@ -518,7 +520,7 @@ if __name__ == "__main__":
                 "filename": "{epoch:06}",
                 "verbose": True,
                 "save_last": True,
-                #"every_n_epochs": 10, #TODO: didnt work because pl version 1.0.8 is too old? what can I do about this?
+                #"every_n_epochs": 10, #NOTE: didnt work because pl version 1.0.8 is too old.
             }
         }
         if hasattr(model, "monitor"):
@@ -595,6 +597,18 @@ if __name__ == "__main__":
                 ckpt_path = os.path.join(ckptdir, "last.ckpt")
                 trainer.save_checkpoint(ckpt_path)
 
+            # from pytorch_memlab import MemReporter
+            # reporter = MemReporter()
+            # reporter.report()
+
+            # for obj in gc.get_objects():
+            #     try:
+            #         import sys 
+            #         if torch.is_tensor(obj) or (hasattr(obj, 'data') and torch.is_tensor(obj.data)):
+            #             print(sys.getsizeof(obj), type(obj), obj.size())
+            #     except:
+            #         pass
+                
         def divein(*args, **kwargs):
             if trainer.global_rank == 0:
                 import pudb; pudb.set_trace()

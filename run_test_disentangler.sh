@@ -17,7 +17,8 @@ module load gcc/8.2.0
 
 source activate taming3 
 
-python main.py --name Phylo-VQVAE --base configs/custom_vqgan-256emb-512img-phylo-vqvae.yaml -t True --gpus 0,
+# python main.py --name Phylo-VQVAE-test --base configs/custom_vqgan-256emb-512img-phylo-vqvae.yaml -t True --gpus 0,
+python main.py --name Phylo-VQVAE --base configs/custom_vqgan-256img-phylo-vqvae.yaml -t True --gpus 0,
 
 exit;
 

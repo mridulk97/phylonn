@@ -37,7 +37,6 @@ model:
       # num_res_blocks: 2
       # attn_resolutions: [16]
 
-      # TODO: This is just temporary. We will put the real phylo loss later.
       lossconfig:
         target: taming.modules.losses.vqperceptual.VQLPIPSWithDiscriminator
         params:
