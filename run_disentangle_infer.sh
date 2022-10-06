@@ -1,10 +1,9 @@
 #!/bin/bash
 
 #SBATCH --account=ml4science
-#SBATCH --partition=a100_normal_q
+#SBATCH --partition=v100_normal_q
 #SBATCH --time=1-00:00:00 
 #SBATCH --gres=gpu:1
-#SBATCH --nodes=1 --ntasks-per-node=1 --cpus-per-task=8
 #SBATCH -o ./SLURM/slurm-%j.out
 
 
@@ -13,13 +12,12 @@ echo start load env and run python
 module reset
 
 module load Anaconda3/2020.11
-module load gcc/8.2.0
+# module load gcc/8.2.0
 
 source activate taming3 
 
-# python main.py --name Phylo-VQVAE --base configs/custom_vqgan-256emb-512img-phylo-vqvae-afterhyperp.yaml -t True --gpus 0, #1 # crashes... not enough memory?!
-# python main.py --name Phylo-VQVAE --base configs/custom_vqgan-256emb-512img-phylo-vqvae.yaml -t True --gpus 0, #1
-python main.py --name Phylo-VQVAE --base configs/custom_vqgan-256emb-512img-phylo-vqvae-phyloloss.yaml -t True --gpus 0,
+# python main.py --name Phylo-VQVAE --base configs/custom_vqgan-256img-phylo-vqvae.yaml -t True --gpus 0,
+python main.py --name Phylo-VQVAE --base configs/custom_vqgan-256img-phylo-vqvae-phyloloss.yaml -t True --gpus 0,
 
 exit;
 

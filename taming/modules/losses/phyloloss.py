@@ -56,7 +56,7 @@ class PhyloLoss(nn.Module):
             if loss_name=='class':
                 continue
             layer_truth = list(map(lambda x: self.siblingfinder.map_speciesId_siblingVector(x, loss_name), labels))
-            mlb = MultiLabelBinarizer(range(self.classifier_output_size))
+            mlb = MultiLabelBinarizer(classes = list(range(self.classifier_output_size)))
             hotcoded_siblingindices = torch.FloatTensor(mlb.fit_transform(layer_truth)).to(activation.device)
             losses_dict[loss_name] = self.criterionBCE(activation, hotcoded_siblingindices)
 

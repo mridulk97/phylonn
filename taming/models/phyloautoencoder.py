@@ -137,7 +137,7 @@ class PhyloDisentangler(torch.nn.Module):
 
         # print model
         print('phylovqgan', self)
-        summary(self.cuda(), (1, 256, 32, 32))
+        # summary(self.cuda(), (1, 256, 32, 32))
     
     def forward(self, input):
         h = self.conv_in(input)
