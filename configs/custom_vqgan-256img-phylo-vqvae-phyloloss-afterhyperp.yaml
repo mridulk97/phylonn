@@ -25,9 +25,10 @@ model:
       n_embed: 64
       #
       n_phylolevels: 4
-      codebooks_per_phylolevel: 4
+      codebooks_per_phylolevel: 8
       #
-      n_phylo_channels: 32 # tried 1 #32
+      n_phylo_channels: 32
+      verbose: True
       # NOT hyperparameters.
       resolution: 16
       in_channels: 256
@@ -51,9 +52,9 @@ model:
       lossconfig_phylo:
         target: taming.modules.losses.phyloloss.PhyloLoss
         params:
-          phylo_weight: 1.0
+          phylo_weight: 0.1
           fc_layers: 1
-          phyloDistances_string: "0.8,0.45,0.25"
+          phyloDistances_string: "0.77,0.5,0.33"
           phylogenyconfig:
             target: taming.data.phylogeny.Phylogeny
             params:

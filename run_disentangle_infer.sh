@@ -17,7 +17,8 @@ module load Anaconda3/2020.11
 source activate taming3 
 
 # python main.py --name Phylo-VQVAE --base configs/custom_vqgan-256img-phylo-vqvae.yaml -t True --gpus 0,
-python main.py --name Phylo-VQVAE --base configs/custom_vqgan-256img-phylo-vqvae-phyloloss.yaml -t True --gpus 0,
+# python main.py --name Phylo-VQVAE --base configs/custom_vqgan-256img-phylo-vqvae-phyloloss.yaml -t True --gpus 0,
+python main.py --name Phylo-VQVAE-test --postfix 256img-afterhyperp --base configs/custom_vqgan-256img-phylo-vqvae-phyloloss-afterhyperp.yaml -t True --gpus 0,
 
 exit;
 

@@ -6,9 +6,9 @@ import pprint
 pp = pprint.PrettyPrinter(indent=4)
 
 # For phylogeny parsing
-#!pip install opentree
+# !pip install opentree
 from opentree import OT
-#!pip install ete3
+# !pip install ete3
 from ete3 import Tree, PhyloTree
 
 # Constants

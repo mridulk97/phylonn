@@ -53,7 +53,7 @@ class PhyloDisentangler(torch.nn.Module):
                 in_channels, ch, out_ch, resolution, ## same ad ddconfigs for autoencoder
                 embed_dim, n_embed, # same as codebook configs
                 n_phylo_channels, n_phylolevels, codebooks_per_phylolevel, # The dimensions for the phylo descriptors.
-                lossconfig, lossconfig_phylo=None): 
+                lossconfig, lossconfig_phylo=None, verbose=False): 
         super().__init__()
 
         self.ch = ch
@@ -61,6 +61,8 @@ class PhyloDisentangler(torch.nn.Module):
         self.n_phylolevels = n_phylolevels
         self.codebooks_per_phylolevel = codebooks_per_phylolevel
         self.embed_dim = embed_dim
+
+        self.verbose = verbose
 
         self.loss = instantiate_from_config(lossconfig)
 
@@ -110,6 +112,7 @@ class PhyloDisentangler(torch.nn.Module):
             #TODO: maybe move logic here onward into its own function.
 
             # get loss and parse params
+            lossconfig_phylo['params'] = {**lossconfig_phylo['params'], **{'verbose': verbose}}
             self.loss_phylo = instantiate_from_config(lossconfig_phylo)
             output_size = self.loss_phylo.classifier_output_size
             num_fc_layers = self.loss_phylo.fc_layers
@@ -183,6 +186,8 @@ class PhyloVQVAE(VQModel):
 
         self.phylo_disentangler = PhyloDisentangler(**phylo_args)
 
+        self.verbose = phylo_args.get('verbose', False)
+
         # print model
         # print('totalmodel', self)
         # summary(self.cuda(), (1, 3, 512, 512))
@@ -217,81 +222,57 @@ class PhyloVQVAE(VQModel):
         dec = self.decode(quant)
         return dec, base_hypothetical_quantizer_loss
 
-    def training_step(self, batch, batch_idx):
+    def step(self, batch, batch_idx, prefix):
         x = self.get_input(batch, self.image_key)
         xrec, disentangler_loss_dic, base_loss_dic, in_out_disentangler = self(x)
         out_disentangler = {i:in_out_disentangler[i] for i in in_out_disentangler if i not in [DISENTANGLER_ENCODER_INPUT, DISENTANGLER_DECODER_OUTPUT]}
 
-        #TODO: will slow us down for no reason. maybe remove in the future.
-        xrec_hypthetical, base_hypothetical_quantizer_loss = self.forward_hypothetical(x)
-        hypothetical_rec_loss =torch.mean(torch.abs(x.contiguous() - xrec_hypthetical.contiguous()))
+        if self.verbose:
+            xrec_hypthetical, base_hypothetical_quantizer_loss = self.forward_hypothetical(x)
+            hypothetical_rec_loss =torch.mean(torch.abs(x.contiguous() - xrec_hypthetical.contiguous()))
+            self.log(prefix+"/base_hypothetical_rec_loss", hypothetical_rec_loss, prog_bar=False, logger=True, on_step=False, on_epoch=True)
+            self.log(prefix+"/base_hypothetical_quantizer_loss", base_hypothetical_quantizer_loss, prog_bar=False, logger=True, on_step=False, on_epoch=True)
+        
+        # base losses
         true_rec_loss = torch.mean(torch.abs(x.contiguous() - xrec.contiguous()))
-        self.log("train/base_hypothetical_rec_loss", hypothetical_rec_loss, prog_bar=True, logger=True, on_step=False, on_epoch=True)
-        self.log("train/base_hypothetical_quantizer_loss", base_hypothetical_quantizer_loss, prog_bar=True, logger=False, on_step=True, on_epoch=True)
-        self.log("train/base_true_rec_loss", true_rec_loss, prog_bar=True, logger=True, on_step=False, on_epoch=True)
-        self.log("train/base_quantizer_loss", base_loss_dic['quantizer_loss'], prog_bar=True, logger=True, on_step=False, on_epoch=True)
+        self.log(prefix+"/base_true_rec_loss", true_rec_loss, prog_bar=False, logger=True, on_step=False, on_epoch=True)
+        self.log(prefix+"/base_quantizer_loss", base_loss_dic['quantizer_loss'], prog_bar=False, logger=True, on_step=False, on_epoch=True)
 
         # autoencode
         quantizer_disentangler_loss = disentangler_loss_dic['quantizer_loss']
-        total_loss, log_dict_ae = self.phylo_disentangler.loss(quantizer_disentangler_loss, in_out_disentangler[DISENTANGLER_ENCODER_INPUT], in_out_disentangler[DISENTANGLER_DECODER_OUTPUT], 0, self.global_step, split="train")
+        total_loss, log_dict_ae = self.phylo_disentangler.loss(quantizer_disentangler_loss, in_out_disentangler[DISENTANGLER_ENCODER_INPUT], in_out_disentangler[DISENTANGLER_DECODER_OUTPUT], 0, self.global_step, split=prefix)
         
         if self.phylo_disentangler.loss_phylo is not None:
             phylo_losses_dict = self.phylo_disentangler.loss_phylo(total_loss, out_disentangler, batch[DISENTANGLER_CLASS_OUTPUT])
             total_loss = phylo_losses_dict['cumulative_loss']
+        
+        if self.verbose:
+            self.log(prefix+"/disentangler_total_loss", total_loss, prog_bar=False, logger=True, on_step=True, on_epoch=True)
+            for i in phylo_losses_dict:
+                if "_f1" in i:
+                    self.log(prefix+"/disentangler_phylo_"+i, phylo_losses_dict[i], prog_bar=False, logger=True, on_step=True, on_epoch=True)
 
-        rec_loss = log_dict_ae["train/rec_loss"]
-        self.log("train/disentangler_total_aeloss", total_loss, prog_bar=True, logger=True, on_step=True, on_epoch=True)
-        self.log("train/disentangler_quantizer_loss", quantizer_disentangler_loss, prog_bar=True, logger=True, on_step=True, on_epoch=True)
-        self.log("train/disentangler_rec_loss", rec_loss, prog_bar=True, logger=True, on_step=True, on_epoch=True)
+
+        rec_loss = log_dict_ae[prefix+"/rec_loss"]
+        self.log(prefix+"/disentangler_quantizer_loss", quantizer_disentangler_loss, prog_bar=True, logger=True, on_step=True, on_epoch=True)
+        self.log(prefix+"/disentangler_rec_loss", rec_loss, prog_bar=True, logger=True, on_step=True, on_epoch=True)
 
         if self.phylo_disentangler.loss_phylo is not None:
-            self.log("train/disentangler_phylo_loss", phylo_losses_dict['total_phylo_loss'], prog_bar=True, logger=True, on_step=True, on_epoch=True)
+            self.log(prefix+"/disentangler_phylo_loss", phylo_losses_dict['total_phylo_loss'], prog_bar=True, logger=True, on_step=True, on_epoch=True)
 
         # self.log_dict(log_dict_ae, prog_bar=False, logger=True, on_step=True, on_epoch=True)
         return total_loss
+    
+    def training_step(self, batch, batch_idx):
+        return self.step(batch, batch_idx, 'train')
+
 
     def validation_step(self, batch, batch_idx):
-        x = self.get_input(batch, self.image_key)
-        xrec, disentangler_loss_dic, base_loss_dic, in_out_disentangler = self(x)
-        out_disentangler = {i:in_out_disentangler[i] for i in in_out_disentangler if i not in [DISENTANGLER_ENCODER_INPUT, DISENTANGLER_DECODER_OUTPUT]}
-
-        quantizer_disentangler_loss = disentangler_loss_dic['quantizer_loss']
-        total_loss, log_dict_ae = self.phylo_disentangler.loss(quantizer_disentangler_loss, in_out_disentangler[DISENTANGLER_ENCODER_INPUT], in_out_disentangler[DISENTANGLER_DECODER_OUTPUT], 0, self.global_step, split="val")
-        
-        if self.phylo_disentangler.loss_phylo is not None:
-            phylo_losses_dict = self.phylo_disentangler.loss_phylo(total_loss, out_disentangler, batch[DISENTANGLER_CLASS_OUTPUT])
-            total_loss = phylo_losses_dict['cumulative_loss']
-
-        #TODO: will slow us down for no reason. maybe remove in the future.
-        xrec_hypthetical, base_hypothetical_quantizer_loss = self.forward_hypothetical(x)
-        hypothetical_rec_loss =torch.mean(torch.abs(x.contiguous() - xrec_hypthetical.contiguous()))
-        true_rec_loss = torch.mean(torch.abs(x.contiguous() - xrec.contiguous()))
-        self.log("val/base_hypothetical_rec_loss", hypothetical_rec_loss, prog_bar=True, logger=True, on_step=False, on_epoch=True)
-        self.log("val/base_hypothetical_quantizer_loss", base_hypothetical_quantizer_loss, prog_bar=True, logger=True, on_step=False, on_epoch=True)
-        self.log("val/base_true_rec_loss", true_rec_loss, prog_bar=True, logger=True, on_step=False, on_epoch=True)
-        self.log("val/base_quantizer_loss", base_loss_dic['quantizer_loss'], prog_bar=True, logger=True, on_step=False, on_epoch=True)
-
-
-        rec_loss = log_dict_ae["val/rec_loss"]
-        # quant_loss = log_dict_ae["val/quant_loss"]
-        self.log("val/disentangler_rec_loss", rec_loss,
-                   prog_bar=True, logger=True, on_step=False, on_epoch=True, sync_dist=True)
-        self.log("val/disentangler_total_aeloss", total_loss,
-                   prog_bar=True, logger=True, on_step=False, on_epoch=True, sync_dist=True)
-        self.log("val/disentangler_quantizer_loss", quantizer_disentangler_loss, prog_bar=True, logger=True, on_step=False, on_epoch=True)
-
-        if self.phylo_disentangler.loss_phylo is not None:
-            self.log("val/disentangler_phylo_loss", phylo_losses_dict['total_phylo_loss'], prog_bar=True, logger=True, on_step=False, on_epoch=True)
-        
-        # self.log_dict(log_dict_ae)
-        return self.log_dict
-
+        return self.step(batch, batch_idx, 'val')
     
     def configure_optimizers(self):
         lr = self.learning_rate
 
-        # for i in self.phylo_disentangler.parameters():
-        #     print('helloooooooo', i.shape, i.requires_grad)
         # opt_ae = torch.optim.Adam(list(self.phylo_disentangler.encoder.parameters())+
         #                         list(self.phylo_disentangler.decoder.parameters())+
         #                         list(self.phylo_disentangler.quantize.parameters())+
