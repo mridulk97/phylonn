@@ -3,7 +3,7 @@ model:
   target: taming.models.phyloautoencoder.PhyloVQVAE
   project: Phylo-VQVAE
   params:
-    ckpt_path: ./logs/512pixels_256embedding/checkpoints/last.ckpt
+    ckpt_path: /home/elhamod/projects/taming-transformers/logs/512pixels_256embedding/checkpoints/last.ckpt
     embed_dim: 256
     n_embed: 1024
     ddconfig:
@@ -25,9 +25,10 @@ model:
       n_embed: 64
       #
       n_phylolevels: 4
-      codebooks_per_phylolevel: 4
+      codebooks_per_phylolevel: 8
       #
-      n_phylo_channels: 32 # tried 1 #32
+      n_phylo_channels: 32
+      # verbose: True
       # NOT hyperparameters.
       resolution: 32
       in_channels: 256
@@ -47,6 +48,18 @@ model:
           disc_factor: 0.0
           perceptual_weight: 0.0
           disc_start: 10000
+      
+      lossconfig_phylo:
+        target: taming.modules.losses.phyloloss.PhyloLoss
+        params:
+          phylo_weight: 0.1
+          fc_layers: 1
+          phyloDistances_string: "0.77,0.5,0.33"
+          phylogenyconfig:
+            target: taming.data.phylogeny.Phylogeny
+            params:
+              filePath: /home/elhamod/data/Fish
+          
         
 
 
@@ -61,13 +74,15 @@ data:
     train:
       target: taming.data.custom.CustomTrain
       params:
-        training_images_list_file: /raid/elhamod/Fish/phylo-VQVAE/taming_transforms_fish_train_padded_512.txt
+        training_images_list_file: /home/elhamod/data/Fish/taming_transforms_fish_train_padded_512.txt
         size: 512
+        add_labels: true
     validation:
       target: taming.data.custom.CustomTest
       params:
-        test_images_list_file: /raid/elhamod/Fish/phylo-VQVAE/taming_transforms_fish_test_padded_512.txt
+        test_images_list_file: /home/elhamod/data/Fish/taming_transforms_fish_test_padded_512.txt
         size: 512
+        add_labels: true
 
 lightning:
   trainer:
@@ -75,6 +90,6 @@ lightning:
     # limit_train_batches: 10
     # limit_val_batches: 10
     # fast_dev_run: false
-    profiler: simple
+    profiler: advanced #simple
 
 

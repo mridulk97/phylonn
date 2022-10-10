@@ -1,23 +1,30 @@
 #!/bin/bash
 
 #SBATCH --account=ml4science
-#SBATCH --partition=a100_normal_q
-#SBATCH --time=0-16:00:00 
+#SBATCH --partition=v100_normal_q
+#SBATCH --time=0-12:00:00 
 #SBATCH --gres=gpu:1 
-#SBATCH --nodes=1 --ntasks-per-node=1 --cpus-per-task=8
 #SBATCH -o ./SLURM/slurm-%j.out
+
+
+### IMPORTANT:
+## For some reason this only runs from:
+# [elhamod@inf083 taming-transformers]$ sbatch hyperp/hyperp_phylo-VQVAE-infer.sh
+# Make sure you are at that directory and using relative path for the sh file.
+### MAKESURE you have not loaded taming3 env!
 
 module reset
 
 module load Anaconda3/2020.11
-module load gcc/8.2.0
 
 source activate taming3 
 
+which python
+
+which python3
+
 #python -m 
-wandb agent mndhamod/Phylo-VQVAE/q58r7rik
-# wandb agent mndhamod/Phylo-VQVAE/kih79ivc
-# wandb agent mndhamod/Phylo-VQVAE/wmpsdu5l
+wandb agent mndhamod/Phylo-VQVAE/e0fponh0
 
 # To create a sweep:
 # wandb sweep --project Phylo-VQVAE hyperp/hyperp_bayes_nested.yaml 

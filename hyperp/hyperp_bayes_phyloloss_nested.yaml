@@ -1,0 +1,238 @@
+program: main.py
+# name: sweep1
+project: Phylo-VQVAE
+command:
+  - ${env}
+  - ${interpreter}
+  - ${program}
+  - "-t"
+  - "True"
+  - "--gpus"
+  - "0,"
+  - "--name"
+  - "Phylo-VQVAE"
+  - ${args_no_hyphens}
+method: bayes
+metric:
+  goal: minimize
+  name: val/base_true_quantizer_loss
+  target: 0.01
+early_terminate:
+  type: hyperband
+  max_iter: 20
+  s: 2
+  eta: 2
+parameters:
+  model:
+    parameters:
+      base_learning_rate: 
+        distribution: constant
+        value: 5e-6
+      target: 
+        distribution: constant
+        value: taming.models.phyloautoencoder.PhyloVQVAE
+      
+      params:
+        parameters:
+          ckpt_path: 
+            distribution: constant
+            value: /home/elhamod/projects/taming-transformers/logs/512pixels_256embedding/checkpoints/last.ckpt
+          embed_dim:
+            distribution: constant
+            value: 256
+          n_embed:
+            distribution: constant
+            value: 1024
+
+          ddconfig:
+            parameters:
+              double_z:
+                distribution: constant
+                value: False
+              z_channels: 
+                distribution: constant
+                value: 256
+              resolution:
+                distribution: constant
+                value: 512
+              in_channels:
+                distribution: constant
+                value: 3
+              out_ch:
+                distribution: constant
+                value: 3
+              ch:
+                distribution: constant
+                value: 128
+              ch_mult: 
+                distribution: constant
+                value: [ 1,1,2,2,4]  # num_down = len(ch_mult)-1
+              num_res_blocks:
+                distribution: constant
+                value: 2
+              attn_resolutions:
+                distribution: constant
+                value: [16]
+              dropout:
+                distribution: constant
+                value: 0.0
+          lossconfig:
+            parameters:
+              target: 
+                distribution: constant
+                value: taming.modules.losses.DummyLoss
+          phylomodel_params:
+            parameters:
+              embed_dim:
+                distribution: q_log_uniform_values
+                min: 4
+                max: 16
+                q: 2
+              n_embed:
+                distribution: q_log_uniform_values
+                min: 5
+                max: 100
+                q: 5
+              #
+              n_phylolevels: 
+                distribution: constant
+                value: 4
+              codebooks_per_phylolevel:
+                distribution: q_log_uniform_values
+                min: 4
+                max: 16
+                q: 4
+              #
+              n_phylo_channels:
+                distribution: q_log_uniform_values
+                min: 4
+                max: 32
+                q: 2
+              # NOT hyperparameters.
+              resolution:
+                distribution: constant
+                value: 32
+              in_channels:
+                distribution: constant
+                value: 256
+              out_ch:
+                distribution: constant
+                value: 256
+              ch:
+                distribution: constant
+                value: 256
+
+              lossconfig:
+                parameters:
+                  target: 
+                    distribution: constant
+                    value: taming.modules.losses.vqperceptual.VQLPIPSWithDiscriminator
+                  params:
+                    parameters:
+                      codebook_weight:
+                        distribution: constant
+                        value: 1.0
+                      disc_in_channels:
+                        distribution: constant
+                        value: 0
+                      disc_num_layers:
+                        distribution: constant
+                        value: 0
+                      disc_weight:
+                        distribution: constant
+                        value: 0.0
+                      disc_factor:
+                        distribution: constant
+                        value: 0.0
+                      perceptual_weight:
+                        distribution: constant
+                        value: 0.0
+                      disc_start: 
+                        distribution: constant
+                        value: 10000
+              
+              
+              
+              lossconfig_phylo:
+                parameters:
+                  target: 
+                    distribution: constant
+                    value: taming.modules.losses.phyloloss.PhyloLoss
+                  params:
+                    parameters:
+                      phylo_weight:
+                        distribution: uniform
+                        min: 0.0
+                        max: 1.0
+                      phyloDistances_string:
+                        distribution: constant
+                        value: "0.8,0.45,0.25"
+                      fc_layers:
+                        distribution: constant
+                        value: 1
+                      phylogenyconfig:
+                        parameters:
+                          target:
+                            distribution: constant
+                            value: taming.data.phylogeny.Phylogeny
+                          params:
+                            parameters:
+                              filePath:
+                                distribution: constant
+                                value: /home/elhamod/data/Fish
+  data:
+    parameters:
+      target: 
+        distribution: constant
+        value: main.DataModuleFromConfig
+      params:
+        parameters:
+          batch_size:
+            distribution: constant
+            value: 5
+          num_workers:
+            distribution: constant
+            value: 8
+          train:
+            parameters:
+              target: 
+                distribution: constant
+                value: taming.data.custom.CustomTrain
+              params:
+                parameters:
+                  training_images_list_file: 
+                    distribution: constant
+                    value: /home/elhamod/data/Fish/taming_transforms_fish_train_padded_512.txt
+                  size:
+                    distribution: constant
+                    value: 512
+                  add_labels: 
+                    distribution: constant
+                    value: true
+
+          validation:
+            parameters:
+              target:
+                distribution: constant
+                value: taming.data.custom.CustomTest
+              params:
+                parameters:
+                  test_images_list_file: 
+                    distribution: constant
+                    value: /home/elhamod/data/Fish/taming_transforms_fish_test_padded_512.txt
+                  size:
+                    distribution: constant
+                    value: 512
+                  add_labels: 
+                    distribution: constant
+                    value: true
+  lightning:
+    parameters:
+      trainer:
+        parameters:
+          max_epochs:
+            distribution: constant
+            value: 10
+          profiler: 
+            distribution: constant
+            value: simple
