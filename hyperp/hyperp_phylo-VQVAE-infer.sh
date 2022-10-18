@@ -2,7 +2,7 @@
 
 #SBATCH --account=ml4science
 #SBATCH --partition=v100_normal_q
-#SBATCH --time=0-12:00:00 
+#SBATCH --time=0-24:00:00 
 #SBATCH --gres=gpu:1 
 #SBATCH -o ./SLURM/slurm-%j.out
 
@@ -24,7 +24,7 @@ which python
 which python3
 
 #python -m 
-wandb agent mndhamod/Phylo-VQVAE/e0fponh0
+wandb agent mndhamod/Phylo-VQVAE/62lfnhd1
 
 # To create a sweep:
 # wandb sweep --project Phylo-VQVAE hyperp/hyperp_bayes_nested.yaml 
@@ -32,5 +32,6 @@ wandb agent mndhamod/Phylo-VQVAE/e0fponh0
 # wandb sweep --project Phylo-VQVAE hyperp/hyperp_grid_phyloloss_codebookperlevel_nested.yaml
 # wandb sweep --project Phylo-VQVAE hyperp/hyperp_grid_phyloloss_numcodebooks_nested.yaml
 # wandb sweep --project Phylo-VQVAE hyperp/hyperp_grid_phyloloss_numphylochannels_nested.yaml
+# wandb sweep --project Phylo-VQVAE hyperp/hyperp_grid_phyloloss_numtotalchannels_nested.yaml
 
 exit;

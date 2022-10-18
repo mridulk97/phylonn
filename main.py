@@ -625,6 +625,7 @@ if __name__ == "__main__":
                 melk()
                 raise
         if not opt.no_test and not trainer.interrupted:
+            model.set_test_chkpt_path(ckptdir) #FIXME: this will bcause error if model does not have set_test_chkpt_path.
             trainer.test(model, data)
     except Exception:
         if opt.debug and trainer.global_rank==0:

@@ -1,0 +1,102 @@
+model:
+  base_learning_rate: 4.5e-6 #we tried 4.5e-3 #4.5e-6
+  target: taming.models.phyloautoencoder.PhyloVQVAE
+  project: Phylo-VQVAE
+  params:
+    ckpt_path: ./logs/256pixels_256embedding/checkpoints/last.ckpt
+    embed_dim: 256
+    n_embed: 1024
+    ddconfig:
+      double_z: False
+      z_channels: 256
+      resolution: 256
+      in_channels: 3
+      out_ch: 3
+      ch: 128
+      ch_mult: [ 1,1,2,2,4]  # num_down = len(ch_mult)-1
+      num_res_blocks: 2
+      attn_resolutions: [16]
+      dropout: 0.0
+    lossconfig:
+      target: taming.modules.losses.DummyLoss
+
+    phylomodel_params:
+      embed_dim: 16
+      n_embed: 64
+      #
+      n_phylolevels: 4
+      codebooks_per_phylolevel: 8
+      #
+      n_phylo_channels: 32
+      verbose: True
+      # NOT hyperparameters.
+      resolution: 16
+      in_channels: 256
+      out_ch: 256
+      ch: 32
+      #ch_mult: [ 1]  # num_down = len(ch_mult)-1
+      # num_res_blocks: 2
+      # attn_resolutions: [16]
+
+      lossconfig:
+        target: taming.modules.losses.vqperceptual.VQLPIPSWithDiscriminator
+        params:
+          codebook_weight: 1.0
+          disc_in_channels: 0
+          disc_num_layers: 0
+          disc_weight: 0.0
+          disc_factor: 0.0
+          perceptual_weight: 0.0
+          disc_start: 10000
+      
+      lossconfig_phylo:
+        target: taming.modules.losses.phyloloss.PhyloLoss
+        params:
+          phylo_weight: 0.1
+          fc_layers: 1
+          phyloDistances_string: "0.77,0.5,0.33"
+          phylogenyconfig:
+            target: taming.data.phylogeny.Phylogeny
+            params:
+              filePath: /home/elhamod/data/Fish
+      
+      lossconfig_kernelorthogonality:
+        target: taming.modules.losses.orthogonalloss.OrthogonalLoss
+        params:
+          weight: 1.0
+          padding: 0
+          stride: 1
+          
+        
+
+
+
+        
+
+data:
+  target: main.DataModuleFromConfig
+  params:
+    batch_size: 5
+    num_workers: 8
+    train:
+      target: taming.data.custom.CustomTrain
+      params:
+        training_images_list_file: /home/elhamod/data/Fish/taming_transforms_fish_train_padded_256.txt
+        size: 256
+        add_labels: true
+    validation:
+      target: taming.data.custom.CustomTest
+      params:
+        test_images_list_file: /home/elhamod/data/Fish/taming_transforms_fish_test_padded_256.txt
+        size: 256
+        add_labels: true
+
+lightning:
+  trainer:
+    # max_steps: 10 
+    # limit_train_batches: 10
+    # limit_val_batches: 10
+    # fast_dev_run: false
+    profiler: advanced #simple
+
+

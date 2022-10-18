@@ -328,6 +328,19 @@ class VectorQuantizer2(nn.Module):
 
         return z_q
 
+    def get_codebook_entry_index(self, entry):
+        codebook_shape = self.embedding.weight.data.shape
+
+        assert entry.shape[1]==codebook_shape[1]
+        distance = torch.norm(self.embedding.weight.data - entry, dim=1)
+        # print('distance', distance)
+        
+        nearest = torch.argmin(distance)
+        nearest_distance = torch.min(distance)
+        # print(nearest, nearest_distance)
+
+        return nearest, nearest_distance
+
 class EmbeddingEMA(nn.Module):
     def __init__(self, num_tokens, codebook_dim, decay=0.99, eps=1e-5):
         super().__init__()
