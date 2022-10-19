@@ -25,15 +25,15 @@ model:
       n_embed: 64
       #
       n_phylolevels: 4
-      codebooks_per_phylolevel: 8
+      codebooks_per_phylolevel: 4
       #
       n_phylo_channels: 32
-      verbose: True
+      verbose: False
       # NOT hyperparameters.
       resolution: 16
       in_channels: 256
       out_ch: 256
-      ch: 64
+      ch: 32
       #ch_mult: [ 1]  # num_down = len(ch_mult)-1
       # num_res_blocks: 2
       # attn_resolutions: [16]
@@ -66,11 +66,6 @@ model:
           weight: 1.0
           padding: 0
           stride: 1
-
-      lossconfig_anticlassification:
-        target: taming.modules.losses.anticlassificationloss.AntiClassificationLoss
-        params:
-          weight: 0.1
           
         
 

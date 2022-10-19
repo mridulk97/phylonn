@@ -36,7 +36,12 @@ which python
 # python main.py --name Phylo-VQVAE --postfix 512img-afterhyperp-no_orthogonality --base configs/custom_vqgan-512emb-512img-phylo-vqvae-phyloloss-afterhyperp-no_orthogonality.yaml -t True --gpus 0,
 
 # resume
-python main.py --resume /home/elhamod/projects/taming-transformers/logs/2022-10-14T11-39-39_Phylo-VQVAE512img-afterhyperp --postfix 512img-afterhyperp --base configs/custom_vqgan-512emb-512img-phylo-vqvae-phyloloss-afterhyperp-combination-nopassthrough.yaml -t True --gpus 0,
+# python main.py --resume /home/elhamod/projects/taming-transformers/logs/2022-10-14T11-39-39_Phylo-VQVAE512img-afterhyperp --postfix 512img-afterhyperp --base configs/custom_vqgan-512emb-512img-phylo-vqvae-phyloloss-afterhyperp-combination-nopassthrough.yaml -t True --gpus 0,
+
+# python main.py --name Phylo-VQVAE --postfix 256img-afterhyperp-combined-anticlass --base configs/custom_vqgan-256emb-512img-phylo-vqvae-phyloloss-afterhyperp-anticlassloss.yaml -t True --gpus 0,
+# python main.py --name Phylo-VQVAE --postfix 512img-afterhyperp-combined-anticlass --base configs/custom_vqgan-512img-phylo-vqvae-phyloloss-afterhyperp-anticlassloss.yaml -t True --gpus 0,
+python main.py --name Phylo-VQVAE --postfix 512img-afterhyperp-combined-4cbperlevel --base configs/custom_vqgan-512img-phylo-vqvae-phyloloss-afterhyperp-combination-nopassthrough-4cbperlevel.yaml -t True --gpus 0,
+
 
 exit;
 

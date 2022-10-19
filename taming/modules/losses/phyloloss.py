@@ -3,6 +3,7 @@ from sklearn.preprocessing import MultiLabelBinarizer
 import torch
 from torchmetrics import F1Score
 # from torchmetrics.classification import MultilabelF1Score
+import taming.constants as CONSTANTS
 
 from main import instantiate_from_config
 
@@ -39,7 +40,7 @@ class Species_sibling_finder():
 
 
 class PhyloLoss(nn.Module):
-    def __init__(self, phyloDistances_string, phylogenyconfig, phylo_weight, fc_layers, verbose=False):
+    def __init__(self, phyloDistances_string, phylogenyconfig, phylo_weight, fc_layers, add_anti_classification=False, verbose=False):
         super().__init__()
 
         self.phylo_distances = parse_phyloDistances(phyloDistances_string)
@@ -59,10 +60,10 @@ class PhyloLoss(nn.Module):
 
     def forward(self, cumulative_loss, activations, labels):
 
-        losses_dict = {'class_loss': self.criterionCE(activations['class'], labels)}
+        losses_dict = {'class_loss': self.criterionCE(activations[CONSTANTS.DISENTANGLER_CLASS_OUTPUT], labels)}
 
         for loss_name, activation in activations.items():
-            if loss_name=='class':
+            if loss_name in CONSTANTS.CLASS_TENSORS :
                 continue
             layer_truth = list(map(lambda x: self.siblingfinder.map_speciesId_siblingVector(x, loss_name), labels))
             mlb = MultiLabelBinarizer(classes = list(range(self.classifier_output_size)))
@@ -77,7 +78,7 @@ class PhyloLoss(nn.Module):
         losses_dict['cumulative_loss'] = cumulative_loss + self.phylo_weight*total_phylo_loss
 
         if self.verbose:
-            class_f1 = self.F1(activations['class'], labels)
+            class_f1 = self.F1(activations[CONSTANTS.DISENTANGLER_CLASS_OUTPUT], labels)
             losses_dict['class_f1'] = class_f1
 
         # return loss_dic

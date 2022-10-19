@@ -3,13 +3,13 @@ model:
   target: taming.models.phyloautoencoder.PhyloVQVAE
   project: Phylo-VQVAE
   params:
-    ckpt_path: ./logs/256pixels_256embedding/checkpoints/last.ckpt
+    ckpt_path: ./logs/512pixels_256embedding/checkpoints/last.ckpt
     embed_dim: 256
     n_embed: 1024
     ddconfig:
       double_z: False
       z_channels: 256
-      resolution: 256
+      resolution: 512
       in_channels: 3
       out_ch: 3
       ch: 128
@@ -30,7 +30,7 @@ model:
       n_phylo_channels: 32
       verbose: True
       # NOT hyperparameters.
-      resolution: 16
+      resolution: 32
       in_channels: 256
       out_ch: 256
       ch: 64
@@ -86,14 +86,14 @@ data:
     train:
       target: taming.data.custom.CustomTrain
       params:
-        training_images_list_file: /home/elhamod/data/Fish/taming_transforms_fish_train_padded_256.txt
-        size: 256
+        training_images_list_file: /home/elhamod/data/Fish/taming_transforms_fish_train_padded_512.txt
+        size: 512
         add_labels: true
     validation:
       target: taming.data.custom.CustomTest
       params:
-        test_images_list_file: /home/elhamod/data/Fish/taming_transforms_fish_test_padded_256.txt
-        size: 256
+        test_images_list_file: /home/elhamod/data/Fish/taming_transforms_fish_test_padded_512.txt
+        size: 512
         add_labels: true
 
 lightning:
