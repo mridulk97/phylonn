@@ -12,84 +12,9 @@ from tqdm import tqdm
 
 import taming.constants as CONSTANTS
 
+from omegaconf import OmegaConf
+import argparse
 
-
-
-
-###################
-
-# parameters
-# best 256 with phylo   
-# yaml_path = "/home/elhamod/projects/taming-transformers/logs/2022-10-07T12-09-20_Phylo-VQVAE256img-afterhyperp/configs/2022-10-07T12-09-20-project.yaml"
-# ckpt_path = "/home/elhamod/projects/taming-transformers/logs/2022-10-07T12-09-20_Phylo-VQVAE256img-afterhyperp/checkpoints/last.ckpt"
-# 256 with korthogonality
-# yaml_path = "/home/elhamod/projects/taming-transformers/logs/2022-10-13T01-13-29_Phylo-VQVAE256img-afterhyperp-kernelorthogonality/configs/2022-10-13T01-13-29-project.yaml"
-# ckpt_path = "/home/elhamod/projects/taming-transformers/logs/2022-10-13T01-13-29_Phylo-VQVAE256img-afterhyperp-kernelorthogonality/checkpoints/last.ckpt"
-# 256 less channels
-# yaml_path = "/home/elhamod/projects/taming-transformers/logs/2022-10-12T23-03-58_Phylo-VQVAE256img-afterhyperp-ch64/configs/2022-10-12T23-03-58-project.yaml"
-# ckpt_path = "/home/elhamod/projects/taming-transformers/logs/2022-10-12T23-03-58_Phylo-VQVAE256img-afterhyperp-ch64/checkpoints/last.ckpt"
-# 256 no pass through
-# yaml_path = "/home/elhamod/projects/taming-transformers/logs/2022-10-12T23-04-18_Phylo-VQVAE256img-afterhyperp-nopassthrough/configs/2022-10-12T23-04-18-project.yaml"
-# ckpt_path = "/home/elhamod/projects/taming-transformers/logs/2022-10-12T23-04-18_Phylo-VQVAE256img-afterhyperp-nopassthrough/checkpoints/last.ckpt"
-
-# 256 without phylo
-# yaml_path = "/home/elhamod/projects/taming-transformers/logs/2022-10-12T10-08-53_Phylo-VQVAE256img-afterhyperp-withoutphylo-round2/configs/2022-10-12T10-08-53-project.yaml"
-# ckpt_path = "/home/elhamod/projects/taming-transformers/logs/2022-10-12T10-08-53_Phylo-VQVAE256img-afterhyperp-withoutphylo-round2/checkpoints/last.ckpt"
-
-# # # 512 less channels
-# yaml_path = "/home/elhamod/projects/taming-transformers/logs/2022-10-14T11-39-30_Phylo-VQVAE512img-afterhyperp/configs/2022-10-14T11-39-30-project.yaml"
-# ckpt_path = "/home/elhamod/projects/taming-transformers/logs/2022-10-14T11-39-30_Phylo-VQVAE512img-afterhyperp/checkpoints/last.ckpt"
-
-# # 256 combined
-# yaml_path = "/home/elhamod/projects/taming-transformers/logs/2022-10-14T00-55-06_Phylo-VQVAE256img-afterhyperp-combined/configs/2022-10-14T00-55-06-project.yaml"
-# ckpt_path = "/home/elhamod/projects/taming-transformers/logs/2022-10-14T00-55-06_Phylo-VQVAE256img-afterhyperp-combined/checkpoints/last.ckpt"
-
-# # 512 combined no passthrough
-# yaml_path = "/home/elhamod/projects/taming-transformers/logs/2022-10-14T11-39-39_Phylo-VQVAE512img-afterhyperp/configs/2022-10-14T11-39-39-project.yaml"
-# ckpt_path = "/home/elhamod/projects/taming-transformers/logs/2022-10-14T11-39-39_Phylo-VQVAE512img-afterhyperp/checkpoints/last.ckpt"
-
-
-# #256 combined 36ch
-# yaml_path = "/home/elhamod/projects/taming-transformers/logs/2022-10-16T00-21-41_Phylo-VQVAE/configs/2022-10-16T00-21-41-project.yaml"
-# ckpt_path = "/home/elhamod/projects/taming-transformers/logs/2022-10-16T00-21-41_Phylo-VQVAE/checkpoints/last.ckpt"
-
-# # 256 combined nopass
-# yaml_path = "/home/elhamod/projects/taming-transformers/logs/2022-10-14T10-40-42_Phylo-VQVAE256img-afterhyperp-combined/configs/2022-10-14T10-40-42-project.yaml"
-# ckpt_path = "/home/elhamod/projects/taming-transformers/logs/2022-10-14T10-40-42_Phylo-VQVAE256img-afterhyperp-combined/checkpoints/last.ckpt"
-
-# 4cbs
-yaml_path = "/home/elhamod/projects/taming-transformers/logs/2022-10-17T12-20-24_Phylo-VQVAE256img-afterhyperp-combined-4cbperlevel/configs/2022-10-17T12-20-24-project.yaml"
-ckpt_path = "/home/elhamod/projects/taming-transformers/logs/2022-10-17T12-20-24_Phylo-VQVAE256img-afterhyperp-combined-4cbperlevel/checkpoints/last.ckpt"
-
-
-# # 46ch
-# yaml_path = "/home/elhamod/projects/taming-transformers/logs/2022-10-14T00-55-06_Phylo-VQVAE256img-afterhyperp-combined/configs/2022-10-14T00-55-06-project.yaml"
-# ckpt_path = "/home/elhamod/projects/taming-transformers/logs/2022-10-14T00-55-06_Phylo-VQVAE256img-afterhyperp-combined/checkpoints/last.ckpt"
-
-DEVICE=0
-
-num_workers = 8
-batch_size = 5 
-
-size= 256
-file_list_path = "/home/elhamod/data/Fish/taming_transforms_fish_train_padded_256.txt"
-
-# size= 512
-# file_list_path = "/home/elhamod/data/Fish/taming_transforms_fish_train_padded_512.txt"
-
-# file_list_path = "/home/elhamod/data/Fish/taming_transforms_fish_test_small.txt" # Just for test
-
-
-# imagepath="/home/elhamod/data/Fish/train_padded_256/Notropis percobromus/INHS_FISH_76701.jpg"
-imagepath= "/home/elhamod/data/Fish/train_padded_256/Notropis percobromus/INHS_FISH_76701.jpg"
-
-cummulative = False
-
-plot_diff = False
-
-# which_code_locations = [(0,0)]
-which_phylo_levels=range(4)#[0] #range(4)
-which_codebook_per_level=range(4)#[0] #range(8)
 
 ####################
 
@@ -114,7 +39,17 @@ class Clone_manger():
             return self.clone_list[index]
 
 @torch.no_grad()
-def main():
+def main(configs_yaml):
+    yaml_path = configs_yaml.yaml_path
+    ckpt_path = configs_yaml.ckpt_path
+    DEVICE = configs_yaml.DEVICE
+    imagepath = configs_yaml.imagepath
+    batch_size = configs_yaml.batch_size
+    file_list_path = configs_yaml.file_list_path
+    num_workers = configs_yaml.num_workers
+    size = configs_yaml.size
+    cummulative = configs_yaml.cummulative
+    plot_diff = configs_yaml.plot_diff
 
     # Load model
     config = load_config(yaml_path, display=False)
@@ -138,34 +73,15 @@ def main():
 
     dec_image_reversed, _, _, _ = model(processed_img.to(DEVICE), overriding_quant=all_codes_reverse_reshaped)
     
-
-    #TODO: why cant I move these globally?!?!?!?
-    which_codes=[]#[0,10,20,30]#[0,1]# [0]
-
-    if len(which_codes)==0:
-        which_codes = range(model.phylo_disentangler.n_embed)
-
-
     
+    which_codes = range(model.phylo_disentangler.n_embed)
     clone_manager = Clone_manger(cummulative, all_codes_reverse_reshaped, which_codes)
 
-    for level in which_phylo_levels:
-        for code_location in which_codebook_per_level:
+    for level in range(model.phylo_disentangler.n_phylolevels):
+        for code_location in range(model.phylo_disentangler.codebooks_per_phylolevel):
             generated_imgs = [dec_image, dec_image_reversed]
-
-            # if not cummulative:
-            #     all_codes_reverse_reshaped_clone = torch.clone(all_codes_reverse_reshaped)
-            # else:
-            #     all_codes_reverse_reshaped_clone_list = []
-            #     for code_index in which_codes:
-            #         all_codes_reverse_reshaped_clone_list.append(torch.clone(all_codes_reverse_reshaped))
-            
-                
                 
             for code_index in tqdm(which_codes):
-                # all_code_indices[code_location] = code_index
-                # if cummulative:
-                #     all_codes_reverse_reshaped_clone = all_codes_reverse_reshaped_clone_list[code_index]
                 all_codes_reverse_reshaped_clone = clone_manager.get_embedding(code_index)
                 all_codes_reverse_reshaped_clone[0, :, code_location, level] = model.phylo_disentangler.quantize.embedding(torch.tensor([code_index]).to(all_codes_reverse_reshaped.device))
 
@@ -182,4 +98,21 @@ def main():
         
 
 if __name__ == "__main__":
-    main()
+    parser = argparse.ArgumentParser()
+    parser.add_argument(
+        "-n",
+        "--config",
+        type=str,
+        nargs="?",
+        const=True,
+        default="analysis/configs/replace_codes.yaml",
+    )
+    
+    cfg, _ = parser.parse_known_args()
+    # cfg = parser.config
+    configs = OmegaConf.load(cfg.config)
+    cli = OmegaConf.from_cli()
+    config = OmegaConf.merge(configs, cli)
+    print(config)
+    
+    main(config)

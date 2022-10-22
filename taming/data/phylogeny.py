@@ -57,6 +57,16 @@ class Phylogeny:
     def get_siblings_by_name(self, species, relative_distance, get_ottids = False, verbose=False):
         ott_id = 'ott' + str(self.ott_id_dict[species])
         return self.get_siblings_by_ottid(ott_id, relative_distance, get_ottids, verbose)
+    
+    def get_parent_by_name(self, species, relative_distance, verbose=False):
+        ott_id = 'ott' + str(self.ott_id_dict[species])
+        parent = self.get_parent_by_ottid(ott_id, relative_distance, verbose)
+        return parent
+    
+    def get_distance_between_parents(self, species1, species2, relative_distance, verbose=False):
+        parent1 = self.get_parent_by_name(species1, relative_distance)
+        parent2 = self.get_parent_by_name(species2, relative_distance)
+        return self.tree.get_distance(parent1, parent2)
 
     def getLabelList(self):
         return list(self.node_ids)
@@ -87,10 +97,8 @@ class Phylogeny:
             self.distance_matrix[i] = {}
             for j in self.node_ids:
                 self.distance_matrix[i][j] = -1
-
-    # relative_distance = 0 => species node itself
-    # relative_distance = 1 => all species
-    def get_siblings_by_ottid(self, ott_id, relative_distance, get_ottids = False, verbose=False):
+                
+    def get_parent_by_ottid(self, ott_id, relative_distance, verbose=False):
         abs_distance = relative_distance*self.total_distance
         species_node = self.tree.search_nodes(name=ott_id)[0]
         if verbose:
@@ -105,6 +113,14 @@ class Phylogeny:
             parent = parent.up
             distance = self.tree.get_distance(parent, species_node)
         
+        return parent
+        
+
+    # relative_distance = 0 => species node itself
+    # relative_distance = 1 => all species
+    def get_siblings_by_ottid(self, ott_id, relative_distance, get_ottids = False, verbose=False):
+        parent = self.get_parent_by_ottid(ott_id, relative_distance, verbose=verbose)
+
         # get all leaves under paernt
         node_list = parent.get_leaves()
         ott_id_list = list(map(lambda x: x.name, node_list))

@@ -1,17 +1,18 @@
-from taming.loading_utils import load_config, load_phylovqvae
-from taming.data.custom import CustomTest as CustomDataset
-from taming.data.utils import custom_collate
 
-from torch.utils.data import DataLoader
-from pytorch_lightning.trainer import Trainer
-import torch
+DEVICE: 0
+
+num_workers: 8
+batch_size: 400 #100
 
 
+size: 256
+file_list_path: "/home/elhamod/data/Fish/taming_transforms_fish_train_padded_256.txt"
+# size= 512
+# file_list_path = "/home/elhamod/data/Fish/taming_transforms_fish_train_padded_512.txt"
+# file_list_path: "/home/elhamod/data/Fish/taming_transforms_fish_test_small.txt" # Just for test
 
+##############
 
-###################
-
-# parameters
 # best 256 with phylo
 # yaml_path = "/home/elhamod/projects/taming-transformers/logs/2022-10-07T12-09-20_Phylo-VQVAE256img-afterhyperp/configs/2022-10-07T12-09-20-project.yaml"
 # ckpt_path = "/home/elhamod/projects/taming-transformers/logs/2022-10-07T12-09-20_Phylo-VQVAE256img-afterhyperp/checkpoints/last.ckpt"
@@ -44,41 +45,17 @@ import torch
 
 
 # 256 combined nopass
-yaml_path = "/home/elhamod/projects/taming-transformers/logs/2022-10-14T10-40-42_Phylo-VQVAE256img-afterhyperp-combined/configs/2022-10-14T10-40-42-project.yaml"
-ckpt_path = "/home/elhamod/projects/taming-transformers/logs/2022-10-14T10-40-42_Phylo-VQVAE256img-afterhyperp-combined/checkpoints/last.ckpt"
+# yaml_path = "/home/elhamod/projects/taming-transformers/logs/2022-10-14T10-40-42_Phylo-VQVAE256img-afterhyperp-combined/configs/2022-10-14T10-40-42-project.yaml"
+# ckpt_path = "/home/elhamod/projects/taming-transformers/logs/2022-10-14T10-40-42_Phylo-VQVAE256img-afterhyperp-combined/checkpoints/last.ckpt"
+
+# 4cbs
+# yaml_path: "/home/elhamod/projects/taming-transformers/logs/2022-10-17T12-20-24_Phylo-VQVAE256img-afterhyperp-combined-4cbperlevel/configs/2022-10-17T12-20-24-project.yaml"
+# ckpt_path: "/home/elhamod/projects/taming-transformers/logs/2022-10-17T12-20-24_Phylo-VQVAE256img-afterhyperp-combined-4cbperlevel/checkpoints/last.ckpt"
+
+# anticlass 256
+yaml_path: "/home/elhamod/projects/taming-transformers/logs/2022-10-18T17-16-55_Phylo-VQVAE256img-afterhyperp-combined-anticlass/configs/2022-10-18T17-16-55-project.yaml"
+ckpt_path: "/home/elhamod/projects/taming-transformers/logs/2022-10-18T17-16-55_Phylo-VQVAE256img-afterhyperp-combined-anticlass/checkpoints/last.ckpt"
 
 
 
-DEVICE=0
 
-num_workers = 8
-batch_size = 5 
-
-
-size= 256
-file_list_path = "/home/elhamod/data/Fish/taming_transforms_fish_train_padded_256.txt"
-
-# size= 512
-# file_list_path = "/home/elhamod/data/Fish/taming_transforms_fish_train_padded_512.txt"
-
-# file_list_path = "/home/elhamod/data/Fish/taming_transforms_fish_test_small.txt" # Just for test
-
-
-####################
-
-@torch.no_grad()
-def main():
-    config = load_config(yaml_path, display=False)
-    model = load_phylovqvae(config, ckpt_path=ckpt_path).to(DEVICE)
-    model.set_test_chkpt_path(ckpt_path)
-
-    dataset = CustomDataset(size, file_list_path, add_labels=True)
-    dataloader = DataLoader(dataset.data, batch_size=batch_size, num_workers=num_workers, collate_fn=custom_collate)
-
-    trainer = Trainer(distributed_backend='ddp', gpus='0,')
-    test_measures = trainer.test(model, dataloader)
-
-    print('test_measures', test_measures)
-
-if __name__ == "__main__":
-    main()

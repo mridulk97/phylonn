@@ -30,8 +30,9 @@ def save_image_grid(torch_images_4D, ckpt_path, subfolder=None, postfix="", nrow
     Image.fromarray(grid).save(path)
 
 
-def get_fig_pth(ckpt_path, postfix):
-    postfix = os.path.join('figs', postfix)
+def get_fig_pth(ckpt_path, postfix=None):
+    figs_postfix = 'figs'
+    postfix = os.path.join(figs_postfix, postfix) if postfix is not None else figs_postfix
     parent_path = Path(ckpt_path).parent.parent.absolute()
     fig_path = Path(os.path.join(parent_path, postfix))
     os.makedirs(fig_path, exist_ok=True)

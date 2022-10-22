@@ -17,7 +17,7 @@ def load_phylovqvae(config, ckpt_path=None):
     model = PhyloVQVAE(**config.model.params)
     if ckpt_path is not None:
         sd = torch.load(ckpt_path, map_location="cpu")["state_dict"]
-        missing, unexpected = model.load_state_dict(sd, strict=False)
+        missing, unexpected = model.load_state_dict(sd, strict=True)
     return model.eval()
 
 

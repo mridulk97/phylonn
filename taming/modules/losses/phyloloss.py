@@ -40,14 +40,15 @@ class Species_sibling_finder():
 
 
 class PhyloLoss(nn.Module):
-    def __init__(self, phyloDistances_string, phylogenyconfig, phylo_weight, fc_layers, add_anti_classification=False, verbose=False):
+    def __init__(self, phyloDistances_string, phylogenyconfig, phylo_weight, fc_layers, verbose=False):
         super().__init__()
-
         self.phylo_distances = parse_phyloDistances(phyloDistances_string)
         self.phylogeny = instantiate_from_config(phylogenyconfig)
         self.siblingfinder = Species_sibling_finder(self.phylogeny, self.phylo_distances)
         self.phylo_weight = phylo_weight
         self.classifier_output_size = len(self.phylogeny.getLabelList())
+        self.mlb = MultiLabelBinarizer(classes = list(range(self.classifier_output_size)))
+        
         self.fc_layers = fc_layers
 
         self.verbose = verbose
@@ -56,6 +57,7 @@ class PhyloLoss(nn.Module):
         self.criterionCE = torch.nn.CrossEntropyLoss() #TODO: we might want to look at tricks such as weight balancing (see get_criterion from HGNN). For now, it is fine.
         if self.verbose:
             self.F1 = F1Score(num_classes=self.classifier_output_size, multiclass=True)
+            
             # self.F1_multilabel = MultilabelF1Score(num_labels=self.classifier_output_size) # NOTE: Does not work for torchmetrics < 0.10
 
     def forward(self, cumulative_loss, activations, labels):
@@ -66,8 +68,8 @@ class PhyloLoss(nn.Module):
             if loss_name in CONSTANTS.CLASS_TENSORS :
                 continue
             layer_truth = list(map(lambda x: self.siblingfinder.map_speciesId_siblingVector(x, loss_name), labels))
-            mlb = MultiLabelBinarizer(classes = list(range(self.classifier_output_size)))
-            hotcoded_siblingindices = torch.FloatTensor(mlb.fit_transform(layer_truth)).to(activation.device)
+            
+            hotcoded_siblingindices = torch.FloatTensor(self.mlb.fit_transform(layer_truth)).to(activation.device)
             losses_dict[loss_name+"_loss"] = self.criterionBCE(activation, hotcoded_siblingindices)
             # losses_dict[loss_name+"_f1"] = self.F1_multilabel(activation, hotcoded_siblingindices)
 

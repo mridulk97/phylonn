@@ -39,19 +39,18 @@ def accumulate_features(dataloader, model, output_keys=[CONSTANTS.QUANTIZED_PHYL
     return accumlated_features, accumulated_labels, accumulated_predictions
 
 
-def get_zqphylo_sub(zqphylo, num_phylo_levels =None, phylo_level=None, sub_vector_ratio=None):
-    print(zqphylo.shape)
+def get_zqphylo_sub(zqphylo, num_phylo_levels, level=None):
+    assert level < num_phylo_levels and level>0
     zqphylo_size = zqphylo.shape[1]
-    vector_unit_ration = 1/num_phylo_levels
+    vector_unit_ratio = 1/num_phylo_levels
+    sub_vector_ratio = (level+1)/num_phylo_levels if level is not None else None
 
     if sub_vector_ratio is not None:
-        phylo_distance_cap = 1 - phylo_level
-        sub_vector= slice(int((sub_vector_ratio-vector_unit_ration)*zqphylo_size), int(sub_vector_ratio*zqphylo_size))
+        sub_vector= slice(int((sub_vector_ratio-vector_unit_ratio)*zqphylo_size), int(sub_vector_ratio*zqphylo_size))
     else:
-        phylo_distance_cap = 0.
         sub_vector= slice(0, zqphylo_size)
 
-    return phylo_distance_cap, sub_vector
+    return zqphylo[:, sub_vector]
 
 
 def get_CosineDistance_matrix(features):
@@ -72,13 +71,22 @@ def get_HammingDistance_matrix(features):
     hamming_distance = hamming_distance/torch.max(hamming_distance)
     return hamming_distance
 
-def get_species_pylo_distance(classnames, distance_function):
+def get_species_phylo_distance(classnames, distance_function, **distance_function_args):
+    unique_class_names = list(set(classnames))
     ans = torch.zeros(len(classnames),len(classnames))
+    
+    cache = {}
+    for i in unique_class_names:
+        cache[i] = {}
 
     for indx, i in enumerate(classnames):
         for indx2, j in enumerate(classnames[indx+1:]):
-            dist = distance_function(i, j)
-            # print(i, j, dist)
+            if (j in cache[i].keys()):
+                dist = cache[i][j]
+            else:
+                dist = distance_function(i, j, **distance_function_args)
+                cache[i][j] = dist
+
             ans[indx][indx2+1+indx] = ans[indx2+1+indx][indx] = dist
             
     distances_phylo_normalized = ans/(EPS+torch.max(ans))
@@ -94,6 +102,25 @@ class Embedding_Code_converter():
         self.get_codebook_entry_index_function = get_codebook_entry_index_function
         self.embedding_shape = embedding_shape # (16, 8, 4))
 
+    
+    # i(32) <-> k(8),j(4)
+    def get_code_reshaped_index(self, i, j=None):
+        codebooks_per_level = self.embedding_shape[1]
+
+        if j is not None:
+            return i + j*codebooks_per_level
+        else:
+            return i%codebooks_per_level, i//codebooks_per_level
+
+    ### (n, 8, k) < - > (n, 8*k)
+    def reshape_code(self, embedding, reverse = False):
+        if not reverse:
+            ans = embedding.reshape(embedding.shape[0], -1)
+        else:
+            ans = embedding.reshape((embedding.shape[0], -1, self.embedding_shape[-1]))
+        
+        return ans
+    
     ### (n, 16, 8, 4) < - > (n, 32, 16)
     def reshape_zphylo(self, embedding, reverse = False):
         if not reverse:

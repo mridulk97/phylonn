@@ -1,13 +1,12 @@
-from turtle import forward
 from torch import nn
 import torch
-import numpy as np
 
 class AntiClassificationLoss(nn.Module):
-    def __init__(self, weight=1.0, verbose=False):
+    def __init__(self, weight=1.0, beta=1.0, verbose=False):
         super().__init__()
         
         self.weight = weight
+        self.beta = beta
         
 
     def forward(self, codebook_mapping_layers, zq_nonphylo, zq_phylo):

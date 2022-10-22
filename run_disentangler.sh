@@ -40,7 +40,9 @@ which python
 
 # python main.py --name Phylo-VQVAE --postfix 256img-afterhyperp-combined-anticlass --base configs/custom_vqgan-256emb-512img-phylo-vqvae-phyloloss-afterhyperp-anticlassloss.yaml -t True --gpus 0,
 # python main.py --name Phylo-VQVAE --postfix 512img-afterhyperp-combined-anticlass --base configs/custom_vqgan-512img-phylo-vqvae-phyloloss-afterhyperp-anticlassloss.yaml -t True --gpus 0,
-python main.py --name Phylo-VQVAE --postfix 512img-afterhyperp-combined-4cbperlevel --base configs/custom_vqgan-512img-phylo-vqvae-phyloloss-afterhyperp-combination-nopassthrough-4cbperlevel.yaml -t True --gpus 0,
+# python main.py --name Phylo-VQVAE --postfix 512img-afterhyperp-combined-4cbperlevel --base configs/custom_vqgan-512img-phylo-vqvae-phyloloss-afterhyperp-combination-nopassthrough-4cbperlevel.yaml -t True --gpus 0,
+python main.py --name Phylo-VQVAE --postfix 512img-phylo-vqvae-phase2-morech-8cbperlevel --base configs/custom_vqgan-256emb-512img-phylo-vqvae-phase2-morech-8cbperlevel.yaml -t True --gpus 0,
+# python main.py --name Phylo-VQVAE --postfix 256img-phylo-vqvae-phase2-morech-8cbperlevel --base configs/custom_vqgan-256emb-256img-phylo-vqvae-phase2-morech-8cbperlevel.yaml -t True --gpus 0,
 
 
 exit;

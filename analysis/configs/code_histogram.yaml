@@ -1,0 +1,32 @@
+size: 256
+file_list_path: "/home/elhamod/data/Fish/taming_transforms_fish_train_padded_256.txt"
+# size= 512
+# file_list_path = "/home/elhamod/data/Fish/taming_transforms_fish_train_padded_512.txt"
+
+DEVICE: 0
+num_workers: 8
+batch_size: 1 # DO NOT CHANGE! 
+
+create_histograms: True
+generate_specifmen: False
+num_specimen_generated: 64
+
+##############################
+
+# # 256 combined nopass
+# yaml_path = "/home/elhamod/projects/taming-transformers/logs/2022-10-14T10-40-42_Phylo-VQVAE256img-afterhyperp-combined/configs/2022-10-14T10-40-42-project.yaml"
+# ckpt_path = "/home/elhamod/projects/taming-transformers/logs/2022-10-14T10-40-42_Phylo-VQVAE256img-afterhyperp-combined/checkpoints/last.ckpt"
+
+# 4cbs
+# yaml_path: "/home/elhamod/projects/taming-transformers/logs/2022-10-17T12-20-24_Phylo-VQVAE256img-afterhyperp-combined-4cbperlevel/configs/2022-10-17T12-20-24-project.yaml"
+# ckpt_path: "/home/elhamod/projects/taming-transformers/logs/2022-10-17T12-20-24_Phylo-VQVAE256img-afterhyperp-combined-4cbperlevel/checkpoints/last.ckpt"
+
+# anticlass 256
+yaml_path: "/home/elhamod/projects/taming-transformers/logs/2022-10-18T17-16-55_Phylo-VQVAE256img-afterhyperp-combined-anticlass/configs/2022-10-18T17-16-55-project.yaml"
+ckpt_path: "/home/elhamod/projects/taming-transformers/logs/2022-10-18T17-16-55_Phylo-VQVAE256img-afterhyperp-combined-anticlass/checkpoints/last.ckpt"
+
+
+# # 46ch
+# yaml_path = "/home/elhamod/projects/taming-transformers/logs/2022-10-14T00-55-06_Phylo-VQVAE256img-afterhyperp-combined/configs/2022-10-14T00-55-06-project.yaml"
+# ckpt_path = "/home/elhamod/projects/taming-transformers/logs/2022-10-14T00-55-06_Phylo-VQVAE256img-afterhyperp-combined/checkpoints/last.ckpt"
+
