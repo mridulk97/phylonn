@@ -27,6 +27,9 @@ from torchmetrics import F1Score
 import math
 
 
+TEST_DIR="results_summary"
+
+
 
 class ClassifierLayer(torch.nn.Module):
     def __init__(self, num_of_inputs, num_of_outputs, num_of_layers = 1, bnorm=False, relu=True):
@@ -242,7 +245,6 @@ class PhyloDisentangler(torch.nn.Module):
             
                 loss_dic['anti_classification_mapping_loss'] = mapping_loss
                 loss_dic['anti_classification_learning_loss'] = learning_loss
-            #     outputs[CONSTANTS.DISENTANGLER_ANTICLASS_OUTPUT] = self.anti_classification_layers(h_img)
             
                 if self.verbose:
                     if self.loss_phylo is not None:
@@ -464,14 +466,14 @@ class PhyloVQVAE(VQModel):
             sub_sorted_zq_phylos_codes = self.phylo_disentangler.embedding_converter.reshape_code(reverse_shaped_sorted_zq_phylos_codes[:, :, :level+1])
             zq_hamming_distances = get_HammingDistance_matrix(sub_sorted_zq_phylos_codes)
             
-            plot_heatmap(zq_hamming_distances.cpu(), self.test_chkpt_path, title='zq hamming distances for level {}'.format(level))
+            plot_heatmap(zq_hamming_distances.cpu(), self.test_chkpt_path, title='zq hamming distances for level {}'.format(level), postfix=TEST_DIR)
             
             #********************
             print("Calculating phylo distances for level {}".format(level))
             
-            level_relative_distance = 1- (self.phylo_disentangler.loss_phylo.phylo_distances[level] if level < len(self.phylo_disentangler.loss_phylo.phylo_distances) else 1)
+            level_relative_distance = self.phylo_disentangler.loss_phylo.get_relative_distance_for_level(level)
             species_distances = get_species_phylo_distance(soted_class_names, self.phylo_disentangler.loss_phylo.phylogeny.get_distance_between_parents, relative_distance=level_relative_distance)
-            plot_heatmap(species_distances, self.test_chkpt_path, title='phylo distances for level {}'.format(level))
+            plot_heatmap(species_distances, self.test_chkpt_path, title='phylo distances for level {}'.format(level), postfix=TEST_DIR)
 
             dump_to_json(test_measures, self.test_chkpt_path)
             
@@ -490,8 +492,8 @@ class PhyloVQVAE(VQModel):
                     i_j_mean_phylo_distance = torch.mean(species_distances[class_i_indices, :][:, class_j_indices])
                     embedding_dist[indx_i][indx_j+ indx_i] = embedding_dist[indx_j+ indx_i][indx_i] = i_j_mean_embeddign_distance
                     phylo_dist[indx_i][indx_j+ indx_i] = phylo_dist[indx_j+ indx_i][indx_i] = i_j_mean_phylo_distance
-            plot_heatmap(phylo_dist.cpu(), self.test_chkpt_path, title='phylo species distances for level {}'.format(level))
-            plot_heatmap(embedding_dist.cpu(), self.test_chkpt_path, title='zq hamming species distances for level {}'.format(level))
+            plot_heatmap(phylo_dist.cpu(), self.test_chkpt_path, title='phylo species distances for level {}'.format(level), postfix=TEST_DIR)
+            plot_heatmap(embedding_dist.cpu(), self.test_chkpt_path, title='zq hamming species distances for level {}'.format(level), postfix=TEST_DIR)
 
             
 

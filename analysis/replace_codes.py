@@ -1,7 +1,7 @@
 
 
 from taming.loading_utils import load_config, load_phylovqvae
-from taming.plotting_utils import save_image_grid
+from taming.plotting_utils import save_image_grid, get_fig_pth
 from taming.data.custom import CustomTest as CustomDataset
 from taming.data.utils import custom_collate
 from taming.analysis_utils import Embedding_Code_converter
@@ -9,47 +9,65 @@ from taming.analysis_utils import Embedding_Code_converter
 import torch
 from torch.utils.data import DataLoader
 from tqdm import tqdm
+import numpy as np
+from scipy.stats import entropy
 
 import taming.constants as CONSTANTS
 
 from omegaconf import OmegaConf
 import argparse
 
+import os
+import pickle
 
 ####################
 
 class Clone_manger():
-    def __init__(self, cummulative, embedding, codes):
+    def __init__(self, cummulative, embedding):#, num_of_codes):
         self.cummulative = cummulative
         self.embedding = embedding
-
-        # if not cummulative:
-        if cummulative:
-        #         self.clone = torch.clone(embedding)
-        # else:
-            self.clone_list = []
-            for code_index in codes:
-                self.clone_list.append(torch.clone(embedding))
 
     def get_embedding(self, index=None):
         assert (index is not None) or (not self.cummulative)
         if not self.cummulative:
             return torch.clone(self.embedding)
         else:
-            return self.clone_list[index]
+            # return self.clone_list[index]
+            return self.embedding
+
+
+# indexing of hist_arr: [code_location][raw list of codes of that location from all images]
+def get_entropy_ordering(hist_arr_for_species):
+    entropies = []
+    for codes_forcode_location in hist_arr_for_species:
+        value,counts = np.unique(codes_forcode_location, return_counts=True)
+        entropies.append(entropy(counts))
+    reverse_ordered_entropy_indices = np.argsort(entropies)[::-1]
+    # print(entropies, reverse_ordered_entropy_indices)
+    return reverse_ordered_entropy_indices
+    
+
+def get_highest_likelyhood_ordering(hist_arr_for_species_and_location):
+    value,counts = np.unique(hist_arr_for_species_and_location, return_counts=True)
+    ordered_count_indices = np.argsort(counts)
+    # print(counts, ordered_count_indices)
+    return ordered_count_indices
+    
+
 
 @torch.no_grad()
 def main(configs_yaml):
     yaml_path = configs_yaml.yaml_path
     ckpt_path = configs_yaml.ckpt_path
     DEVICE = configs_yaml.DEVICE
-    imagepath = configs_yaml.imagepath
+    image_index = configs_yaml.image_index
     batch_size = configs_yaml.batch_size
     file_list_path = configs_yaml.file_list_path
     num_workers = configs_yaml.num_workers
     size = configs_yaml.size
     cummulative = configs_yaml.cummulative
     plot_diff = configs_yaml.plot_diff
+    by_entropy = configs_yaml.by_entropy
 
     # Load model
     config = load_config(yaml_path, display=False)
@@ -58,10 +76,13 @@ def main(configs_yaml):
 
     # load image
     dataset = CustomDataset(size, file_list_path, add_labels=True)
-    dataloader = DataLoader(dataset.data, batch_size=batch_size, num_workers=num_workers, collate_fn=custom_collate)
-    processed_img = torch.from_numpy(dataloader.dataset.preprocess_image(imagepath)).unsqueeze(0)
+    specimen = dataset[image_index]
+    processed_img = specimen['image']
+    processed_img = torch.from_numpy(processed_img).unsqueeze(0)
     processed_img = processed_img.permute(0, 3, 1, 2).to(memory_format=torch.contiguous_format)
     processed_img = processed_img.float()
+    species_index = specimen['class']
+    print(specimen['file_path_'], specimen['class'])
 
     # get output
     dec_image, _, _, in_out_disentangler = model(processed_img.to(DEVICE))
@@ -73,27 +94,46 @@ def main(configs_yaml):
 
     dec_image_reversed, _, _, _ = model(processed_img.to(DEVICE), overriding_quant=all_codes_reverse_reshaped)
     
+    # Get code and location ordering
+    histograms_file = os.path.join(get_fig_pth(ckpt_path, postfix=CONSTANTS.HISTOGRAMS_FOLDER), CONSTANTS.HISTOGRAMS_FILE)
+    histogram_file_exists = os.path.exists(histograms_file)
+    if by_entropy and not histogram_file_exists:
+        print("histograms have not been generated. Run code_histogram.py first! Defaulting to index ordering")
+    using_entropy = by_entropy and os.path.exists(histograms_file)
+    if not using_entropy:
+        which_codes = range(model.phylo_disentangler.n_embed)
+        which_locations = range(model.phylo_disentangler.codebooks_per_phylolevel*model.phylo_disentangler.n_phylolevels)
+    else:
+        hist_arr, hist_arr_nonattr = pickle.load(open(histograms_file, "rb"))
+        which_locations = get_entropy_ordering(hist_arr[species_index])
+        
+        
     
-    which_codes = range(model.phylo_disentangler.n_embed)
-    clone_manager = Clone_manger(cummulative, all_codes_reverse_reshaped, which_codes)
+    clone_manager = Clone_manger(cummulative, all_codes_reverse_reshaped) #  model.phylo_disentangler.n_embed
 
-    for level in range(model.phylo_disentangler.n_phylolevels):
-        for code_location in range(model.phylo_disentangler.codebooks_per_phylolevel):
-            generated_imgs = [dec_image, dec_image_reversed]
-                
-            for code_index in tqdm(which_codes):
-                all_codes_reverse_reshaped_clone = clone_manager.get_embedding(code_index)
-                all_codes_reverse_reshaped_clone[0, :, code_location, level] = model.phylo_disentangler.quantize.embedding(torch.tensor([code_index]).to(all_codes_reverse_reshaped.device))
 
-                dec_image_new, _, _, _ = model(processed_img.to(DEVICE), overriding_quant=all_codes_reverse_reshaped_clone)
-                
-                if plot_diff:
-                    generated_imgs.append(dec_image_new - dec_image)
-                else:
-                    generated_imgs.append(dec_image_new)
+    # for level in range(model.phylo_disentangler.n_phylolevels):
+    for ordering, code_level_location in enumerate(which_locations):
+        code_location, level = converter.get_code_reshaped_index(code_level_location)
+        
+        generated_imgs = [dec_image, dec_image_reversed]
             
-            generated_imgs = torch.cat(generated_imgs, dim=0)
-            save_image_grid(generated_imgs, ckpt_path, subfolder="codebook_grid-cumulative{}".format(cummulative), postfix="level{}-location{}".format(level, code_location))
+        if using_entropy:
+            which_codes = get_highest_likelyhood_ordering(hist_arr[species_index][code_level_location])
+            
+        for code_index in which_codes:
+            all_codes_reverse_reshaped_clone = clone_manager.get_embedding(code_index)
+            all_codes_reverse_reshaped_clone[0, :, code_location, level] = model.phylo_disentangler.quantize.embedding(torch.tensor([code_index]).to(all_codes_reverse_reshaped.device))
+
+            dec_image_new, _, _, _ = model(processed_img.to(DEVICE), overriding_quant=all_codes_reverse_reshaped_clone)
+            
+            if plot_diff:
+                generated_imgs.append(dec_image_new - dec_image)
+            else:
+                generated_imgs.append(dec_image_new)
+        
+        generated_imgs = torch.cat(generated_imgs, dim=0)
+        save_image_grid(generated_imgs, ckpt_path, subfolder="codebook_grid-cumulative{}".format(cummulative), postfix="ordering{}-level{}-location{}".format(ordering, level, code_location))
 
         
 

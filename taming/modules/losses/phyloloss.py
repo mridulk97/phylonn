@@ -60,6 +60,9 @@ class PhyloLoss(nn.Module):
             
             # self.F1_multilabel = MultilabelF1Score(num_labels=self.classifier_output_size) # NOTE: Does not work for torchmetrics < 0.10
 
+    def get_relative_distance_for_level(self, level):
+        return 1- (self.phylo_distances[level] if level < len(self.phylo_distances) else 1)
+    
     def forward(self, cumulative_loss, activations, labels):
 
         losses_dict = {'class_loss': self.criterionCE(activations[CONSTANTS.DISENTANGLER_CLASS_OUTPUT], labels)}

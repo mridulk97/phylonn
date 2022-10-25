@@ -63,10 +63,26 @@ class Phylogeny:
         parent = self.get_parent_by_ottid(ott_id, relative_distance, verbose)
         return parent
     
-    def get_distance_between_parents(self, species1, species2, relative_distance, verbose=False):
+    def get_distance_between_parents(self, species1, species2, relative_distance):
         parent1 = self.get_parent_by_name(species1, relative_distance)
         parent2 = self.get_parent_by_name(species2, relative_distance)
         return self.tree.get_distance(parent1, parent2)
+    
+    def get_species_groups(self, relative_distance, verbose=False):
+        groups = {}
+        for species in self.getLabelList():
+            parent = self.get_parent_by_name(species, relative_distance, verbose).name
+            if parent not in groups.keys():
+                groups[parent] = [species]
+            else:
+                groups[parent].append(species)
+        
+        if verbose:
+            print("At relative_distance", relative_distance, ", the groups are:", groups.values())
+        
+        return groups.values()
+                
+            
 
     def getLabelList(self):
         return list(self.node_ids)
@@ -102,7 +118,7 @@ class Phylogeny:
         abs_distance = relative_distance*self.total_distance
         species_node = self.tree.search_nodes(name=ott_id)[0]
         if verbose:
-            print('distance to common ancestor: ', abs_distance)
+            print('distance to ancestor: ', abs_distance, ". relaive distance: ", relative_distance)
 
         # keep going up till distance exceeds abs_distance
         distance = 0

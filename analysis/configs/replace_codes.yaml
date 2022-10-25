@@ -1,14 +1,16 @@
 yaml_path: "/home/elhamod/projects/taming-transformers/logs/2022-10-17T12-20-24_Phylo-VQVAE256img-afterhyperp-combined-4cbperlevel/configs/2022-10-17T12-20-24-project.yaml"
 ckpt_path: "/home/elhamod/projects/taming-transformers/logs/2022-10-17T12-20-24_Phylo-VQVAE256img-afterhyperp-combined-4cbperlevel/checkpoints/last.ckpt"
 
-imagepath: "/home/elhamod/data/Fish/train_padded_256/Notropis percobromus/INHS_FISH_76701.jpg"
-
+# imagepath: "/home/elhamod/data/Fish/train_padded_256/Notropis percobromus/INHS_FISH_76701.jpg"
+image_index: 10
 size: 256
 file_list_path: "/home/elhamod/data/Fish/taming_transforms_fish_train_padded_256.txt"
 # size= 512
 # file_list_path = "/home/elhamod/data/Fish/taming_transforms_fish_train_padded_512.txt"
 
-cummulative: True
+by_entropy: True 
+
+cummulative: False
 plot_diff: False
 
 DEVICE: 0

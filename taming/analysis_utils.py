@@ -103,21 +103,21 @@ class Embedding_Code_converter():
         self.embedding_shape = embedding_shape # (16, 8, 4))
 
     
-    # i(32) <-> k(8),j(4)
+    # k(32) <-> k(8),j(4)
     def get_code_reshaped_index(self, i, j=None):
-        codebooks_per_level = self.embedding_shape[1]
+        n_levels = self.embedding_shape[-1]
 
         if j is not None:
-            return i + j*codebooks_per_level
+            return i*n_levels + j
         else:
-            return i%codebooks_per_level, i//codebooks_per_level
+            return i//n_levels, i%n_levels, 
 
     ### (n, 8, k) < - > (n, 8*k)
-    def reshape_code(self, embedding, reverse = False):
+    def reshape_code(self, code, reverse = False):
         if not reverse:
-            ans = embedding.reshape(embedding.shape[0], -1)
+            ans = code.reshape(code.shape[0], -1)
         else:
-            ans = embedding.reshape((embedding.shape[0], -1, self.embedding_shape[-1]))
+            ans = code.reshape((code.shape[0], -1, self.embedding_shape[-1]))
         
         return ans
     

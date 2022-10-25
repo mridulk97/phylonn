@@ -7,9 +7,12 @@ DEVICE: 0
 num_workers: 8
 batch_size: 1 # DO NOT CHANGE! 
 
-create_histograms: True
-generate_specifmen: False
-num_specimen_generated: 64
+per_phylo_level: True
+
+create_histograms: False
+
+generate_specifmen: True
+num_specimen_generated: 16
 
 ##############################
 

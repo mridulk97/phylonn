@@ -14,3 +14,6 @@ DATASET_CLASSNAME = 'class_name'
 
 PHYLOCONFIG_KEY = "phylomodel_params"
 BASEMODEL_KEY = "basemodel"
+
+HISTOGRAMS_FOLDER='code_histograms'
+HISTOGRAMS_FILE="histograms.pkl"
