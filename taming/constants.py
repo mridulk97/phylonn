@@ -13,7 +13,10 @@ CLASS_TENSORS = [DISENTANGLER_CLASS_OUTPUT]
 DATASET_CLASSNAME = 'class_name'
 
 PHYLOCONFIG_KEY = "phylomodel_params"
+DISENTANGLERTYPE_KEY = 'disentangler_type'
 BASEMODEL_KEY = "basemodel"
 
 HISTOGRAMS_FOLDER='code_histograms'
 HISTOGRAMS_FILE="histograms.pkl"
+
+DISENTANGLER_PHYLO_LOSS="/disentangler_phylo_loss"

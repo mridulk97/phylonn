@@ -11,6 +11,7 @@ from pytorch_lightning.trainer import Trainer
 from pytorch_lightning.callbacks import ModelCheckpoint, Callback, LearningRateMonitor
 from pytorch_lightning.utilities.distributed import rank_zero_only
 
+import taming.constants as CONSTANTS
 from taming.data.utils import custom_collate
 
 import wandb
@@ -519,7 +520,11 @@ if __name__ == "__main__":
                 "dirpath": ckptdir,
                 "filename": "{epoch:06}",
                 "verbose": True,
-                "save_last": True,
+                "monitor": "val"+CONSTANTS.DISENTANGLER_PHYLO_LOSS,
+                "save_top_k": 3,
+                "mode": "min",
+                "period": 3
+                # "save_last": True,
                 #"every_n_epochs": 10, #NOTE: didnt work because pl version 1.0.8 is too old.
             }
         }

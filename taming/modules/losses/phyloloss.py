@@ -12,6 +12,8 @@ def parse_phyloDistances(phyloDistances_string):
     sorted_distance = sorted(list(map(lambda x: float(x), phyloDistances_list_string)))
     return sorted_distance
 
+def get_relative_distance_for_level(phylo_distances, level):
+    return 1- (phylo_distances[level] if level < len(phylo_distances) else 1)
 
 class Species_sibling_finder():
     # Contructor
@@ -55,17 +57,16 @@ class PhyloLoss(nn.Module):
 
         self.criterionBCE = torch.nn.BCEWithLogitsLoss()
         self.criterionCE = torch.nn.CrossEntropyLoss() #TODO: we might want to look at tricks such as weight balancing (see get_criterion from HGNN). For now, it is fine.
-        if self.verbose:
-            self.F1 = F1Score(num_classes=self.classifier_output_size, multiclass=True)
+        self.F1 = F1Score(num_classes=self.classifier_output_size, multiclass=True)
             
-            # self.F1_multilabel = MultilabelF1Score(num_labels=self.classifier_output_size) # NOTE: Does not work for torchmetrics < 0.10
-
+        # self.F1_multilabel = MultilabelF1Score(num_labels=self.classifier_output_size) # NOTE: Does not work for torchmetrics < 0.10
+    
     def get_relative_distance_for_level(self, level):
-        return 1- (self.phylo_distances[level] if level < len(self.phylo_distances) else 1)
+        return get_relative_distance_for_level(self.phylo_distances, level)
     
     def forward(self, cumulative_loss, activations, labels):
 
-        losses_dict = {'class_loss': self.criterionCE(activations[CONSTANTS.DISENTANGLER_CLASS_OUTPUT], labels)}
+        losses_dict = {'individual_losses': {'class_loss': self.criterionCE(activations[CONSTANTS.DISENTANGLER_CLASS_OUTPUT], labels)}}
 
         for loss_name, activation in activations.items():
             if loss_name in CONSTANTS.CLASS_TENSORS :
@@ -73,18 +74,17 @@ class PhyloLoss(nn.Module):
             layer_truth = list(map(lambda x: self.siblingfinder.map_speciesId_siblingVector(x, loss_name), labels))
             
             hotcoded_siblingindices = torch.FloatTensor(self.mlb.fit_transform(layer_truth)).to(activation.device)
-            losses_dict[loss_name+"_loss"] = self.criterionBCE(activation, hotcoded_siblingindices)
+            losses_dict['individual_losses'][loss_name+"_loss"] = self.criterionBCE(activation, hotcoded_siblingindices)
             # losses_dict[loss_name+"_f1"] = self.F1_multilabel(activation, hotcoded_siblingindices)
 
         # aggregate the losses
         # NOTE: Don't add losses you don't want to add up before here!
-        total_phylo_loss = torch.stack(list(losses_dict.values())).sum()
+        total_phylo_loss = torch.stack(list(losses_dict['individual_losses'].values())).sum()
         losses_dict['total_phylo_loss'] = total_phylo_loss
         losses_dict['cumulative_loss'] = cumulative_loss + self.phylo_weight*total_phylo_loss
 
-        if self.verbose:
-            class_f1 = self.F1(activations[CONSTANTS.DISENTANGLER_CLASS_OUTPUT], labels)
-            losses_dict['class_f1'] = class_f1
+        class_f1 = self.F1(activations[CONSTANTS.DISENTANGLER_CLASS_OUTPUT], labels)
+        losses_dict['class_f1'] = class_f1
 
         # return loss_dic
         return losses_dict

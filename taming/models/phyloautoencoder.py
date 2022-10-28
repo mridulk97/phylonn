@@ -32,7 +32,7 @@ TEST_DIR="results_summary"
 
 
 class ClassifierLayer(torch.nn.Module):
-    def __init__(self, num_of_inputs, num_of_outputs, num_of_layers = 1, bnorm=False, relu=True):
+    def __init__(self, num_of_inputs, num_of_outputs, num_of_layers = 1, relu=True, repeatInput=True): # bnorm=False,
         super(ClassifierLayer, self).__init__()
         
         self.num_of_inputs = num_of_inputs
@@ -40,10 +40,11 @@ class ClassifierLayer(torch.nn.Module):
         l = [torch.nn.Flatten()] 
     
         for i in range(num_of_layers):
-            if bnorm == True and i==0:
-                l.append(torch.nn.BatchNorm1d(num_of_inputs))
-            n_out = num_of_inputs if (i+1 != num_of_layers) else num_of_outputs
-            l.append(torch.nn.Linear(num_of_inputs, n_out))
+            # if bnorm == True and i==0:
+            #     l.append(torch.nn.BatchNorm1d(num_of_inputs))
+            n_out = (num_of_inputs if (i+1 != num_of_layers) else num_of_outputs) if repeatInput else num_of_outputs
+            n_in = num_of_inputs if repeatInput else (num_of_inputs if (i == 0) else num_of_outputs)
+            l.append(torch.nn.Linear(n_in, n_out))
             if relu == True:
                 l.append( torch.nn.ReLU())
             
@@ -79,9 +80,9 @@ def make_MLP(input_dim, output_dim, num_of_layers = 1, normalize=False):
         
 
 
-def create_phylo_classifier_layers(len_features, output_size, num_fc_layers, n_phylolevels, phylo_distances):
+def create_phylo_classifier_layers(len_features, output_size, num_fc_layers, n_phylolevels, phylo_distances, repeatInput=True):
     classification_layers = {
-        CONSTANTS.DISENTANGLER_CLASS_OUTPUT: ClassifierLayer(len_features, output_size, num_of_layers=num_fc_layers),
+        CONSTANTS.DISENTANGLER_CLASS_OUTPUT: ClassifierLayer(len_features, output_size, num_of_layers=num_fc_layers, repeatInput=repeatInput),
     }
 
     for indx, i in enumerate(phylo_distances):
@@ -90,7 +91,7 @@ def create_phylo_classifier_layers(len_features, output_size, num_fc_layers, n_p
         classification_layers[level_name] = ClassifierLayer(
                 int((indx+1)*len_features/n_phylolevels), 
                 output_size, 
-                num_of_layers=num_fc_layers
+                num_of_layers=num_fc_layers, repeatInput=repeatInput
             )
 
     return torch.nn.ModuleDict(classification_layers)
@@ -106,7 +107,7 @@ class PhyloDisentangler(torch.nn.Module):
                 embed_dim, n_embed, # same as codebook configs
                 n_phylo_channels, n_phylolevels, codebooks_per_phylolevel, # The dimensions for the phylo descriptors.
                 lossconfig, 
-                n_mlp_layers=1,
+                n_mlp_layers=1, n_levels_non_attribute=None,
                 lossconfig_phylo=None, lossconfig_kernelorthogonality=None, lossconfig_anticlassification=None, verbose=False): 
         super().__init__()
 
@@ -116,6 +117,7 @@ class PhyloDisentangler(torch.nn.Module):
         self.codebooks_per_phylolevel = codebooks_per_phylolevel
         self.embed_dim = embed_dim
         self.n_embed = n_embed
+        self.n_levels_non_attribute = n_levels_non_attribute
         self.passthrough = (self.ch != self.n_phylo_channels)
 
         self.verbose = verbose
@@ -135,6 +137,13 @@ class PhyloDisentangler(torch.nn.Module):
         # phylo MLP
         self.mlp_in = make_MLP([self.n_phylo_channels,resolution,resolution], [embed_dim, codebooks_per_phylolevel, n_phylolevels], n_mlp_layers, normalize=True)
         self.mlp_out = make_MLP([embed_dim, codebooks_per_phylolevel, n_phylolevels], [self.n_phylo_channels,resolution,resolution], n_mlp_layers, normalize=False)
+        
+        self.mlp_in_non_attribute = None
+        self.mlp_out_non_attribute = None
+        if n_levels_non_attribute is not None:
+            self.mlp_in_non_attribute = make_MLP([self.ch - self.n_phylo_channels,resolution,resolution], [embed_dim, codebooks_per_phylolevel, n_levels_non_attribute], n_mlp_layers, normalize=True)
+            self.mlp_out_non_attribute = make_MLP([embed_dim, codebooks_per_phylolevel, n_levels_non_attribute], [self.ch - self.n_phylo_channels,resolution,resolution], n_mlp_layers, normalize=False)
+            
 
         # quantizer
         self.quantize = VectorQuantizer(n_embed, embed_dim, beta=0.25)
@@ -183,12 +192,15 @@ class PhyloDisentangler(torch.nn.Module):
         if lossconfig_anticlassification is not None:
             lossconfig_anticlassification['params'] = {**lossconfig_anticlassification['params'], **{'verbose': verbose}}
             self.loss_anticlassification= instantiate_from_config(lossconfig_anticlassification)
-            assert self.ch - self.n_phylo_channels == self.n_phylo_channels, "Channels need to be split in half between phylo and nonphylo"
+            if n_levels_non_attribute is None:
+                assert self.ch - self.n_phylo_channels == self.n_phylo_channels, "Channels need to be split in half between phylo and nonphylo"
 
             # TODO: let's use same quantizer for now. Maybe we need a different one later.
             # self.anti_classification_layers = VectorQuantizer(n_embed, embed_dim, beta=0.25) #TODO: I think these are enough codes for now
-            #TOOD: maybe we need more layers?
-            self.codebook_mapping_layers = make_MLP([embed_dim, codebooks_per_phylolevel, n_phylolevels], [embed_dim, codebooks_per_phylolevel, n_phylolevels], n_mlp_layers, normalize=False)
+            if n_levels_non_attribute is None:
+                self.codebook_mapping_layers = make_MLP([embed_dim, codebooks_per_phylolevel, n_phylolevels], [embed_dim, codebooks_per_phylolevel, n_phylolevels], n_mlp_layers, normalize=False)
+            else:
+                self.codebook_mapping_layers = make_MLP([embed_dim, codebooks_per_phylolevel, n_levels_non_attribute], [embed_dim, codebooks_per_phylolevel, n_phylolevels], n_mlp_layers, normalize=False)
 
 
         # print model
@@ -204,7 +216,11 @@ class PhyloDisentangler(torch.nn.Module):
         if self.passthrough:
             if self.loss_anticlassification is not None:
                 assert quant_nonattribute is not None, "Should have quant_nonattribute when using anticlass"
-                h_ = torch.cat((hout_phylo, self.mlp_out(quant_nonattribute)), 1)
+                if self.n_levels_non_attribute is not None:
+                    hout_non_phylo = self.mlp_out_non_attribute(quant_nonattribute)
+                else:
+                    hout_non_phylo = self.mlp_out(quant_nonattribute)
+                h_ = torch.cat((hout_phylo, hout_non_phylo), 1)
         else:
             h_ = hout_phylo
             
@@ -236,19 +252,26 @@ class PhyloDisentangler(torch.nn.Module):
         
         if self.passthrough:
             if self.loss_anticlassification is not None:
-                z_nonphylo = self.mlp_in(h_img)
+                if self.n_levels_non_attribute is not None:
+                    z_nonphylo = self.mlp_in_non_attribute(h_img)
+                else:
+                    z_nonphylo = self.mlp_in(h_img)
                 zq_nonphylo, q_nonphylo_loss, _ = self.quantize(z_nonphylo)
                 loss_dic = {'quantizer_loss': q_phylo_loss + q_nonphylo_loss}
-                h_ = torch.cat((hout_phylo, self.mlp_out(zq_nonphylo)), 1)
+                
+                if self.n_levels_non_attribute is not None:
+                    hout_non_phylo = self.mlp_out_non_attribute(zq_nonphylo)
+                else:    
+                    hout_non_phylo = self.mlp_out(zq_nonphylo)
+                h_ = torch.cat((hout_phylo, hout_non_phylo), 1)
                 
                 mapping_loss, learning_loss = self.loss_anticlassification(self.codebook_mapping_layers, zq_nonphylo, zq_phylo)
             
                 loss_dic['anti_classification_mapping_loss'] = mapping_loss
                 loss_dic['anti_classification_learning_loss'] = learning_loss
             
-                if self.verbose:
-                    if self.loss_phylo is not None:
-                        outputs[CONSTANTS.DISENTANGLER_NON_ATTRIBUTE_CLASS_OUTPUT] = self.classification_layers[CONSTANTS.DISENTANGLER_CLASS_OUTPUT](self.codebook_mapping_layers(zq_nonphylo))
+                if self.loss_phylo is not None:
+                    outputs[CONSTANTS.DISENTANGLER_NON_ATTRIBUTE_CLASS_OUTPUT] = self.classification_layers[CONSTANTS.DISENTANGLER_CLASS_OUTPUT](self.codebook_mapping_layers(zq_nonphylo))
                     
             else:
                 h_ = torch.cat((hout_phylo, h_img), 1)
@@ -260,7 +283,7 @@ class PhyloDisentangler(torch.nn.Module):
         outputs[CONSTANTS.DISENTANGLER_DECODER_OUTPUT]= output
 
 
-        if self.passthrough and self.loss_anticlassification is not None:
+        if self.loss_anticlassification is not None:
             outputs[CONSTANTS.QUANTIZED_PHYLO_NONATTRIBUTE_OUTPUT] = zq_nonphylo
             
 
@@ -276,6 +299,9 @@ class PhyloDisentangler(torch.nn.Module):
             
     
         return outputs, loss_dic   
+
+#*********************************
+
 
 
 class PhyloVQVAE(VQModel):
@@ -293,12 +319,22 @@ class PhyloVQVAE(VQModel):
 
         phylo_args = args[CONSTANTS.PHYLOCONFIG_KEY]
         del args[CONSTANTS.PHYLOCONFIG_KEY]
+        
+        disentangler_type = 'MLP'
+        if CONSTANTS.DISENTANGLERTYPE_KEY in args:
+            disentangler_type = args[CONSTANTS.DISENTANGLERTYPE_KEY]
+            del args[CONSTANTS.DISENTANGLERTYPE_KEY]
 
         super().__init__(**args)
 
         self.freeze()
 
-        self.phylo_disentangler = PhyloDisentangler(**phylo_args)
+        if disentangler_type == 'MLP':
+            self.phylo_disentangler = PhyloDisentangler(**phylo_args)
+        elif disentangler_type == 'CONV':
+            self.phylo_disentangler = PhyloDisentanglerConv(**phylo_args)
+        else:
+            raise('Disentangler type ' + disentangler_type + ' is invalid')
 
         self.verbose = phylo_args.get('verbose', False)
 
@@ -379,24 +415,27 @@ class PhyloVQVAE(VQModel):
             phylo_losses_dict = self.phylo_disentangler.loss_phylo(total_loss, out_class_disentangler, batch[CONSTANTS.DISENTANGLER_CLASS_OUTPUT])
             total_loss = phylo_losses_dict['cumulative_loss']
 
-            self.log(prefix+"/disentangler_phylo_loss", phylo_losses_dict['total_phylo_loss'], prog_bar=self.verbose, logger=True, on_step=self.verbose, on_epoch=True)
+            self.log(prefix+CONSTANTS.DISENTANGLER_PHYLO_LOSS, phylo_losses_dict['total_phylo_loss'], prog_bar=self.verbose, logger=True, on_step=self.verbose, on_epoch=True)
             
         if self.phylo_disentangler.loss_anticlassification:
             mapping_loss = disentangler_loss_dic['anti_classification_mapping_loss']
             learning_loss = disentangler_loss_dic['anti_classification_learning_loss']
             total_loss = total_loss + (mapping_loss*self.phylo_disentangler.loss_anticlassification.beta + learning_loss)*self.phylo_disentangler.loss_anticlassification.weight
             self.log(prefix+"/disentangler_anti_classification_loss", mapping_loss, prog_bar=False, logger=True, on_step=self.verbose, on_epoch=True)
-            if self.verbose and self.phylo_disentangler.loss_phylo:
+            if self.phylo_disentangler.loss_phylo:
                 anti_classification_classifier_output = in_out_disentangler[CONSTANTS.DISENTANGLER_NON_ATTRIBUTE_CLASS_OUTPUT]
                 anti_classification_f1_score = self.phylo_disentangler.loss_phylo.F1(anti_classification_classifier_output, batch[CONSTANTS.DISENTANGLER_CLASS_OUTPUT])
                 self.log(prefix+"/anti_classification_classifier_output", anti_classification_f1_score, prog_bar=False, logger=True, on_step=self.verbose, on_epoch=True)
 
         if self.verbose:
             self.log(prefix+"/disentangler_total_loss", total_loss, prog_bar=True, logger=True, on_step=True, on_epoch=True)
-            for i in phylo_losses_dict:
-                if "_f1" in i:
-                    self.log(prefix+"/disentangler_phylo_"+i, phylo_losses_dict[i], prog_bar=True, logger=True, on_step=False, on_epoch=True)
+            for i in phylo_losses_dict['individual_losses']:
+                self.log(prefix+"/disentangler_phylo_"+i, phylo_losses_dict['individual_losses'][i], prog_bar=True, logger=True, on_step=False, on_epoch=True)
 
+
+        for i in phylo_losses_dict:
+            if "_f1" in i:
+                self.log(prefix+"/disentangler_phylo_"+i, phylo_losses_dict[i], prog_bar=True, logger=True, on_step=False, on_epoch=True)
 
 
         rec_loss = log_dict_ae[prefix+"/rec_loss"]
