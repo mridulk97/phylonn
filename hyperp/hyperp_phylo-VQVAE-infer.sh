@@ -4,7 +4,8 @@
 #SBATCH --partition=v100_normal_q
 #SBATCH --time=0-24:00:00 
 #SBATCH --gres=gpu:1 
-#SBATCH -o ./SLURM/slurm-%j.out
+#SBATCH -o /fastscratch/elhamod/projects/taming-transformers/SLURM/slurm-%j.out
+
 
 
 ### IMPORTANT:
@@ -24,7 +25,8 @@ which python
 which python3
 
 #python -m 
-wandb agent mndhamod/Phylo-VQVAE/62lfnhd1
+# wandb agent mndhamod/Phylo-VQVAE/62lfnhd1
+wandb agent mndhamod/Phylo-VQVAE/9q6l2hyv
 
 # To create a sweep:
 # wandb sweep --project Phylo-VQVAE hyperp/hyperp_bayes_nested.yaml 

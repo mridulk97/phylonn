@@ -5,7 +5,9 @@
 #SBATCH --time=2-00:00:00 
 #SBATCH --gres=gpu:1
 #SBATCH --nodes=1 --ntasks-per-node=1 --cpus-per-task=8
-#SBATCH -o ./SLURM/slurm-%j.out
+#SBATCH -o /fastscratch/elhamod/projects/taming-transformers/SLURM/slurm-%j.out
+
+##########SBATCH -o ./SLURM/slurm-%j.out
 
 
 # echo start load env and run python
@@ -44,10 +46,12 @@ which python
 # python main.py --name Phylo-VQVAE --postfix 512img-phylo-vqvae-phase2-morech-8cbperlevel --base configs/custom_vqgan-256emb-512img-phylo-vqvae-phase2-morech-8cbperlevel.yaml -t True --gpus 0,
 # python main.py --name Phylo-VQVAE --postfix 256img-phylo-vqvae-phase2-morech-8cbperlevel --base configs/custom_vqgan-256emb-256img-phylo-vqvae-phase2-morech-8cbperlevel.yaml -t True --gpus 0,
 
-# python main.py --name Phylo-VQVAE --postfix 512img-phylo-vqvae-phase2-morech-8cbperlevel-morenonattr --base configs/custom_vqgan-256emb-256img-phylo-vqvae-phase2-morech-8cbperlevel-morenonattr.yaml -t True --gpus 0,
+python main.py --prefix /fastscratch/elhamod --name Phylo-VQVAE --postfix 512img-phylo-vqvae-phase2-morech-8cbperlevel-morenonattr --base configs/custom_vqgan-256emb-256img-phylo-vqvae-phase2-morech-8cbperlevel-morenonattr.yaml -t True --gpus 0,
+# python main.py --name Phylo-VQVAE --postfix 512img-phylo-vqvae-phase2-morech-8cbperlevel-morenonattr-multiclass --base configs/custom_vqgan-256emb-256img-phylo-vqvae-phase2-morech-8cbperlevel-morenonattr-multiclass.yaml -t True --gpus 0,
+
 
 # python main.py --name Phylo-VQVAE --postfix 256img-phylo-vqvae-phase2-disentanglerconv --base configs/custom_vqgan-256emb-256img-phylo-vqvae-phase3-disentanglerconv.yaml -t True --gpus 0,
-python main.py --name Phylo-VQVAE --postfix 256img-phylo-vqvae-phase2-disentanglerconv-morephylocodes --base configs/custom_vqgan-256emb-256img-phylo-vqvae-phase3-disentanglerconv-morephylocodes.yaml -t True --gpus 0,
+# python main.py --name Phylo-VQVAE --postfix 256img-phylo-vqvae-phase2-disentanglerconv-morephylocodes --base configs/custom_vqgan-256emb-256img-phylo-vqvae-phase3-disentanglerconv-morephylocodes.yaml -t True --gpus 0,
 # python main.py --name Phylo-VQVAE --postfix 256img-phylo-vqvae-phase2-disentanglerconv-morefclayers --base configs/custom_vqgan-256emb-256img-phylo-vqvae-phase3-disentanglerconv-morefclayers.yaml -t True --gpus 0,
 
 

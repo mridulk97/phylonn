@@ -48,6 +48,14 @@ def get_parser(**parser_kwargs):
         help="postfix for logdir",
     )
     parser.add_argument(
+        "--prefix",
+        type=str,
+        const=True,
+        default=None,
+        nargs="?",
+        help="prefix for logdir",
+    )
+    parser.add_argument(
         "-r",
         "--resume",
         type=str,
@@ -438,6 +446,8 @@ if __name__ == "__main__":
             name = ""
         nowname = now+name+opt.postfix
         logdir = os.path.join("logs", nowname)
+        if opt.prefix is not None:
+            logdir = os.path.join(opt.prefix, logdir)
 
     ckptdir = os.path.join(logdir, "checkpoints")
     cfgdir = os.path.join(logdir, "configs")
@@ -521,10 +531,10 @@ if __name__ == "__main__":
                 "filename": "{epoch:06}",
                 "verbose": True,
                 "monitor": "val"+CONSTANTS.DISENTANGLER_PHYLO_LOSS,
-                "save_top_k": 3,
+                "save_top_k": 1,
                 "mode": "min",
-                "period": 3
-                # "save_last": True,
+                "period": 3,
+                "save_last": True,
                 #"every_n_epochs": 10, #NOTE: didnt work because pl version 1.0.8 is too old.
             }
         }
