@@ -54,7 +54,6 @@ def get_zqphylo_sub(zqphylo, num_phylo_levels, level=None):
 
 
 def get_CosineDistance_matrix(features):
-    ## TODO: we should replace the zq with cb indices really? Maybe Cos similarity is not the best measure?
     if features.dim() >2:
         features = features.reshape(features.shape[0], -1)
 

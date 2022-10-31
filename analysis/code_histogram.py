@@ -54,7 +54,7 @@ def main(configs_yaml):
     
     passthrough = (model.phylo_disentangler.ch != model.phylo_disentangler.n_phylo_channels)
     anticlassification = (model.phylo_disentangler.loss_anticlassification )
-    if passthrough and anticlassification:
+    if anticlassification:
         hist_arr_nonattr = [[] for x in range(len(model.phylo_disentangler.loss_phylo.phylogeny.getLabelList()))]
     else:
         hist_arr_nonattr = {}
@@ -66,6 +66,10 @@ def main(configs_yaml):
     dec_image, _, _, in_out_disentangler = model(img)
     q_phylo_output = in_out_disentangler[CONSTANTS.QUANTIZED_PHYLO_OUTPUT]
     converter = Embedding_Code_converter(model.phylo_disentangler.quantize.get_codebook_entry_index, model.phylo_disentangler.quantize.embedding, q_phylo_output[0, :, :, :].shape)
+    if anticlassification:
+        q_phylo_output_nonattribute = in_out_disentangler[CONSTANTS.QUANTIZED_PHYLO_NONATTRIBUTE_OUTPUT]
+        converter_nonattribute = Embedding_Code_converter(model.phylo_disentangler.quantize.get_codebook_entry_index, model.phylo_disentangler.quantize.embedding, q_phylo_output_nonattribute[0, :, :, :].shape)
+            
                     
         
     # collect values   
@@ -82,20 +86,18 @@ def main(configs_yaml):
             # get output
             dec_image, _, _, in_out_disentangler = model(img)
             q_phylo_output = in_out_disentangler[CONSTANTS.QUANTIZED_PHYLO_OUTPUT]
-            if passthrough and anticlassification :
+            if anticlassification :
                 q_phylo_output_nonattribute = in_out_disentangler[CONSTANTS.QUANTIZED_PHYLO_NONATTRIBUTE_OUTPUT]
             
             # reshape
-            if converter is None:
-                converter = Embedding_Code_converter(model.phylo_disentangler.quantize.get_codebook_entry_index, model.phylo_disentangler.quantize.embedding, q_phylo_output[0, :, :, :].shape)
             q_phylo_output_indices = converter.get_phylo_codes(q_phylo_output)
             if anticlassification:
-                q_phylo_nonattribute_output_indices = converter.get_phylo_codes(q_phylo_output_nonattribute)
+                q_phylo_nonattribute_output_indices = converter_nonattribute.get_phylo_codes(q_phylo_output_nonattribute)
             
             if len(hist_arr[0]) == 0:
                 for i in range(len(hist_arr)):
                     hist_arr[i] = [[] for x in range(q_phylo_output_indices.shape[1])]
-                    if passthrough and anticlassification :
+                    if anticlassification :
                         hist_arr_nonattr[i] = [[] for x in range(q_phylo_nonattribute_output_indices.shape[1])]
             
             # iterate through code locations
@@ -114,14 +116,16 @@ def main(configs_yaml):
     
     codebooks_per_phylolevel = model.phylo_disentangler.codebooks_per_phylolevel
     n_phylolevels = model.phylo_disentangler.n_phylolevels
+    if anticlassification:
+        n_levels_nonattribute = model.phylo_disentangler.n_levels_non_attribute if model.phylo_disentangler.n_levels_non_attribute is not None else model.phylo_disentangler.n_phylolevels
+        
     
     
     if per_phylo_level: 
         print('generating group histograms...')
         species_groups_arr = []
         
-        num_of_levels = model.phylo_disentangler.n_phylolevels
-        for level in range(num_of_levels-1): # last level already plotted.
+        for level in range(n_phylolevels-1): # last level already plotted.
             relative_distance =  model.phylo_disentangler.loss_phylo.get_relative_distance_for_level(level)
             species_groups = model.phylo_disentangler.loss_phylo.phylogeny.get_species_groups(relative_distance)
             species_groups_arr.append(species_groups)
@@ -130,7 +134,7 @@ def main(configs_yaml):
             save_to_txt(species_groups_list, ckpt_path, "species-groups-level-{}".format(level))
         
         group_levels_attr_hist, group_levels_non_attr_hist = build_group_histograms(hist_arr, hist_arr_nonattr,
-                            species_groups_arr, num_of_levels,
+                            species_groups_arr, n_phylolevels,
                             dataset.labels_to_idx,
                             anticlassification=anticlassification)
     
@@ -142,23 +146,26 @@ def main(configs_yaml):
         print('plotting histograms...')
         
         hist_plotter = Histogram_plotter(codebooks_per_phylolevel, n_phylolevels, model.phylo_disentangler.n_embed, converter, dataset.indx_to_label, ckpt_path, CONSTANTS.HISTOGRAMS_FOLDER)
+        if anticlassification:
+            hist_plotter_non_attribute = Histogram_plotter(codebooks_per_phylolevel, n_levels_nonattribute, model.phylo_disentangler.n_embed, converter_nonattribute, dataset.indx_to_label, ckpt_path, CONSTANTS.HISTOGRAMS_FOLDER)
+        
         for species_indx, species_arr in tqdm(enumerate(hist_arr)):         
             hist_plotter.plot_histograms(species_arr, species_indx, is_nonattribute=False)
             
-            if passthrough and anticlassification :
-                hist_plotter.plot_histograms(hist_arr_nonattr[species_indx], species_indx, is_nonattribute=True)
+            if anticlassification:
+                hist_plotter_non_attribute.plot_histograms(hist_arr_nonattr[species_indx], species_indx, is_nonattribute=True)
         
         
         
         if per_phylo_level:
-            for level in range(num_of_levels-1): # last level already plotted.
+            for level in range(n_phylolevels-1): # last level already plotted.
 
                 for species_group in tqdm(species_groups_arr[level]):
                     
                     hist_plotter.plot_histograms(group_levels_attr_hist[level][species_group[0]], dataset.labels_to_idx[species_group[0]], is_nonattribute=False, prefix="group-level-{}".format(level))
                     
-                    if passthrough and anticlassification :
-                        hist_plotter.plot_histograms(group_levels_non_attr_hist[level][species_group[0]], dataset.labels_to_idx[species_group[0]], is_nonattribute=True, prefix="group-level-{}".format(level))
+                    if anticlassification :
+                        hist_plotter_non_attribute.plot_histograms(group_levels_non_attr_hist[level][species_group[0]], dataset.labels_to_idx[species_group[0]], is_nonattribute=True, prefix="group-level-{}".format(level))
             
                     
                         
@@ -175,18 +182,18 @@ def main(configs_yaml):
                 generate_images(species_arr, species_indx,
                         hist_arr_nonattr[species_indx], 
                         num_specimen_generated, 
-                        model, converter, dataset.indx_to_label,
+                        model, converter, converter_nonattribute, dataset.indx_to_label,
                         DEVICE, ckpt_path, 'species',
                         anticlassification=anticlassification)
                 
             if per_phylo_level:
-                for level in range(num_of_levels-1): # last level already plotted.
+                for level in range(n_phylolevels-1): # last level already plotted.
                     for species_group in tqdm(species_groups_arr[level]):
                         
                         generate_images(group_levels_attr_hist[level][species_group[0]], dataset.labels_to_idx[species_group[0]],
                             group_levels_non_attr_hist[level][species_group[0]], 
                             num_specimen_generated, 
-                            model, converter, dataset.indx_to_label,
+                            model, converter, converter_nonattribute, dataset.indx_to_label,
                             DEVICE, ckpt_path, 'group-level-{}'.format(level),
                             anticlassification=anticlassification)
         else:
@@ -234,7 +241,7 @@ def build_group_histograms(hist_arr, hist_arr_nonattr,
 def generate_images(species_arr, species_indx,
                     species_arr_nonattr, 
                     num_specimen_generated, 
-                    model, converter, indx_to_label,
+                    model, converter, converter_nonattribute, indx_to_label,
                     device, ckpt_path, prefix_text,
                     anticlassification=False):
     
@@ -255,7 +262,9 @@ def generate_images(species_arr, species_indx,
             # generate the sequences.
             code = random.choice(species_arr[j])
             created_sequence[0, j] = code
-            if anticlassification:
+        
+        if anticlassification:
+            for j in range(len(species_arr_nonattr)):
                 code_nonattribute = random.choice(species_arr_nonattr[j])
                 created_nonattribute_sequence[0, j] = code_nonattribute
                 
@@ -265,7 +274,7 @@ def generate_images(species_arr, species_indx,
             list_of_created_nonattribute_sequence.append(created_nonattribute_sequence.reshape(-1).tolist())
             
         embedding = converter.get_phylo_embeddings(created_sequence)
-        embedding_nonattribute = converter.get_phylo_embeddings(created_nonattribute_sequence) if anticlassification else None
+        embedding_nonattribute = converter_nonattribute.get_phylo_embeddings(created_nonattribute_sequence) if anticlassification else None
         dec_image_new, _ = model.from_quant_only(embedding, embedding_nonattribute)
         generated_imgs.append(dec_image_new)
         

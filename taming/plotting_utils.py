@@ -80,7 +80,7 @@ class Histogram_plotter:
         self.indx_to_label = indx_to_label
         
     def plot_histograms(self, histograms, species_indx, is_nonattribute=False, prefix="species"):
-        fig, axs = plt.subplots(self.codebooks_per_phylolevel, self.n_phylolevels, figsize = (20,30))
+        fig, axs = plt.subplots(self.codebooks_per_phylolevel, self.n_phylolevels, figsize = (5*self.n_phylolevels,30))
         for i, ax in enumerate(axs.reshape(-1)):
             ax.hist(histograms[i], density=True, range=(0, self.n_embed-1), bins=self.n_embed)
             

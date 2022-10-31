@@ -123,6 +123,16 @@ parameters:
                 distribution: constant
                 value: 256
 
+              relu_last_layer:
+                distribution: constant
+                value: False
+              repeatInput:
+                distribution: constant
+                value: False
+              convin_switch:
+                distribution: constant
+                value: True
+
               lossconfig:
                 parameters:
                   target: 

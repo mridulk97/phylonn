@@ -37,6 +37,7 @@ class Clone_manger():
 
 
 # indexing of hist_arr: [code_location][raw list of codes of that location from all images]
+# highest entropy to lowest entropy
 def get_entropy_ordering(hist_arr_for_species):
     entropies = []
     for codes_forcode_location in hist_arr_for_species:
@@ -46,7 +47,7 @@ def get_entropy_ordering(hist_arr_for_species):
     # print(entropies, reverse_ordered_entropy_indices)
     return reverse_ordered_entropy_indices
     
-
+# From least frequent to most frequent
 def get_highest_likelyhood_ordering(hist_arr_for_species_and_location):
     value,counts = np.unique(hist_arr_for_species_and_location, return_counts=True)
     ordered_count_indices = np.argsort(counts)
@@ -61,9 +62,7 @@ def main(configs_yaml):
     ckpt_path = configs_yaml.ckpt_path
     DEVICE = configs_yaml.DEVICE
     image_index = configs_yaml.image_index
-    batch_size = configs_yaml.batch_size
     file_list_path = configs_yaml.file_list_path
-    num_workers = configs_yaml.num_workers
     size = configs_yaml.size
     cummulative = configs_yaml.cummulative
     plot_diff = configs_yaml.plot_diff
@@ -120,6 +119,9 @@ def main(configs_yaml):
             
         if using_entropy:
             which_codes = get_highest_likelyhood_ordering(hist_arr[species_index][code_level_location])
+            for i in range(model.phylo_disentangler.n_embed):
+                if i not in which_codes:
+                    which_codes = np.insert(which_codes, 0, i)#np.append(which_codes, i)
             
         for code_index in which_codes:
             all_codes_reverse_reshaped_clone = clone_manager.get_embedding(code_index)
@@ -133,7 +135,7 @@ def main(configs_yaml):
                 generated_imgs.append(dec_image_new)
         
         generated_imgs = torch.cat(generated_imgs, dim=0)
-        save_image_grid(generated_imgs, ckpt_path, subfolder="codebook_grid-cumulative{}".format(cummulative), postfix="ordering{}-level{}-location{}".format(ordering, level, code_location))
+        save_image_grid(generated_imgs, ckpt_path, subfolder="codebook_grid-cumulative{}-diff{}".format(cummulative, plot_diff), postfix="ordering{}-level{}-location{}".format(ordering, level, code_location))
 
         
 

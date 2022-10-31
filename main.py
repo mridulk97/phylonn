@@ -448,6 +448,7 @@ if __name__ == "__main__":
         logdir = os.path.join("logs", nowname)
         if opt.prefix is not None:
             logdir = os.path.join(opt.prefix, logdir)
+        os.makedirs(logdir) #NOTE: needed to fix wandb image generation logging
 
     ckptdir = os.path.join(logdir, "checkpoints")
     cfgdir = os.path.join(logdir, "configs")

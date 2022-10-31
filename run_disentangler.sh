@@ -46,13 +46,20 @@ which python
 # python main.py --name Phylo-VQVAE --postfix 512img-phylo-vqvae-phase2-morech-8cbperlevel --base configs/custom_vqgan-256emb-512img-phylo-vqvae-phase2-morech-8cbperlevel.yaml -t True --gpus 0,
 # python main.py --name Phylo-VQVAE --postfix 256img-phylo-vqvae-phase2-morech-8cbperlevel --base configs/custom_vqgan-256emb-256img-phylo-vqvae-phase2-morech-8cbperlevel.yaml -t True --gpus 0,
 
-python main.py --prefix /fastscratch/elhamod --name Phylo-VQVAE --postfix 512img-phylo-vqvae-phase2-morech-8cbperlevel-morenonattr --base configs/custom_vqgan-256emb-256img-phylo-vqvae-phase2-morech-8cbperlevel-morenonattr.yaml -t True --gpus 0,
+# python main.py --prefix /fastscratch/elhamod --name Phylo-VQVAE --postfix 512img-phylo-vqvae-phase2-morech-8cbperlevel-morenonattr --base configs/custom_vqgan-256emb-256img-phylo-vqvae-phase2-morech-8cbperlevel-morenonattr.yaml -t True --gpus 0,
 # python main.py --name Phylo-VQVAE --postfix 512img-phylo-vqvae-phase2-morech-8cbperlevel-morenonattr-multiclass --base configs/custom_vqgan-256emb-256img-phylo-vqvae-phase2-morech-8cbperlevel-morenonattr-multiclass.yaml -t True --gpus 0,
 
 
 # python main.py --name Phylo-VQVAE --postfix 256img-phylo-vqvae-phase2-disentanglerconv --base configs/custom_vqgan-256emb-256img-phylo-vqvae-phase3-disentanglerconv.yaml -t True --gpus 0,
 # python main.py --name Phylo-VQVAE --postfix 256img-phylo-vqvae-phase2-disentanglerconv-morephylocodes --base configs/custom_vqgan-256emb-256img-phylo-vqvae-phase3-disentanglerconv-morephylocodes.yaml -t True --gpus 0,
 # python main.py --name Phylo-VQVAE --postfix 256img-phylo-vqvae-phase2-disentanglerconv-morefclayers --base configs/custom_vqgan-256emb-256img-phylo-vqvae-phase3-disentanglerconv-morefclayers.yaml -t True --gpus 0,
+
+# python main.py --prefix /fastscratch/elhamod --name Phylo-VQVAE --postfix 256img-phase4-swapconvin-nolastrelu-multiclass --base configs/custom_vqgan-256emb-256img-phylo-vqvae-phase2-morech-8cbperlevel-morenonattr-multiclass-swapconvin-nolastrelu.yaml -t True --gpus 0,
+# python main.py --prefix /fastscratch/elhamod --name Phylo-VQVAE --postfix 256img-phase4-swapconvin-nolastrelu-multiclass-256ch --base configs/custom_vqgan-256emb-256img-phylo-vqvae-phase2-morech-8cbperlevel-morenonattr-multiclass-swapconvin-nolastrelu-256ch.yaml -t True --gpus 0,
+# python main.py --prefix /fastscratch/elhamod --name Phylo-VQVAE --postfix 256img-phase4-swapconvin-nolastrelu-multiclass-lowerlr --base configs/custom_vqgan-256emb-256img-phylo-vqvae-phase2-morech-8cbperlevel-morenonattr-multiclass-swapconvin-nolastrelu-lowerlr.yaml -t True --gpus 0, 
+
+python main.py --prefix /fastscratch/elhamod --name Phylo-VQVAE --postfix 256img-phase4-multiclass-lowerlr-4cblevel --base configs/custom_vqgan-256emb-256img-phylo-vqvae-phase4-4cbperlevel-lowerlr.yaml -t True --gpus 0, 
+# python main.py --prefix /fastscratch/elhamod --name Phylo-VQVAE --postfix 256img-phase4-multiclass-lowerlr-8cblevel-stronganti --base configs/custom_vqgan-256emb-256img-phylo-vqvae-phase4-8cbperlevel-lowerlr-stronganti.yaml -t True --gpus 0, 
 
 
 

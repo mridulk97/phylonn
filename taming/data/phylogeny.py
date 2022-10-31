@@ -30,6 +30,7 @@ class Phylogeny:
         self.total_distance = -1 # -1 means we never calculated it before.
 
         self.distance_matrix = {}
+        self.species_groups_within_relative_distance = {}
 
         self.get_ott_ids(node_ids, verbose=verbose)
         self.get_tree(self.treeFileNameAndPath)
@@ -54,9 +55,17 @@ class Phylogeny:
 
     # relative_distance = 0 => species node itself
     # relative_distance = 1 => all species 
-    def get_siblings_by_name(self, species, relative_distance, get_ottids = False, verbose=False):
-        ott_id = 'ott' + str(self.ott_id_dict[species])
-        return self.get_siblings_by_ottid(ott_id, relative_distance, get_ottids, verbose)
+    def get_siblings_by_name(self, species, relative_distance, verbose=False):
+        #NOTE: This implementation was causing inconsistencies since finding the parent.get_leaves() was not equivalent to get_species_groups 
+        # ott_id = 'ott' + str(self.ott_id_dict[species])
+        # return self.get_siblings_by_ottid(ott_id, relative_distance, get_ottids, verbose)
+        
+        self.get_species_groups(relative_distance, verbose)
+        for species_group in self.species_groups_within_relative_distance[relative_distance]:
+            if species in species_group:
+                return species_group
+        
+        raise species+" was not found in " + self.species_groups_within_relative_distance[relative_distance]
     
     def get_parent_by_name(self, species, relative_distance, verbose=False):
         ott_id = 'ott' + str(self.ott_id_dict[species])
@@ -69,18 +78,23 @@ class Phylogeny:
         return self.tree.get_distance(parent1, parent2)
     
     def get_species_groups(self, relative_distance, verbose=False):
-        groups = {}
-        for species in self.getLabelList():
-            parent = self.get_parent_by_name(species, relative_distance, verbose).name
-            if parent not in groups.keys():
-                groups[parent] = [species]
-            else:
-                groups[parent].append(species)
+        if relative_distance not in self.species_groups_within_relative_distance.keys():
+            groups = {}
+
+            for species in self.getLabelList():
+                parent_node = self.get_parent_by_name(species, relative_distance, verbose)
+                parent = parent_node.name
+                if parent not in groups.keys():
+                    groups[parent] = [species]
+                else:
+                    groups[parent].append(species)
+            
+            self.species_groups_within_relative_distance[relative_distance] = groups.values()
+            
+            if verbose:
+                print("At relative_distance", relative_distance, ", the groups are:", groups.values())
         
-        if verbose:
-            print("At relative_distance", relative_distance, ", the groups are:", groups.values())
-        
-        return groups.values()
+        return self.species_groups_within_relative_distance[relative_distance]
                 
             
 
@@ -130,27 +144,10 @@ class Phylogeny:
             distance = self.tree.get_distance(parent, species_node)
         
         return parent
-        
-
-    # relative_distance = 0 => species node itself
-    # relative_distance = 1 => all species
-    def get_siblings_by_ottid(self, ott_id, relative_distance, get_ottids = False, verbose=False):
-        parent = self.get_parent_by_ottid(ott_id, relative_distance, verbose=verbose)
-
-        # get all leaves under paernt
-        node_list = parent.get_leaves()
-        ott_id_list = list(map(lambda x: x.name, node_list))
-        if verbose:
-            print('species_list', len(ott_id_list),  ott_id_list)
-
-        if not get_ottids:
-            name_list = list(map(lambda x: next(key for key, value in self.ott_id_dict.items() if 'ott'+str(value) == x), ott_id_list)) # reverse lookup ott_id -> name
-            return name_list
 
 
-        return ott_id_list
 
-
+    #     return ott_id_list
     # node_ids: list of taxa
     # returns: corresponding list of ott_ids
     def get_ott_ids(self, node_ids, verbose=False):

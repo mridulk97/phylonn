@@ -30,7 +30,8 @@ which python
 # wandb agent mndhamod/Phylo-VQVAE/o9w7bvqg
 # wandb agent mndhamod/Phylo-VQVAE/9q6l2hyv
 # wandb agent mndhamod/Phylo-VQVAE/z5a4bg1j
- wandb agent mndhamod/Phylo-VQVAE/jzwqt7q2
+#  wandb agent mndhamod/Phylo-VQVAE/jzwqt7q2
+wandb agent mndhamod/Phylo-VQVAE/pxuof5hm
 
 # To create a sweep:
 # wandb sweep --project Phylo-VQVAE hyperp/hyperp_bayes_nested.yaml 
