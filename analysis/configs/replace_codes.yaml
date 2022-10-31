@@ -11,9 +11,12 @@ file_list_path: "/home/elhamod/data/Fish/taming_transforms_fish_train_padded_256
 # file_list_path = "/home/elhamod/data/Fish/taming_transforms_fish_train_padded_512.txt"
 
 by_entropy: True 
+add_invalid_codes: False # only used when by_entropy=True
 
 cummulative: True
 plot_diff: False
+
+
 
 DEVICE: 0
 # num_workers: 8

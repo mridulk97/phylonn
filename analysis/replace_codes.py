@@ -67,6 +67,7 @@ def main(configs_yaml):
     cummulative = configs_yaml.cummulative
     plot_diff = configs_yaml.plot_diff
     by_entropy = configs_yaml.by_entropy
+    add_invalid_codes = configs_yaml.add_invalid_codes
 
     # Load model
     config = load_config(yaml_path, display=False)
@@ -119,9 +120,10 @@ def main(configs_yaml):
             
         if using_entropy:
             which_codes = get_highest_likelyhood_ordering(hist_arr[species_index][code_level_location])
-            for i in range(model.phylo_disentangler.n_embed):
-                if i not in which_codes:
-                    which_codes = np.insert(which_codes, 0, i)#np.append(which_codes, i)
+            if add_invalid_codes:
+                for i in range(model.phylo_disentangler.n_embed):
+                    if i not in which_codes:
+                        which_codes = np.append(which_codes, i)
             
         for code_index in which_codes:
             all_codes_reverse_reshaped_clone = clone_manager.get_embedding(code_index)
