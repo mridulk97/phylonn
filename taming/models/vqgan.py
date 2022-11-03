@@ -8,6 +8,8 @@ from taming.modules.diffusionmodules.model import Encoder, Decoder
 from taming.modules.vqvae.quantize import VectorQuantizer2 as VectorQuantizer
 from taming.modules.vqvae.quantize import GumbelQuantize
 from taming.modules.vqvae.quantize import EMAVectorQuantizer
+from MODELS.iterative_normalization import IterNormRotation as cw_layer
+
 
 # from torchsummary import summary
 from torchinfo import summary
@@ -32,6 +34,9 @@ class VQModel(pl.LightningModule):
         self.image_key = image_key
         self.encoder = Encoder(**ddconfig)
         self.decoder = Decoder(**ddconfig)
+        # self.encoder.norm_out = cw_layer(self.encoder.block_in)
+        # print("Changed to cw layer")
+        # print("block size : ", self.encoder.block_in)
         self.loss = instantiate_from_config(lossconfig)
         self.quantize = VectorQuantizer(n_embed, embed_dim, beta=0.25,
                                         remap=remap, sane_index_shape=sane_index_shape)

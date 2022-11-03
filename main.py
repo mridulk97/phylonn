@@ -10,6 +10,7 @@ from pytorch_lightning import seed_everything
 from pytorch_lightning.trainer import Trainer
 from pytorch_lightning.callbacks import ModelCheckpoint, Callback, LearningRateMonitor
 from pytorch_lightning.utilities.distributed import rank_zero_only
+from MODELS.iterative_normalization import IterNormRotation as cw_layer
 
 from taming.data.utils import custom_collate
 
@@ -101,6 +102,14 @@ def get_parser(**parser_kwargs):
     parser.add_argument(
         "-f",
         "--postfix",
+        type=str,
+        default="",
+        help="post-postfix for default name",
+    )
+
+    parser.add_argument(
+        "-pl",
+        "--plot",
         type=str,
         default="",
         help="post-postfix for default name",
@@ -400,7 +409,6 @@ if __name__ == "__main__":
 
     parser = get_parser()
     parser = Trainer.add_argparse_args(parser)
-
     opt, unknown = parser.parse_known_args()
     if opt.name and opt.resume:
         raise ValueError(
@@ -468,6 +476,9 @@ if __name__ == "__main__":
 
         # model
         model = instantiate_from_config(config.model)
+        model.encoder.norm_out = cw_layer(model.encoder.block_in)
+        print("Changed to cw layer")
+        print("block size : ", model.encoder.block_in)
 
         # trainer and callbacks
         trainer_kwargs = dict()
