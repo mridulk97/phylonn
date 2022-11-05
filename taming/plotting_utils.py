@@ -9,6 +9,8 @@ from PIL import Image
 import json
 import csv
 
+from sklearn.metrics import ConfusionMatrixDisplay
+
 def dump_to_json(dict, ckpt_path, name='results'):
     root = get_fig_pth(ckpt_path)
 
@@ -62,7 +64,12 @@ def plot_heatmap(heatmap, ckpt_path, title='default', postfix=None):
 
 
 
-
+def plot_confusionmatrix(preds, classes, classnames, ckpt_path, postfix=None, title=""):
+    fig, ax = plt.subplots(figsize=(30,30))
+    preds_max = np.argmax(preds.cpu().numpy(), axis=-1)
+    disp = ConfusionMatrixDisplay.from_predictions(classes.cpu().numpy(), preds_max, display_labels=classnames, normalize='true', xticks_rotation='vertical', ax=ax)
+    disp.plot()
+    fig.savefig(os.path.join(get_fig_pth(ckpt_path, postfix=postfix), title+ " heat_map.png"))
 
 
 

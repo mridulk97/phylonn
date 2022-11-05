@@ -355,7 +355,15 @@ class ImageLogger(Callback):
 
     def on_validation_batch_end(self, trainer, pl_module, outputs, batch, batch_idx, dataloader_idx):
         self.log_img(pl_module, batch, batch_idx, split="val")
-
+        
+    # def log_scatter(self, class_transformer, epoch):
+    #     conditioning_rec = class_transformer["conditioning_rec"]
+    #     conditioning = class_transformer["conditioning"]
+    #     print(conditioning_rec, conditioning)
+    #     data = [[x, y] for (x, y) in zip(conditioning, conditioning_rec)]
+    #     table = wandb.Table(data=data, columns = ["condition", "condition_rec"])
+    #     wandb.log({"label_reconstruction" : wandb.plot.scatter(table, "condition", "condition_rec",
+    #                                     title="Label reconstruction")})
 
 
 if __name__ == "__main__":
@@ -531,7 +539,7 @@ if __name__ == "__main__":
                 "dirpath": ckptdir,
                 "filename": "{epoch:06}",
                 "verbose": True,
-                "monitor": "val"+CONSTANTS.DISENTANGLER_PHYLO_LOSS,
+                "monitor": "val"+(CONSTANTS.DISENTANGLER_PHYLO_LOSS if config.model.target != "taming.models.cond_transformer.Phylo_Net2NetTransformer" else CONSTANTS.TRANSFORMER_LOSS), #TODO: This is hacky. make it nicer.
                 "save_top_k": 1,
                 "mode": "min",
                 "period": 3,
@@ -594,6 +602,7 @@ if __name__ == "__main__":
 
         # configure learning rate
         bs, base_lr = config.data.params.batch_size, config.model.base_learning_rate
+        # use_scheduler = 
         if not cpu:
             ngpu = len(lightning_config.trainer.gpus.strip(",").split(','))
         else:

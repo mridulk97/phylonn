@@ -58,8 +58,10 @@ which python
 # python main.py --prefix /fastscratch/elhamod --name Phylo-VQVAE --postfix 256img-phase4-swapconvin-nolastrelu-multiclass-256ch --base configs/custom_vqgan-256emb-256img-phylo-vqvae-phase2-morech-8cbperlevel-morenonattr-multiclass-swapconvin-nolastrelu-256ch.yaml -t True --gpus 0,
 # python main.py --prefix /fastscratch/elhamod --name Phylo-VQVAE --postfix 256img-phase4-swapconvin-nolastrelu-multiclass-lowerlr --base configs/custom_vqgan-256emb-256img-phylo-vqvae-phase2-morech-8cbperlevel-morenonattr-multiclass-swapconvin-nolastrelu-lowerlr.yaml -t True --gpus 0, 
 
-python main.py --prefix /fastscratch/elhamod --name Phylo-VQVAE --postfix 256img-phase4-multiclass-lowerlr-4cblevel --base configs/custom_vqgan-256emb-256img-phylo-vqvae-phase4-4cbperlevel-lowerlr.yaml -t True --gpus 0, 
+# python main.py --prefix /fastscratch/elhamod --name Phylo-VQVAE --postfix 256img-phase4-multiclass-lowerlr-4cblevel --base configs/custom_vqgan-256emb-256img-phylo-vqvae-phase4-4cbperlevel-lowerlr.yaml -t True --gpus 0, 
 # python main.py --prefix /fastscratch/elhamod --name Phylo-VQVAE --postfix 256img-phase4-multiclass-lowerlr-8cblevel-stronganti --base configs/custom_vqgan-256emb-256img-phylo-vqvae-phase4-8cbperlevel-lowerlr-stronganti.yaml -t True --gpus 0, 
+
+python main.py --prefix /fastscratch/elhamod --name Phylo-VQVAE --postfix 256img-phase4-multiclass-lowerlr-8cblevel-stronganti-morefclayers --base configs/custom_vqgan-256emb-256img-phylo-vqvae-phase4-8cbperlevel-lowerlr-stronganti_morefclayers.yaml -t True --gpus 0, 
 
 
 

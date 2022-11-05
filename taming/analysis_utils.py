@@ -1,7 +1,70 @@
+
 import torch
+from scipy.spatial import distance as js_distance
 import tqdm
 
 EPS=1e-10
+
+
+######### Histogram misc
+
+def chi2_distance(A, B):
+    eps=1e-10
+    
+    numerator = (A - B)**2
+    denominator = (A + B)+ eps
+    chi = 0.5 * torch.sum(numerator/denominator)
+ 
+    return chi
+
+
+def js_divergence(A, B):
+    return js_distance.jensenshannon(A,B)
+
+DISTANCE_DICT = {
+    "chi2": chi2_distance,
+    "js_divergence": js_divergence
+    
+}
+
+class HistogramParser:
+    def __init__(self, model, distance_used):
+        self.possible_codes = model.phylo_disentangler.n_embed
+        self.n_phylolevels = model.phylo_disentangler.n_phylolevels
+        self.codebooks_per_phylolevel = model.phylo_disentangler.codebooks_per_phylolevel
+        self.n_levels_non_attribute = model.phylo_disentangler.n_levels_non_attribute
+        self.distance_used = distance_used
+    
+    def get_distances(self, hist, species1, species2):
+        hist_species1 = hist[species1]
+        hist_species2 = hist[species2]
+        
+        distances = []
+        most_common1 = []
+        most_common2 = []
+        
+        for location_code in range(len(hist_species1)):
+            hist_species1_location = hist_species1[location_code]
+            hist_species2_location = hist_species2[location_code]
+            
+            hist_species1_location_histogram = torch.histc(torch.Tensor(hist_species1_location), bins=self.possible_codes, min=0, max=self.possible_codes-1)
+            hist_species1_location_histogram = hist_species1_location_histogram/torch.sum(hist_species1_location_histogram)
+            most_common1.append(torch.argmax(hist_species1_location_histogram))
+            
+            hist_species2_location_histogram = torch.histc(torch.Tensor(hist_species2_location), bins=self.possible_codes, min=0, max=self.possible_codes-1)
+            hist_species2_location_histogram = hist_species2_location_histogram/torch.sum(hist_species2_location_histogram)
+            most_common2.append(torch.argmax(hist_species2_location_histogram))
+        
+        
+            d = self.distance_used(hist_species1_location_histogram, hist_species2_location_histogram)
+            distances.append(d)
+    
+        distances = torch.tensor(distances)
+        most_common1 = torch.tensor(most_common1)
+        most_common2 = torch.tensor(most_common2)
+        
+        return distances, most_common1, most_common2
+
 
 ######### Misc
 
@@ -11,6 +74,23 @@ def getPredictions(logits):
 ######### Feature manipulation
 
 import taming.constants as CONSTANTS
+
+
+def aggregate_metric_from_specimen_to_species(sorted_class_names_according_to_class_indx, specimen_distance_matrix):
+    unique_sorted_class_names_according_to_class_indx = sorted(set(sorted_class_names_according_to_class_indx))
+
+    species_dist_matrix = torch.zeros(len(unique_sorted_class_names_according_to_class_indx), len(unique_sorted_class_names_according_to_class_indx))
+    for indx_i, i in enumerate(unique_sorted_class_names_according_to_class_indx):
+        class_i_indices = [idx for idx, element in enumerate(sorted_class_names_according_to_class_indx) if element == i] #numpy.where(sorted_classes == i)[0]
+        for indx_j, j in enumerate(unique_sorted_class_names_according_to_class_indx[indx_i:]):
+            class_j_indices = [idx for idx, element in enumerate(sorted_class_names_according_to_class_indx) if element == j] # numpy.where(sorted_classes == j)[0] 
+            i_j_mean_embeddign_distance = torch.mean(specimen_distance_matrix[class_i_indices, :][:, class_j_indices])
+            species_dist_matrix[indx_i][indx_j+ indx_i] = species_dist_matrix[indx_j+ indx_i][indx_i] = i_j_mean_embeddign_distance
+            
+    return species_dist_matrix
+
+            
+
 
 def accumulate_features(dataloader, model, output_keys=[CONSTANTS.QUANTIZED_PHYLO_OUTPUT], device=None):
     accumlated_features = {}

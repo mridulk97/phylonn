@@ -24,6 +24,10 @@ from operator import add
 
 GENERATED_FOLDER = "most_likely_generations"
 
+# hist_arr structure:
+#hist_arr[lbl][code_location] = [list of codes that occured]
+#TODO: would be nice to have a class for this.
+
 ##########
 
 @torch.no_grad()

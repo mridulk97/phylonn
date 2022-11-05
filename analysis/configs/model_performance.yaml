@@ -2,11 +2,12 @@
 DEVICE: 0
 
 num_workers: 8
-batch_size: 400 #100
+batch_size: 200 #100
 
 
 size: 256
-file_list_path: "/home/elhamod/data/Fish/taming_transforms_fish_train_padded_256.txt"
+# file_list_path: "/home/elhamod/data/Fish/taming_transforms_fish_train_padded_256.txt"
+file_list_path: "/home/elhamod/data/Fish/taming_transforms_fish_test_padded_256.txt"
 # size= 512
 # file_list_path = "/home/elhamod/data/Fish/taming_transforms_fish_train_padded_512.txt"
 # file_list_path: "/home/elhamod/data/Fish/taming_transforms_fish_test_small.txt" # Just for test
@@ -59,6 +60,10 @@ file_list_path: "/home/elhamod/data/Fish/taming_transforms_fish_train_padded_256
 
 
 # slower lr
-yaml_path: "/fastscratch/elhamod/logs/2022-10-30T20-13-25_Phylo-VQVAE256img-phase4-swapconvin-nolastrelu-multiclass-lowerlr/configs/2022-10-30T20-13-25-project.yaml"
-ckpt_path: "/fastscratch/elhamod/logs/2022-10-30T20-13-25_Phylo-VQVAE256img-phase4-swapconvin-nolastrelu-multiclass-lowerlr/checkpoints/last.ckpt"
+# yaml_path: "/fastscratch/elhamod/logs/2022-10-30T20-13-25_Phylo-VQVAE256img-phase4-swapconvin-nolastrelu-multiclass-lowerlr/configs/2022-10-30T20-13-25-project.yaml"
+# ckpt_path: "/fastscratch/elhamod/logs/2022-10-30T20-13-25_Phylo-VQVAE256img-phase4-swapconvin-nolastrelu-multiclass-lowerlr/checkpoints/last.ckpt"
+
+# slower lr stronganti
+ckpt_path: /fastscratch/elhamod/logs/2022-10-31T12-46-01_Phylo-VQVAE256img-phase4-multiclass-lowerlr-8cblevel-stronganti/checkpoints/last.ckpt
+yaml_path: /fastscratch/elhamod/logs/2022-10-31T12-46-01_Phylo-VQVAE256img-phase4-multiclass-lowerlr-8cblevel-stronganti/configs/2022-10-31T12-46-01-project.yaml
 

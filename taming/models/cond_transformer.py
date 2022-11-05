@@ -6,6 +6,8 @@ import pytorch_lightning as pl
 from main import instantiate_from_config
 from taming.modules.util import SOSProvider
 
+import taming.constants as CONSTANTS
+
 
 def disabled_train(self, mode=True):
     """Overwrite model.train with this function to make sure train/eval mode
@@ -81,6 +83,8 @@ class Net2NetTransformer(pl.LightningModule):
         # one step to produce the logits
         _, z_indices = self.encode_to_z(x)
         _, c_indices = self.encode_to_c(c)
+        # print('z_indices', z_indices.shape)
+        # print('c_indices', c_indices.shape)
 
         if self.training and self.pkeep < 1.0:
             mask = torch.bernoulli(self.pkeep*torch.ones(z_indices.shape,
@@ -97,9 +101,12 @@ class Net2NetTransformer(pl.LightningModule):
         # differently because we are conditioning)
         target = z_indices
         # make the prediction
+        # print('cz_indices', cz_indices.shape)
         logits, _ = self.transformer(cz_indices[:, :-1])
+        # print('logits', logits.shape)
         # cut off conditioning outputs - output i corresponds to p(z_i | z_{<i}, c)
         logits = logits[:, c_indices.shape[1]-1:]
+        # print('logits2', logits.shape)
 
         return logits, target
 
@@ -168,7 +175,8 @@ class Net2NetTransformer(pl.LightningModule):
     @torch.no_grad()
     def encode_to_z(self, x):
         quant_z, _, info = self.first_stage_model.encode(x)
-        indices = info[2].view(quant_z.shape[0], -1)
+        info = info[2]
+        indices = info.view(quant_z.shape[0], -1)
         indices = self.permuter(indices)
         return quant_z, indices
 
@@ -177,8 +185,10 @@ class Net2NetTransformer(pl.LightningModule):
         if self.downsample_cond_size > -1:
             c = F.interpolate(c, size=(self.downsample_cond_size, self.downsample_cond_size))
         quant_c, _, [_,_,indices] = self.cond_stage_model.encode(c)
+        # print(quant_c.shape)
         if len(indices.shape) > 2:
             indices = indices.view(c.shape[0], -1)
+        # print(indices.shape)
         return quant_c, indices
 
     @torch.no_grad()
@@ -191,7 +201,7 @@ class Net2NetTransformer(pl.LightningModule):
         return x
 
     @torch.no_grad()
-    def log_images(self, batch, temperature=None, top_k=None, callback=None, lr_interface=False, **kwargs):
+    def log_images(self, batch, temperature=None, top_k=None, callback=None, lr_interface=False, split="train", **kwargs):
         log = dict()
 
         N = 4
@@ -238,6 +248,8 @@ class Net2NetTransformer(pl.LightningModule):
 
         log["inputs"] = x
         log["reconstructions"] = x_rec
+        # print("inputs", x.shape)
+        # print("reconstructions", x_rec.shape)
 
         if self.cond_stage_key in ["objects_bbox", "objects_center_points"]:
             figure_size = (x_rec.shape[2], x_rec.shape[3])
@@ -263,8 +275,13 @@ class Net2NetTransformer(pl.LightningModule):
                 cond_rec = F.one_hot(cond_rec, num_classes=num_classes)
                 cond_rec = cond_rec.squeeze(1).permute(0, 3, 1, 2).float()
                 cond_rec = self.cond_stage_model.to_rgb(cond_rec)
-            log["conditioning_rec"] = cond_rec
-            log["conditioning"] = c
+            
+            f1_samples_half = self.first_stage_model.phylo_disentangler.loss_phylo.F1(self.first_stage_model(x_sample)[3][CONSTANTS.DISENTANGLER_CLASS_OUTPUT], c)
+            f1_samples_nopix = self.first_stage_model.phylo_disentangler.loss_phylo.F1(self.first_stage_model(x_sample_nopix)[3][CONSTANTS.DISENTANGLER_CLASS_OUTPUT], c)
+            f1_x_sample_det = self.first_stage_model.phylo_disentangler.loss_phylo.F1(self.first_stage_model(x_sample_det)[3][CONSTANTS.DISENTANGLER_CLASS_OUTPUT], c)
+            self.log(split+"/f1_samples_half", f1_samples_half, prog_bar=False, logger=True, on_step=False, on_epoch=True)
+            self.log(split+"/f1_samples_nopix", f1_samples_nopix, prog_bar=False, logger=True, on_step=False, on_epoch=True)
+            self.log(split+"/f1_x_sample_det", f1_x_sample_det, prog_bar=False, logger=True, on_step=False, on_epoch=True)
 
         log["samples_half"] = x_sample
         log["samples_nopix"] = x_sample_nopix
@@ -350,3 +367,62 @@ class Net2NetTransformer(pl.LightningModule):
         ]
         optimizer = torch.optim.AdamW(optim_groups, lr=self.learning_rate, betas=(0.9, 0.95))
         return optimizer
+    
+    
+    
+#***************
+class Phylo_Net2NetTransformer(Net2NetTransformer):
+    def __init__(self, **args):
+        print(args)
+        
+        # For wandb
+        self.save_hyperparameters()
+        
+        self.phyloModel = args[CONSTANTS.PHYLOMODEL_KEY]
+        del args[CONSTANTS.PHYLOMODEL_KEY]
+
+        super().__init__(**args)
+
+        self.first_stage_model.freeze() # not sure if needed but just for safety.
+        
+    def encode_to_z(self, x):
+        zq_phylo, zq_nonphylo, _, _, _, _, info_attr, info_nonattr = self.first_stage_model.encode(x)
+        info_attr=info_attr[2]
+        info_nonattr=info_nonattr[2]
+        quant_z = torch.cat((zq_phylo,zq_nonphylo), dim=3)
+        indices_attr = info_attr.view(quant_z.shape[0], -1)
+        indices_nonattr = info_nonattr.view(quant_z.shape[0], -1)
+        indices = torch.cat((indices_attr,indices_nonattr), dim=1)
+        indices = self.permuter(indices)
+        return quant_z, indices
+    
+    def decode_to_img(self, index, zshape):
+        #TODO: This whol file assumes we always have nonattr codes. We do not handle the case where there are only attr codes. We might want to either handle that properly or throw an error.
+        index = self.permuter(index, reverse=True)
+        
+        codebooks_per_phylolevel = self.first_stage_model.phylo_disentangler.codebooks_per_phylolevel
+        n_phylolevels = self.first_stage_model.phylo_disentangler.n_phylolevels
+        n_levels_non_attribute = self.first_stage_model.phylo_disentangler.n_levels_non_attribute
+        attr_codes_range = codebooks_per_phylolevel*n_phylolevels
+        nonattr_codes_range = codebooks_per_phylolevel*n_levels_non_attribute
+        
+        assert index.shape[1] == attr_codes_range + nonattr_codes_range
+        assert zshape[3] == n_phylolevels + n_levels_non_attribute
+        
+        index_attr = index[:, :attr_codes_range]
+        index_nonattr = index[:, attr_codes_range:]
+        bhwc = (zshape[0],zshape[2],n_phylolevels,zshape[1])
+        bhwc_nonattr = (zshape[0],zshape[2],n_levels_non_attribute,zshape[1])
+        
+        zq_phylo = self.first_stage_model.phylo_disentangler.quantize.get_codebook_entry(
+            index_attr.reshape(-1), shape=bhwc)
+        zq_nonphylo = self.first_stage_model.phylo_disentangler.quantize.get_codebook_entry(
+            index_nonattr.reshape(-1), shape=bhwc_nonattr)
+        x, _, _, _ = self.first_stage_model.decode(zq_phylo, zq_nonphylo)
+        
+        return x
+
+    def log_images(self, batch, temperature=None, top_k=None, callback=None, lr_interface=False, **kwargs):
+        if top_k is None:
+            topk = self.cond_stage_model.num_of_classes
+        return super().log_images(batch, temperature, topk, callback, lr_interface, **kwargs)

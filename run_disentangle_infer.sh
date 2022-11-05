@@ -37,8 +37,10 @@ which python
 # python main.py --name Phylo-VQVAE --postfix 256img-phase2-morelayers-adjustedweights --base configs/custom_vqgan-256emb-256img-phylo-vqvae-phase2-morelayers-adjustedweights.yaml -t True --gpus 0,
 # python main.py --name Phylo-VQVAE --postfix 256img-phase2-morelayers-lessch-adjustedweights-beta --base configs/custom_vqgan-256emb-256img-phylo-vqvae-phase2-morelayers-lessch-adjustedweights.yaml -t True --gpus 0,
 
-python main.py --name Phylo-VQVAE --postfix 256img-phase4-swapconvin-nolastrelu-multiclass --base configs/custom_vqgan-256emb-256img-phylo-vqvae-phase2-morech-8cbperlevel-morenonattr-multiclass-swapconvin-nolastrelu.yaml -t True --gpus 0,
+# python main.py --name Phylo-VQVAE --postfix 256img-phase4-swapconvin-nolastrelu-multiclass --base configs/custom_vqgan-256emb-256img-phylo-vqvae-phase2-morech-8cbperlevel-morenonattr-multiclass-swapconvin-nolastrelu.yaml -t True --gpus 0,
 # python main.py --name Phylo-VQVAE --postfix 256img-phase4-swapconvin-nolastrelu-multiclass-256ch --base configs/custom_vqgan-256emb-256img-phylo-vqvae-phase2-morech-8cbperlevel-morenonattr-multiclass-swapconvin-nolastrelu-256ch.yaml -t True --gpus 0,
+
+python main.py --name Phylo-VQVAE --postfix 256img-phase4-nophylo-256ch --base configs/custom_vqgan-256emb-256img-phylo-vqvae-phase4-8cbperlevel-nophylo.yaml -t True --gpus 0,
 
 
 

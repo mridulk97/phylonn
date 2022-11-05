@@ -99,7 +99,7 @@ def main(configs_yaml):
     histogram_file_exists = os.path.exists(histograms_file)
     if by_entropy and not histogram_file_exists:
         print("histograms have not been generated. Run code_histogram.py first! Defaulting to index ordering")
-    using_entropy = by_entropy and os.path.exists(histograms_file)
+    using_entropy = by_entropy and histogram_file_exists
     if not using_entropy:
         which_codes = range(model.phylo_disentangler.n_embed)
         which_locations = range(model.phylo_disentangler.codebooks_per_phylolevel*model.phylo_disentangler.n_phylolevels)
