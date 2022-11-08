@@ -4,7 +4,8 @@ model:
   # target: taming.models.vqgan.VQModel
   project: CW-VQVAE
   params:
-    ckpt_path: ./logs/256pixels_256embedding/checkpoints/last.ckpt
+    # ckpt_path: ./logs/256pixels_256embedding/checkpoints/last.ckpt
+    ckpt_path: ./logs/2022-11-07T02-39-00_CW-VQVAE256img-infer-cw-model/checkpoints/last.ckpt
     embed_dim: 256
     n_embed: 1024
     ddconfig:
@@ -18,25 +19,6 @@ model:
       num_res_blocks: 2
       attn_resolutions: [16]
       dropout: 0.0
-    # lossconfig:
-    #   target: taming.modules.losses.DummyLoss
-
-    # phylomodel_params:
-    #   embed_dim: 16
-    #   n_embed: 64
-    #   #
-    #   n_phylolevels: 4
-    #   codebooks_per_phylolevel: 4
-    #   #
-    #   n_phylo_channels: 32 # tried 1 #32
-    #   # NOT hyperparameters.
-    #   resolution: 16
-    #   in_channels: 256
-    #   out_ch: 256
-    #   ch: 256
-    #   #ch_mult: [ 1]  # num_down = len(ch_mult)-1
-    #   # num_res_blocks: 2
-    #   # attn_resolutions: [16]
 
     lossconfig:
       target: taming.modules.losses.vqperceptual.VQLPIPSWithDiscriminator
@@ -46,34 +28,6 @@ model:
         disc_start: 10000
         disc_weight: 0.8
         codebook_weight: 1.0
-
-    # phylomodel_params:
-    #   embed_dim: 16
-    #   n_embed: 64
-    #   #
-    #   n_phylolevels: 4
-    #   codebooks_per_phylolevel: 4
-    #   #
-    #   n_phylo_channels: 32 # tried 1 #32
-    #   # NOT hyperparameters.
-    #   resolution: 16
-    #   in_channels: 256
-    #   out_ch: 256
-    #   ch: 256
-    #   #ch_mult: [ 1]  # num_down = len(ch_mult)-1
-    #   # num_res_blocks: 2
-    #   # attn_resolutions: [16]
-
-      # lossconfig:
-      #   target: taming.modules.losses.vqperceptual.VQLPIPSWithDiscriminator
-      #   params:
-      #     codebook_weight: 1.0
-      #     disc_in_channels: 0
-      #     disc_num_layers: 0
-      #     disc_weight: 0.0
-      #     disc_factor: 0.0
-      #     perceptual_weight: 0.0
-      #     disc_start: 10000
 
     concept_data:
       target: main.DataModuleFromConfig
@@ -108,6 +62,7 @@ data:
       params:
         training_images_list_file: /home/mridul/data/phylo-VQVAE/taming_transforms_fish_train_padded_256.txt
         size: 256
+        # add_labels: True
     validation:
       target: taming.data.custom.CustomTest
       params:

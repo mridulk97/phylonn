@@ -5,3 +5,4 @@ slurm*
 **checkpoint.ipynb
 wandb/**
 taming3/**
+plot/**

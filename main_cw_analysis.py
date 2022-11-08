@@ -13,7 +13,7 @@ from pytorch_lightning.utilities.distributed import rank_zero_only
 from MODELS.iterative_normalization import IterNormRotation as cw_layer
 
 from taming.data.utils import custom_collate
-# from taming.data.cw_analysis import plot_concept_top50
+from taming.data.cw_analysis import plot_concept_top50
 
 import wandb
 
@@ -631,10 +631,10 @@ if __name__ == "__main__":
         signal.signal(signal.SIGUSR1, melk)
         signal.signal(signal.SIGUSR2, divein)
 
-        # # plot
-        # if opt.plot:
-        #     print('here for plotting')
-        #     plot_concept_top50(data.val_dataloader(), model, whitened_layers='encoder')
+        # plot
+        if opt.plot:
+            print('here for plotting')
+            plot_concept_top50(data.train_dataloader(), model, whitened_layers='encoder')
 
 
         # run
@@ -661,3 +661,4 @@ if __name__ == "__main__":
             dst = os.path.join(dst, "debug_runs", name)
             os.makedirs(os.path.split(dst)[0], exist_ok=True)
             os.rename(logdir, dst)
+

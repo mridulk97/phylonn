@@ -1,3 +1,4 @@
+# from operator import concat
 import torch
 from torch import nn
 import torch.nn.functional as F
@@ -14,6 +15,7 @@ import collections
 
 PHYLOCONFIG_KEY = "phylomodel_params"
 BASEMODEL_KEY = "basemodel"
+CONCEPT_DATA_KEY = "concept_data"
 
 DISENTANGLER_DECODER_OUTPUT = 'output'
 DISENTANGLER_ENCODER_INPUT = 'in'
@@ -180,9 +182,16 @@ class PhyloVQVAE(VQModel):
         phylo_args = args[PHYLOCONFIG_KEY]
         del args[PHYLOCONFIG_KEY]
 
+        concept_data_args = args[CONCEPT_DATA_KEY]
+        print("Concepts params : ", concept_data_args)
+        self.concepts = instantiate_from_config(concept_data_args)
+        self.concepts.prepare_data()
+        self.concepts.setup()
+        del args[CONCEPT_DATA_KEY]
+
         super().__init__(**args)
 
-        self.freeze()
+        # self.freeze()
 
         self.phylo_disentangler = PhyloDisentangler(**phylo_args)
 
@@ -223,6 +232,35 @@ class PhyloVQVAE(VQModel):
         return dec, base_hypothetical_quantizer_loss
 
     def step(self, batch, batch_idx, prefix):
+        # if batch_idx%30==0 and batch_idx!=0:
+        #     print('cw module')
+        #     self.eval()
+        #     with torch.no_grad():
+        #         # # update the gradient matrix G
+        #         # for idx, img_dict in enumerate(self.concepts.datasets['train']):
+        #         #     # model.module.change_mode(concept_index)
+        #         #     concept_index = img_dict['class']
+        #         #     self.encoder.norm_out.mode = concept_index
+        #         #     print(concept_index)
+                    
+        #         for _, concept_batch in enumerate(self.concepts.train_dataloader()):
+        #             for idx, concept in enumerate(concept_batch['class']):
+        #                 # print(concept.item())
+        #                 X_var = torch.unsqueeze(concept_batch['image'][idx], dim=0)
+        #                 concept_index = concept.item()
+        #                 self.encoder.norm_out.mode = concept_index
+        #                 X_var = torch.autograd.Variable(X_var).cuda()
+        #                 X_var = X_var.permute(0, 3, 1, 2).to(memory_format=torch.contiguous_format)
+        #                 X_var = X_var.float()
+        #                 self(X_var)
+        #                 break
+        #         # model.module.update_rotation_matrix()
+        #         self.encoder.norm_out.update_rotation_matrix()
+        #         # change to ordinary mode
+        #         # model.module.change_mode(-1)
+        #         self.encoder.norm_out.mode = -1
+        #     self.train()
+
         x = self.get_input(batch, self.image_key)
         xrec, disentangler_loss_dic, base_loss_dic, in_out_disentangler = self(x)
         out_disentangler = {i:in_out_disentangler[i] for i in in_out_disentangler if i not in [DISENTANGLER_ENCODER_INPUT, DISENTANGLER_DECODER_OUTPUT]}
