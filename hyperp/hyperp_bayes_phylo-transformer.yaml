@@ -42,6 +42,12 @@ parameters:
           phyloModel:
             distribution: constant
             value: True
+          top_k:
+            distribution: categorical
+            values:
+            - 3
+            - 5
+            - 10
           transformer_config:
             parameters:
               target: 
@@ -56,18 +62,11 @@ parameters:
                     distribution: constant
                     value: 65
                   n_layer:
-                    distribution: categorical
-                    values:
-                    - 5
-                    - 10
-                    - 20
-                    - 40
+                    distribution: constant
+                    value: 40
                   n_head:
-                    distribution: categorical
-                    values:
-                    - 8
-                    - 16
-                    - 32
+                    distribution: constant
+                    value: 16
                   n_embd: #embedding dimensions for transformer. Does not have to be same as codebook but Ill pick same
                     distribution: categorical
                     values:

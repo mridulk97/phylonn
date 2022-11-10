@@ -2,7 +2,7 @@
 DEVICE: 0
 
 num_workers: 8
-batch_size: 200 #100
+batch_size: 20 #200 for tinkercliffs
 
 
 size: 256
@@ -63,7 +63,10 @@ file_list_path: "/home/elhamod/data/Fish/taming_transforms_fish_test_padded_256.
 # yaml_path: "/fastscratch/elhamod/logs/2022-10-30T20-13-25_Phylo-VQVAE256img-phase4-swapconvin-nolastrelu-multiclass-lowerlr/configs/2022-10-30T20-13-25-project.yaml"
 # ckpt_path: "/fastscratch/elhamod/logs/2022-10-30T20-13-25_Phylo-VQVAE256img-phase4-swapconvin-nolastrelu-multiclass-lowerlr/checkpoints/last.ckpt"
 
-# slower lr stronganti
-ckpt_path: /fastscratch/elhamod/logs/2022-10-31T12-46-01_Phylo-VQVAE256img-phase4-multiclass-lowerlr-8cblevel-stronganti/checkpoints/last.ckpt
-yaml_path: /fastscratch/elhamod/logs/2022-10-31T12-46-01_Phylo-VQVAE256img-phase4-multiclass-lowerlr-8cblevel-stronganti/configs/2022-10-31T12-46-01-project.yaml
+# # slower lr stronganti
+# ckpt_path: /fastscratch/elhamod/logs/2022-10-31T12-46-01_Phylo-VQVAE256img-phase4-multiclass-lowerlr-8cblevel-stronganti/checkpoints/last.ckpt
+# yaml_path: /fastscratch/elhamod/logs/2022-10-31T12-46-01_Phylo-VQVAE256img-phase4-multiclass-lowerlr-8cblevel-stronganti/configs/2022-10-31T12-46-01-project.yaml
 
+# class weights
+ckpt_path: /home/elhamod/projects/taming-transformers/logs/imported/2022-11-05T19-12-52_Phylo-VQVAE512img-phase4-multiclass-lowerlr-8cblevel-stronganti-2layers-cyclical-classweighting/checkpoints/epoch=000068.ckpt
+yaml_path: /home/elhamod/projects/taming-transformers/logs/imported/2022-11-05T19-12-52_Phylo-VQVAE512img-phase4-multiclass-lowerlr-8cblevel-stronganti-2layers-cyclical-classweighting/configs/2022-11-05T19-12-52-project-infer.yaml

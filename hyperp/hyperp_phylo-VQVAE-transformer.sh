@@ -23,7 +23,7 @@ source activate taming3
 
 which python
 
-wandb agent mndhamod/Phylo-VQVAE-transformer/av4oob0x
+wandb agent mndhamod/Phylo-VQVAE-transformer/pzi881um
 
 # To create a sweep:
 # wandb sweep --project Phylo-VQVAE-transformer hyperp/hyperp_bayes_phylo-transformer.yaml

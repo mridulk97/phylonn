@@ -1,0 +1,19 @@
+size: 256
+file_list_path: "/fastscratch/elhamod/data/Fish/taming_transforms_fish_train_padded_256.txt"
+# size= 512
+# file_list_path = "/home/elhamod/data/Fish/taming_transforms_fish_train_padded_512.txt"
+
+DEVICE: 0
+
+top_k: 5
+
+num_specimen_generated: 16
+save_individual_images: True
+
+outputdatasetdir: level2
+##############################
+
+
+# level2
+ckpt_path: /fastscratch/elhamod/logs/2022-11-08T22-06-32_Phylo-VQVAE-transformer256img-phase4-level2/checkpoints/epoch=000548.ckpt
+yaml_path: /fastscratch/elhamod/logs/2022-11-08T22-06-32_Phylo-VQVAE-transformer256img-phase4-level2/configs/2022-11-08T22-06-32-project.yaml

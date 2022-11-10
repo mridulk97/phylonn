@@ -1,9 +1,61 @@
 
+from main import instantiate_from_config
+from taming.modules.losses.phyloloss import Species_sibling_finder, get_loss_name, get_relative_distance_for_level, parse_phyloDistances
 import torch
 from scipy.spatial import distance as js_distance
 import tqdm
+from torchmetrics import F1Score
 
 EPS=1e-10
+
+
+
+####### Level CrossEntropy 
+
+def get_phylomapper_from_config(phylogeny, phyloDistances_string, level):
+    # phylogeny = instantiate_from_config(phylogenyconfig)
+    phylo_distances = parse_phyloDistances(phyloDistances_string)
+    siblingfinder = Species_sibling_finder(phylogeny, phylo_distances)
+    
+    relative_distance = get_relative_distance_for_level(phylo_distances, level)
+    species_groups = phylogeny.get_species_groups(relative_distance)
+    species_groups_representatives = list(map(lambda x: x[0], species_groups))
+    mlb = list(map(lambda x: phylogeny.getLabelList().index(x), species_groups_representatives))
+    
+    outputname = get_loss_name(phylo_distances, level)
+    
+    return PhylogenyMapper(level, siblingfinder.map_speciesId_siblingVector, mlb, outputname)
+    
+
+
+class PhylogenyMapper:
+    def __init__(self, level, sibling_mapper, mlb, outputname):
+        self.level = level
+        
+        self.sibling_mapper = sibling_mapper
+        self.mlb = mlb
+        
+        self.outputname = outputname
+        
+    def get_len(self):
+        return len(self.mlb)
+    
+    # maps from fresh level indexing to species indexing
+    def get_reverse_indexing(self, truth):
+        return list(map(lambda x: self.mlb[x], truth))
+    
+    # maps from species indexing to level indexing by species indexing convention
+    def get_original_indexing_truth(self, truth):
+        return list(map(lambda x: self.sibling_mapper(x, self.outputname)[0], truth))
+    
+    # maps from species indexing to fresh level indexing
+    def get_mapped_truth(self, truth):
+        sibling_truth = self.get_original_indexing_truth(truth)
+        return torch.LongTensor(list(map(lambda x: self.mlb.index(x), sibling_truth))).to(truth.device)
+
+                
+        
+        
 
 
 ######### Histogram misc

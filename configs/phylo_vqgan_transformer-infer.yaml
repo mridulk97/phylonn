@@ -5,6 +5,7 @@ model:
   params:
     cond_stage_key: class # key to condition (label in this case)
     phyloModel: True
+    top_k: 5
     transformer_config:
       target: taming.modules.transformer.mingpt.GPT
       params:

@@ -8,6 +8,7 @@ from taming.modules.util import SOSProvider
 
 import taming.constants as CONSTANTS
 
+from torchmetrics import F1Score
 
 def disabled_train(self, mode=True):
     """Overwrite model.train with this function to make sure train/eval mode
@@ -121,7 +122,7 @@ class Net2NetTransformer(pl.LightningModule):
                callback=lambda k: None):
         x = torch.cat((c,x),dim=1)
         block_size = self.transformer.get_block_size()
-        assert not self.transformer.training
+        # assert not self.transformer.training
         if self.pkeep <= 0.0:
             # one pass suffices since input is pure noise anyway
             assert len(x.shape)==2
@@ -275,14 +276,7 @@ class Net2NetTransformer(pl.LightningModule):
                 cond_rec = F.one_hot(cond_rec, num_classes=num_classes)
                 cond_rec = cond_rec.squeeze(1).permute(0, 3, 1, 2).float()
                 cond_rec = self.cond_stage_model.to_rgb(cond_rec)
-            
-            f1_samples_half = self.first_stage_model.phylo_disentangler.loss_phylo.F1(self.first_stage_model(x_sample)[3][CONSTANTS.DISENTANGLER_CLASS_OUTPUT], c)
-            f1_samples_nopix = self.first_stage_model.phylo_disentangler.loss_phylo.F1(self.first_stage_model(x_sample_nopix)[3][CONSTANTS.DISENTANGLER_CLASS_OUTPUT], c)
-            f1_x_sample_det = self.first_stage_model.phylo_disentangler.loss_phylo.F1(self.first_stage_model(x_sample_det)[3][CONSTANTS.DISENTANGLER_CLASS_OUTPUT], c)
-            self.log(split+"/f1_samples_half", f1_samples_half, prog_bar=False, logger=True, on_step=False, on_epoch=True)
-            self.log(split+"/f1_samples_nopix", f1_samples_nopix, prog_bar=False, logger=True, on_step=False, on_epoch=True)
-            self.log(split+"/f1_x_sample_det", f1_x_sample_det, prog_bar=False, logger=True, on_step=False, on_epoch=True)
-
+                
         log["samples_half"] = x_sample
         log["samples_nopix"] = x_sample_nopix
         log["samples_det"] = x_sample_det
@@ -317,6 +311,7 @@ class Net2NetTransformer(pl.LightningModule):
         self.log("train/loss", loss, prog_bar=True, logger=True, on_step=True, on_epoch=True)
         return loss
 
+    @torch.no_grad()
     def validation_step(self, batch, batch_idx):
         loss = self.shared_step(batch, batch_idx)
         self.log("val/loss", loss, prog_bar=True, logger=True, on_step=True, on_epoch=True)
@@ -366,7 +361,18 @@ class Net2NetTransformer(pl.LightningModule):
             {"params": [param_dict[pn] for pn in sorted(list(no_decay))], "weight_decay": 0.0},
         ]
         optimizer = torch.optim.AdamW(optim_groups, lr=self.learning_rate, betas=(0.9, 0.95))
-        return optimizer
+        
+        
+        lr_scheduler = {
+            "scheduler": torch.optim.lr_scheduler.CosineAnnealingWarmRestarts(optimizer, 30, eta_min=self.learning_rate*0.01),
+            "monitor": "val"+CONSTANTS.TRANSFORMER_LOSS
+            }
+    # {
+    #         "scheduler": torch.optim.lr_scheduler.ReduceLROnPlateau(optimizer, mode='min', factor=0.33, min_lr=self.learning_rate*0.01, verbose=True), 
+    #         "monitor": "val/loss_epoch"
+    #         }
+            
+        return [optimizer], [lr_scheduler]
     
     
     
@@ -380,10 +386,23 @@ class Phylo_Net2NetTransformer(Net2NetTransformer):
         
         self.phyloModel = args[CONSTANTS.PHYLOMODEL_KEY]
         del args[CONSTANTS.PHYLOMODEL_KEY]
-
+        self.top_k = 100
+        if "top_k" in args.keys():
+            self.top_k = args["top_k"]
+            del args["top_k"]
+        
         super().__init__(**args)
 
         self.first_stage_model.freeze() # not sure if needed but just for safety.
+        
+        self.outputname = CONSTANTS.DISENTANGLER_CLASS_OUTPUT
+        self.F1 =self.first_stage_model.phylo_disentangler.loss_phylo.F1
+        if self.cond_stage_model.phylo_mapper is not None:
+            #TODO: change layer_truth to something more meaningful.
+            self.outputname = self.cond_stage_model.phylo_mapper.outputname
+            # self.outputname = str(self.cond_stage_model.phylo_distances[self.cond_stage_model.level]).replace(".", "")+"distance"
+            self.F1 = F1Score(num_classes=self.first_stage_model.phylo_disentangler.loss_phylo.classifier_output_sizes[self.cond_stage_model.phylo_mapper.level], multiclass=True) 
+                
         
     def encode_to_z(self, x):
         zq_phylo, zq_nonphylo, _, _, _, _, info_attr, info_nonattr = self.first_stage_model.encode(x)
@@ -398,6 +417,7 @@ class Phylo_Net2NetTransformer(Net2NetTransformer):
     
     def decode_to_img(self, index, zshape):
         #TODO: This whol file assumes we always have nonattr codes. We do not handle the case where there are only attr codes. We might want to either handle that properly or throw an error.
+        assert (self.first_stage_model.phylo_disentangler.loss_anticlassification ), "This code only works with anticlassification for now."
         index = self.permuter(index, reverse=True)
         
         codebooks_per_phylolevel = self.first_stage_model.phylo_disentangler.codebooks_per_phylolevel
@@ -424,5 +444,72 @@ class Phylo_Net2NetTransformer(Net2NetTransformer):
 
     def log_images(self, batch, temperature=None, top_k=None, callback=None, lr_interface=False, **kwargs):
         if top_k is None:
-            topk = self.cond_stage_model.num_of_classes
-        return super().log_images(batch, temperature, topk, callback, lr_interface, **kwargs)
+            top_k = self.top_k
+        return super().log_images(batch, temperature, top_k, callback, lr_interface, **kwargs)
+    
+    def shared_step(self, batch, batch_idx, split='train'):
+        loss = super().shared_step(batch, batch_idx)
+        # x, c = self.get_xc(batch)
+        # logits, target = self(x, c)
+        # loss = F.cross_entropy(logits.reshape(-1, logits.size(-1)), target.reshape(-1))
+
+        if batch_idx%100==0:
+            with torch.no_grad():
+                x, c = self.get_xc(batch)
+                x = x.to(device=self.device)
+                c = c.to(device=self.device)
+                quant_z, z_indices = self.encode_to_z(x)
+                quant_c, c_indices = self.encode_to_c(c)
+
+                # create a "half"" sample
+                z_start_indices = z_indices[:,:z_indices.shape[1]//2]
+                index_sample = self.sample(z_start_indices, c_indices,
+                                        steps=z_indices.shape[1]-z_start_indices.shape[1],
+                                        temperature= 1.0,
+                                        sample=True,
+                                        top_k=self.top_k)
+                x_sample = self.decode_to_img(index_sample, quant_z.shape)
+
+                # sample
+                z_start_indices = z_indices[:, :0]
+                index_sample = self.sample(z_start_indices, c_indices,
+                                        steps=z_indices.shape[1],
+                                        temperature=1.0,
+                                        sample=True,
+                                        top_k=self.top_k)
+                x_sample_nopix = self.decode_to_img(index_sample, quant_z.shape)
+
+                # det sample
+                z_start_indices = z_indices[:, :0]
+                index_sample = self.sample(z_start_indices, c_indices,
+                                        steps=z_indices.shape[1],
+                                        sample=False)
+                x_sample_det = self.decode_to_img(index_sample, quant_z.shape)
+                    
+                truth = quant_c
+                if self.cond_stage_model.phylo_mapper is not None:
+                    #TODO: change layer_truth to something more meaningful.
+                    truth = self.cond_stage_model.phylo_mapper.get_mapped_truth(truth)
+                    # layer_truth = list(map(lambda x: self.cond_stage_model.siblingfinder.map_speciesId_siblingVector(x, self.outputname), truth))
+                    # truth = torch.LongTensor(list(map(lambda x: self.cond_stage_model.mlb.index(x[0]), layer_truth))).to(truth.device)
+
+                print(self.first_stage_model(x_sample)[3][self.outputname], truth)
+                f1_samples_half = self.F1(self.first_stage_model(x_sample)[3][self.outputname], truth)
+                f1_samples_nopix = self.F1(self.first_stage_model(x_sample_nopix)[3][self.outputname], truth)
+                f1_x_sample_det = self.F1(self.first_stage_model(x_sample_det)[3][self.outputname], truth)
+                self.log(split+"/f1_samples_half", f1_samples_half, prog_bar=False, logger=True, on_step=False, on_epoch=True)
+                self.log(split+"/f1_samples_nopix", f1_samples_nopix, prog_bar=False, logger=True, on_step=False, on_epoch=True)
+                self.log(split+"/f1_x_sample_det", f1_x_sample_det, prog_bar=False, logger=True, on_step=False, on_epoch=True)
+
+        return loss
+
+    def training_step(self, batch, batch_idx):
+        loss = self.shared_step(batch, batch_idx, split='train')
+        self.log("train/loss", loss, prog_bar=True, logger=True, on_step=True, on_epoch=True)
+        return loss
+
+    @torch.no_grad()
+    def validation_step(self, batch, batch_idx):
+        loss = self.shared_step(batch, batch_idx, split='val')
+        self.log("val/loss", loss, prog_bar=True, logger=True, on_step=True, on_epoch=True)
+        return loss

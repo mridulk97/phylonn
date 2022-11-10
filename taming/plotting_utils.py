@@ -31,10 +31,10 @@ def save_to_txt(arr, ckpt_path, name='results'):
 
 
 
-def save_image_grid(torch_images_4D, ckpt_path, subfolder=None, postfix="", nrow=10):
+def save_image_grid(torch_images, ckpt_path, subfolder=None, postfix="", nrow=10):
     root = get_fig_pth(ckpt_path, postfix=subfolder)
 
-    grid = torchvision.utils.make_grid(torch_images_4D, nrow=nrow)
+    grid = torchvision.utils.make_grid(torch_images, nrow=nrow)
     grid = torch.clamp(grid, -1., 1.)
 
     grid = (grid+1.0)/2.0 # -1,1 -> 0,1; c,h,w
@@ -46,6 +46,22 @@ def save_image_grid(torch_images_4D, ckpt_path, subfolder=None, postfix="", nrow
     os.makedirs(os.path.split(path)[0], exist_ok=True)
     Image.fromarray(grid).save(path)
 
+
+def save_image(torch_image, image_name, ckpt_path, subfolder=None):
+    root = get_fig_pth(ckpt_path, postfix=subfolder)
+
+    torch_image = torch.clamp(torch_image, -1., 1.)
+
+    torch_image = (torch_image+1.0)/2.0 # -1,1 -> 0,1; c,h,w
+    torch_image = torch_image.transpose(0,1).transpose(1,2).squeeze(-1)
+    torch_image = torch_image.cpu().numpy()
+    torch_image = (torch_image*255).astype(np.uint8)
+    filename = image_name+".png"
+    path = os.path.join(root, filename)
+    os.makedirs(os.path.split(path)[0], exist_ok=True)
+    Image.fromarray(torch_image).save(path)
+    
+    
 
 def get_fig_pth(ckpt_path, postfix=None):
     figs_postfix = 'figs'
@@ -69,7 +85,9 @@ def plot_confusionmatrix(preds, classes, classnames, ckpt_path, postfix=None, ti
     preds_max = np.argmax(preds.cpu().numpy(), axis=-1)
     disp = ConfusionMatrixDisplay.from_predictions(classes.cpu().numpy(), preds_max, display_labels=classnames, normalize='true', xticks_rotation='vertical', ax=ax)
     disp.plot()
-    fig.savefig(os.path.join(get_fig_pth(ckpt_path, postfix=postfix), title+ " heat_map.png"))
+    fig_path = get_fig_pth(ckpt_path, postfix=postfix)
+    print(fig_path)
+    fig.savefig(os.path.join(fig_path, title+ " heat_map.png"))
 
 
 

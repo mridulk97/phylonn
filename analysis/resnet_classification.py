@@ -3,12 +3,13 @@
 
 
 import os
+from taming.analysis_utils import get_phylomapper_from_config
+from taming.data.phylogeny import Phylogeny
 import torch
 import torch.nn as nn
 import torch.optim as optim
 from torch.optim import lr_scheduler
 from torchvision import models
-import matplotlib.pyplot as plt
 import time
 import copy
 
@@ -27,9 +28,9 @@ def get_input(batch, k):
 
 
 
-def train_model(model, dataloaders, criterion, optimizer, scheduler, device, num_epochs=25):
+def train_model(model, dataloaders, criterion, optimizer, scheduler, device, num_epochs=25, phylomapper=None):
     since = time.time()
-    
+
     dataset_sizes = {x: len(dataloaders[x].dataset) for x in ['train', 'val']}
 
     best_model_wts = copy.deepcopy(model.state_dict())
@@ -62,6 +63,12 @@ def train_model(model, dataloaders, criterion, optimizer, scheduler, device, num
                 with torch.set_grad_enabled(phase == 'train'):
                     outputs = model(inputs)
                     _, preds = torch.max(outputs, 1)
+                    
+                    if phylomapper is not None:
+                        labels = phylomapper.get_mapped_truth(labels)
+                        # layer_truth = list(map(lambda x: siblingfinder.map_speciesId_siblingVector(x, str(phylo_distance).replace(".", "")+"distance"), labels))
+                        # labels = torch.LongTensor(list(map(lambda x: mlb.index(x[0]), layer_truth))).to(device)
+                    
                     loss = criterion(outputs, labels)
 
                     # backward + optimize only if in training phase
@@ -85,8 +92,6 @@ def train_model(model, dataloaders, criterion, optimizer, scheduler, device, num
                 best_acc = epoch_acc
                 best_model_wts = copy.deepcopy(model.state_dict())
 
-        print()
-
     time_elapsed = time.time() - since
     print(f'Training complete in {time_elapsed // 60:.0f}m {time_elapsed % 60:.0f}s')
     print(f'Best val Acc: {best_acc:4f}')
@@ -108,6 +113,7 @@ def main(configs_yaml):
     step_size = configs_yaml.step_size
     lr = configs_yaml.lr
     num_epochs = configs_yaml.num_epochs
+    pretrained_model = configs_yaml.pretrained_model
     
     
     dataset_train = CustomTrain(size, file_list_path_train, add_labels=True)
@@ -123,16 +129,42 @@ def main(configs_yaml):
     
 
     model_ft = models.resnet18(pretrained=True)
+
+    
+    phylogeny = None
+    if pretrained_model is not None:
+        phyloDistances_string = configs_yaml.phyloDistances_string
+        level = configs_yaml.level
+        phylogeny_path = configs_yaml.phylogeny_path
+        
+        # TODO this piece of code seems to be shared in multipel places. Try to consolidate it into a function
+        phylomapper = get_phylomapper_from_config(Phylogeny(phylogeny_path), phyloDistances_string, level)
+        # phylogeny = Phylogeny(phylogeny_path)
+        # phylo_distances = parse_phyloDistances(phyloDistances_string)
+        # siblingfinder = Species_sibling_finder(phylogeny, phylo_distances)
+        # relative_distance = get_relative_distance_for_level(phylo_distances, level)
+        # species_groups = phylogeny.get_species_groups(relative_distance)
+        # species_groups_representatives = list(map(lambda x: x[0], species_groups))
+        # mlb = list(map(lambda x: phylogeny.getLabelList().index(x), species_groups_representatives))
+    
+        model_ft = torch.load(pretrained_model)
+        outputsize = phylomapper.get_len()
+    else:
+        level = 3
+        outputsize = len(dataset_train.indx_to_label.keys())
+
     num_ftrs = model_ft.fc.in_features
-    model_ft.fc = nn.Linear(num_ftrs, len(dataset_train.indx_to_label.keys()))
+    model_ft.fc = nn.Linear(num_ftrs, outputsize)
     model_ft = model_ft.to(DEVICE)
     criterion = nn.CrossEntropyLoss()
     optimizer_ft = optim.SGD(model_ft.parameters(), lr=lr, momentum=0.9)
     exp_lr_scheduler = lr_scheduler.StepLR(optimizer_ft, step_size=step_size, gamma=0.1)
-    model_ft = train_model(model_ft, dataloaders, criterion, optimizer_ft, exp_lr_scheduler, DEVICE,
-                        num_epochs=num_epochs)
     
-    torch.save(model_ft, os.path.realpath(os.path.dirname(__file__))+"/classification_model.path")
+    
+    model_ft = train_model(model_ft, dataloaders, criterion, optimizer_ft, exp_lr_scheduler, DEVICE,
+                        num_epochs=num_epochs, phylomapper=phylomapper if phylomapper is not None else None)
+    
+    torch.save(model_ft, os.path.realpath(os.path.dirname(__file__))+"/classification_model_{}.path".format(level))
 
 
 

@@ -17,10 +17,11 @@ class AntiClassificationLoss(nn.Module):
         
         # for param in codebook_mapping_layers.parameters():
         #     param.requires_grad = False
-        nonattr_learning_detached = codebook_mapping_layers(zq_nonphylo).detach()
+        with torch.no_grad():
+            nonattr_learning_detached = codebook_mapping_layers(zq_nonphylo)
         
         anti_classification_mapping_loss = torch.abs(zq_phylo.detach().contiguous() - nonattr_mapping_detached.contiguous())
-        anti_classification_learning_loss = -torch.abs(zq_phylo.contiguous() - nonattr_learning_detached.contiguous())
+        anti_classification_learning_loss = -torch.abs(zq_phylo.detach().contiguous() - nonattr_learning_detached.contiguous())
         
         return torch.mean(anti_classification_mapping_loss),  torch.mean(anti_classification_learning_loss)
 

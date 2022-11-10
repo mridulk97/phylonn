@@ -80,12 +80,12 @@ def main(configs_yaml):
     file_list_path = configs_yaml.file_list_path
     distance_used = configs_yaml.distance_used
 
+    dataset = CustomDataset(size, file_list_path, add_labels=True)
+    
     # Load model
     config = load_config(yaml_path, display=False)
-    model = load_phylovqvae(config, ckpt_path=ckpt_path).to(DEVICE)
+    model = load_phylovqvae(config, ckpt_path=ckpt_path, data=dataset.data, cuda=(DEVICE is not None))
     model.set_test_chkpt_path(ckpt_path)
-    
-    dataset = CustomDataset(size, file_list_path, add_labels=True)
     
 
     histograms_file = os.path.join(get_fig_pth(ckpt_path, postfix=CONSTANTS.HISTOGRAMS_FOLDER), CONSTANTS.HISTOGRAMS_FILE)

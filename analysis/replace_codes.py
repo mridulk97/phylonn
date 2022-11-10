@@ -37,20 +37,20 @@ class Clone_manger():
 
 
 # indexing of hist_arr: [code_location][raw list of codes of that location from all images]
-# highest entropy to lowest entropy
+# lowest entropy to highest entropy
 def get_entropy_ordering(hist_arr_for_species):
     entropies = []
     for codes_forcode_location in hist_arr_for_species:
         value,counts = np.unique(codes_forcode_location, return_counts=True)
         entropies.append(entropy(counts))
-    reverse_ordered_entropy_indices = np.argsort(entropies)[::-1]
+    reverse_ordered_entropy_indices = np.argsort(entropies)
     # print(entropies, reverse_ordered_entropy_indices)
     return reverse_ordered_entropy_indices
     
-# From least frequent to most frequent
+# From most frequent to least frequent
 def get_highest_likelyhood_ordering(hist_arr_for_species_and_location):
     value,counts = np.unique(hist_arr_for_species_and_location, return_counts=True)
-    ordered_count_indices = np.argsort(counts)
+    ordered_count_indices = np.argsort(counts)[::-1]
     # print(counts, ordered_count_indices)
     return ordered_count_indices
     
@@ -68,11 +68,7 @@ def main(configs_yaml):
     plot_diff = configs_yaml.plot_diff
     by_entropy = configs_yaml.by_entropy
     add_invalid_codes = configs_yaml.add_invalid_codes
-
-    # Load model
-    config = load_config(yaml_path, display=False)
-    model = load_phylovqvae(config, ckpt_path=ckpt_path).to(DEVICE)
-    model.set_test_chkpt_path(ckpt_path)
+    use_nonattr_codes = configs_yaml.use_nonattr_codes
 
     # load image
     dataset = CustomDataset(size, file_list_path, add_labels=True)
@@ -83,16 +79,24 @@ def main(configs_yaml):
     processed_img = processed_img.float()
     species_index = specimen['class']
     print(specimen['file_path_'], specimen['class'])
+    
+    # Load model
+    config = load_config(yaml_path, display=False)
+    model = load_phylovqvae(config, ckpt_path=ckpt_path, data=dataset.data, cuda=(DEVICE is not None))
+    model.set_test_chkpt_path(ckpt_path)
 
     # get output
     dec_image, _, _, in_out_disentangler = model(processed_img.to(DEVICE))
-    q_phylo_output = in_out_disentangler[CONSTANTS.QUANTIZED_PHYLO_OUTPUT]
+    q_output = in_out_disentangler[CONSTANTS.QUANTIZED_PHYLO_OUTPUT if not use_nonattr_codes else CONSTANTS.QUANTIZED_PHYLO_NONATTRIBUTE_OUTPUT] 
 
-    converter = Embedding_Code_converter(model.phylo_disentangler.quantize.get_codebook_entry_index, model.phylo_disentangler.quantize.embedding, q_phylo_output[0, :, :, :].shape)
-    all_code_indices = converter.get_phylo_codes(q_phylo_output[0, :, :, :].unsqueeze(0), verify=False)
+    converter = Embedding_Code_converter(model.phylo_disentangler.quantize.get_codebook_entry_index, model.phylo_disentangler.quantize.embedding, q_output[0, :, :, :].shape)
+    all_code_indices = converter.get_phylo_codes(q_output[0, :, :, :].unsqueeze(0), verify=False)
     all_codes_reverse_reshaped = converter.get_phylo_embeddings(all_code_indices, verify=False)
 
-    dec_image_reversed, _, _, _ = model(processed_img.to(DEVICE), overriding_quant=all_codes_reverse_reshaped)
+    if use_nonattr_codes:
+        dec_image_reversed, _, _, _ = model(processed_img.to(DEVICE), overriding_quant_nonattr=all_codes_reverse_reshaped)
+    else:
+        dec_image_reversed, _, _, _ = model(processed_img.to(DEVICE), overriding_quant_attr=all_codes_reverse_reshaped)
     
     # Get code and location ordering
     histograms_file = os.path.join(get_fig_pth(ckpt_path, postfix=CONSTANTS.HISTOGRAMS_FOLDER), CONSTANTS.HISTOGRAMS_FILE)
@@ -105,7 +109,8 @@ def main(configs_yaml):
         which_locations = range(model.phylo_disentangler.codebooks_per_phylolevel*model.phylo_disentangler.n_phylolevels)
     else:
         hist_arr, hist_arr_nonattr = pickle.load(open(histograms_file, "rb"))
-        which_locations = get_entropy_ordering(hist_arr[species_index])
+        hist  = hist_arr_nonattr if use_nonattr_codes else hist_arr
+        which_locations = get_entropy_ordering(hist[species_index])
         
         
     
@@ -119,17 +124,20 @@ def main(configs_yaml):
         generated_imgs = [dec_image, dec_image_reversed]
             
         if using_entropy:
-            which_codes = get_highest_likelyhood_ordering(hist_arr[species_index][code_level_location])
+            which_codes = get_highest_likelyhood_ordering(hist[species_index][code_level_location])
             if add_invalid_codes:
                 for i in range(model.phylo_disentangler.n_embed):
                     if i not in which_codes:
-                        which_codes = np.append(which_codes, i)
+                        which_codes = np.insert(which_codes, 0, i)
             
         for code_index in which_codes:
             all_codes_reverse_reshaped_clone = clone_manager.get_embedding(code_index)
             all_codes_reverse_reshaped_clone[0, :, code_location, level] = model.phylo_disentangler.quantize.embedding(torch.tensor([code_index]).to(all_codes_reverse_reshaped.device))
 
-            dec_image_new, _, _, _ = model(processed_img.to(DEVICE), overriding_quant=all_codes_reverse_reshaped_clone)
+            if use_nonattr_codes:
+                dec_image_new, _, _, _ = model(processed_img.to(DEVICE), overriding_quant_nonattr=all_codes_reverse_reshaped_clone)
+            else:
+                dec_image_new, _, _, _ = model(processed_img.to(DEVICE), overriding_quant_attr=all_codes_reverse_reshaped_clone)
             
             if plot_diff:
                 generated_imgs.append(dec_image_new - dec_image)
@@ -137,7 +145,7 @@ def main(configs_yaml):
                 generated_imgs.append(dec_image_new)
         
         generated_imgs = torch.cat(generated_imgs, dim=0)
-        save_image_grid(generated_imgs, ckpt_path, subfolder="codebook_grid-cumulative{}-diff{}".format(cummulative, plot_diff), postfix="ordering{}-level{}-location{}".format(ordering, level, code_location))
+        save_image_grid(generated_imgs, ckpt_path, subfolder="codebook_grid-cumulative{}-diff{}-use_nonattr_codes{}".format(cummulative, plot_diff, use_nonattr_codes), postfix="ordering{}-level{}-location{}".format(ordering, level, code_location))
 
         
 

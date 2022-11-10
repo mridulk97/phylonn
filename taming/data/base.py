@@ -21,13 +21,22 @@ class ConcatDatasetWithIndex(ConcatDataset):
 
 
 class ImagePaths(Dataset):
-    def __init__(self, paths, size=None, random_crop=False, labels=None):
+    def __init__(self, paths, size=None, random_crop=False, labels=None, unique_skipped_labels=[]):
         self.size = size
         self.random_crop = random_crop
 
         self.labels = dict() if labels is None else labels
         self.labels["file_path_"] = paths
         self._length = len(paths)
+        
+        self.labels_without_skipped = None
+        if labels is None and len(unique_skipped_labels)!=0:
+            self.labels_without_skipped = dict()
+            for i in self.labels.keys():
+                self.labels_without_skipped[i] = [a for indx, a in enumerate(labels[i]) if labels['class'][indx] not in unique_skipped_labels]
+            self._length = len(self.labels_without_skipped['class'])
+        
+        
 
         if self.size is not None and self.size > 0:
             self.rescaler = albumentations.SmallestMaxSize(max_size = self.size)
@@ -51,11 +60,15 @@ class ImagePaths(Dataset):
         image = (image/127.5 - 1.0).astype(np.float32)
         return image
 
+    def get_unique_labels(self):
+        return np.unique(self.labels['class'])
+    
     def __getitem__(self, i):
+        labels = self.labels if self.labels_without_skipped is None else self.labels_without_skipped
         example = dict()
-        example["image"] = self.preprocess_image(self.labels["file_path_"][i])
-        for k in self.labels:
-            example[k] = self.labels[k][i]
+        example["image"] = self.preprocess_image(labels["file_path_"][i])
+        for k in labels:
+            example[k] = labels[k][i]
         return example
 
 

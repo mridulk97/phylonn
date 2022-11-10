@@ -10,6 +10,14 @@ step_size: 7
 num_epochs: 25
 
 
+# Just set pretrained_model to None for training species level
+pretrained_model: /home/elhamod/projects/taming-transformers/analysis/classification_model.path
+level: 1
+phyloDistances_string: "0.77,0.5,0.33"
+phylogeny_path: /fastscratch/elhamod/data/Fish
+    
+
+
 size: 256
 file_list_path_train: "/home/elhamod/data/Fish/taming_transforms_fish_train_padded_256.txt"
 file_list_path_test: "/home/elhamod/data/Fish/taming_transforms_fish_test_padded_256.txt"

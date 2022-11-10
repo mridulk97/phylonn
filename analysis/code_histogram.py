@@ -2,15 +2,13 @@ from taming.loading_utils import load_config, load_phylovqvae
 from taming.data.custom import CustomTest as CustomDataset
 from taming.data.utils import custom_collate
 from taming.analysis_utils import Embedding_Code_converter
-from taming.plotting_utils import get_fig_pth, save_image_grid, Histogram_plotter, save_to_cvs, save_to_txt
+from taming.plotting_utils import get_fig_pth, save_image, save_image_grid, Histogram_plotter, save_to_cvs, save_to_txt
 
 from torch.utils.data import DataLoader
 import torch
 from tqdm import tqdm
 
 import taming.constants as CONSTANTS
-
-import matplotlib.pyplot as plt
 
 import os
 
@@ -19,10 +17,10 @@ import argparse
 
 import random
 import pickle
-import csv
 from operator import add
 
 GENERATED_FOLDER = "most_likely_generations"
+GENERATED_DATASET = "generated_dataset"
 
 # hist_arr structure:
 #hist_arr[lbl][code_location] = [list of codes that occured]
@@ -43,17 +41,18 @@ def main(configs_yaml):
     create_histograms = configs_yaml.create_histograms
     per_phylo_level = configs_yaml.per_phylo_level
     generate_specimen = configs_yaml.generate_specifmen
-
-    # Load model
-    config = load_config(yaml_path, display=False)
-    model = load_phylovqvae(config, ckpt_path=ckpt_path).to(DEVICE)
-    model.set_test_chkpt_path(ckpt_path)
+    save_individual_images = configs_yaml.save_individual_images
 
     # load image
     dataset = CustomDataset(size, file_list_path, add_labels=True)
     dataloader = DataLoader(dataset.data, batch_size=batch_size, num_workers=num_workers, collate_fn=custom_collate)
+    
+    # Load model
+    config = load_config(yaml_path, display=False)
+    model = load_phylovqvae(config, ckpt_path=ckpt_path, data=dataset.data, cuda=(DEVICE is not None))
+    model.set_test_chkpt_path(ckpt_path)
 
-    converter = None
+
     hist_arr = [[] for x in range(len(model.phylo_disentangler.loss_phylo.phylogeny.getLabelList()))]
     
     passthrough = (model.phylo_disentangler.ch != model.phylo_disentangler.n_phylo_channels)
@@ -187,7 +186,7 @@ def main(configs_yaml):
                         hist_arr_nonattr[species_indx], 
                         num_specimen_generated, 
                         model, converter, converter_nonattribute, dataset.indx_to_label,
-                        DEVICE, ckpt_path, 'species',
+                        DEVICE, ckpt_path, 'species', save_individual_images=save_individual_images,
                         anticlassification=anticlassification)
                 
             if per_phylo_level:
@@ -198,7 +197,7 @@ def main(configs_yaml):
                             group_levels_non_attr_hist[level][species_group[0]], 
                             num_specimen_generated, 
                             model, converter, converter_nonattribute, dataset.indx_to_label,
-                            DEVICE, ckpt_path, 'group-level-{}'.format(level),
+                            DEVICE, ckpt_path, 'group-level-{}'.format(level), save_individual_images=save_individual_images,
                             anticlassification=anticlassification)
         else:
             print("We won't create likely images because of species because there is a passthrough without anticlassification")
@@ -246,7 +245,7 @@ def generate_images(species_arr, species_indx,
                     species_arr_nonattr, 
                     num_specimen_generated, 
                     model, converter, converter_nonattribute, indx_to_label,
-                    device, ckpt_path, prefix_text,
+                    device, ckpt_path, prefix_text, save_individual_images=False,
                     anticlassification=False):
     
     
@@ -281,6 +280,9 @@ def generate_images(species_arr, species_indx,
         embedding_nonattribute = converter_nonattribute.get_phylo_embeddings(created_nonattribute_sequence) if anticlassification else None
         dec_image_new, _ = model.from_quant_only(embedding, embedding_nonattribute)
         generated_imgs.append(dec_image_new)
+        
+        if save_individual_images:
+            save_image(dec_image_new.squeeze(), str(i), ckpt_path, subfolder= os.path.join(GENERATED_DATASET,prefix_text,"{}".format(indx_to_label[species_indx])))
         
     # Save the sequences
     save_to_cvs(ckpt_path, GENERATED_FOLDER, "{}_attributecodes_{}_{}.csv".format(prefix_text, species_indx, indx_to_label[species_indx]), list_of_created_sequence)

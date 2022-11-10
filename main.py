@@ -244,22 +244,6 @@ class ImageLogger(Callback):
     @rank_zero_only
     def _wandb(self, pl_module, images, batch_idx, split):
 
-        #TODO: check when this is fixed by wandb
-
-        # grids = dict()
-        # for k in images:
-        #     grid = torchvision.utils.make_grid(images[k])
-        #     # print('grid', grid.shape, grid.dtype)
-        #     grid = grid.permute(1, 2, 0)
-        #     grid = (grid+1.0)/2.0 # -1,1 -> 0,1; c,h,w
-        #     # print('grid', grid.shape, grid.dtype)
-        #     grids[f"{split}/{k}"] = wandb.Image(grid.numpy())
-        # # print(grids)
-        # pl_module.logger.experiment.log(grids)
-        # # pl_module.logger.experiment.log({
-        # #     "samples": [wandb.Image(grids[key]) for key in grids]
-        # #     })
-
         for k in images:
             grid = torchvision.utils.make_grid(images[k].detach())
             # print('grid', grid.shape, grid.dtype)
@@ -267,14 +251,9 @@ class ImageLogger(Callback):
             grid = (grid+1.0)/2.0 # -1,1 -> 0,1; c,h,w
             grid = (grid * 255).astype(np.uint8)
             grid = Image.fromarray(grid)
-            # print('grid', grid.shape, grid.dtype)
-            # grids[f"{split}/{k}"] = wandb.Image(grid)
-        # print(grids)
+
             pl_module.logger.experiment.log({f"{split}/{k}": wandb.Image(grid)})
-            # pl_module.logger.experiment.log({"hi": wandb.Image(grid)})
-        # pl_module.logger.experiment.log({
-        #     "samples": [wandb.Image(grids[key]) for key in grids]
-        #     })
+
     
 
 
@@ -533,13 +512,17 @@ if __name__ == "__main__":
         # specify which metric is used to determine best models
         # https://pytorch-lightning.readthedocs.io/en/stable/api/pytorch_lightning.callbacks.ModelCheckpoint.html
         # https://pytorch-lightning.readthedocs.io/en/stable/common/checkpointing_intermediate.html
+        transformer_classes = [
+            "taming.models.cond_transformer.Phylo_Net2NetTransformer",
+            "taming.models.cond_transformer.Net2NetTransformer"
+        ]
         default_modelckpt_cfg = {
             "target": "pytorch_lightning.callbacks.ModelCheckpoint",
             "params": {
                 "dirpath": ckptdir,
                 "filename": "{epoch:06}",
                 "verbose": True,
-                "monitor": "val"+(CONSTANTS.DISENTANGLER_PHYLO_LOSS if config.model.target != "taming.models.cond_transformer.Phylo_Net2NetTransformer" else CONSTANTS.TRANSFORMER_LOSS), #TODO: This is hacky. make it nicer.
+                "monitor": "val"+(CONSTANTS.DISENTANGLER_PHYLO_LOSS if config.model.target not in transformer_classes else CONSTANTS.TRANSFORMER_LOSS), #TODO: This is hacky. make it nicer.
                 "save_top_k": 1,
                 "mode": "min",
                 "period": 3,
@@ -641,6 +624,11 @@ if __name__ == "__main__":
         import signal
         signal.signal(signal.SIGUSR1, melk)
         signal.signal(signal.SIGUSR2, divein)
+        
+        
+        # hacky way for class weighing for phylo loss
+        if "class_weighting" in config.model and config.model.class_weighting:
+            model.set_class_weights(data.datasets["train"].data, cuda=not cpu)
 
         # run
         if opt.train:

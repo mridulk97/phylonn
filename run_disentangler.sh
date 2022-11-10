@@ -61,9 +61,27 @@ which python
 # python main.py --prefix /fastscratch/elhamod --name Phylo-VQVAE --postfix 256img-phase4-multiclass-lowerlr-4cblevel --base configs/custom_vqgan-256emb-256img-phylo-vqvae-phase4-4cbperlevel-lowerlr.yaml -t True --gpus 0, 
 # python main.py --prefix /fastscratch/elhamod --name Phylo-VQVAE --postfix 256img-phase4-multiclass-lowerlr-8cblevel-stronganti --base configs/custom_vqgan-256emb-256img-phylo-vqvae-phase4-8cbperlevel-lowerlr-stronganti.yaml -t True --gpus 0, 
 
-python main.py --prefix /fastscratch/elhamod --name Phylo-VQVAE --postfix 256img-phase4-multiclass-lowerlr-8cblevel-stronganti-morefclayers --base configs/custom_vqgan-256emb-256img-phylo-vqvae-phase4-8cbperlevel-lowerlr-stronganti_morefclayers.yaml -t True --gpus 0, 
+# python main.py --prefix /fastscratch/elhamod --name Phylo-VQVAE --postfix TESTING-256img-phase4-multiclass-lowerlr-8cblevel-stronganti --base configs/custom_vqgan-256emb-256img-phylo-vqvae-phase4-8cbperlevel-lowerlr-stronganti.yaml -t True --gpus 0,
 
+# python main.py --prefix /fastscratch/elhamod --name Phylo-VQVAE --postfix 256img-phase4-multiclass-lowerlr-8cblevel-stronganti-morefclayers --base configs/custom_vqgan-256emb-256img-phylo-vqvae-phase4-8cbperlevel-lowerlr-stronganti_morefclayers.yaml -t True --gpus 0, 
 
+# python main.py --prefix /fastscratch/elhamod --name Phylo-VQVAE --postfix TESTING-256img-phase4-multiclass-lowerlr-8cblevel-stronganti-largerembedding --base configs/custom_vqgan-256emb-256img-phylo-vqvae-phase4-8cbperlevel-lowerlr-stronganti-largerembedding.yaml -t True --gpus 0,
+
+# python main.py --prefix /fastscratch/elhamod --name Phylo-VQVAE --postfix 512img-phase4-multiclass-lowerlr-8cblevel-stronganti-largerembedding --base configs/custom_vqgan-256emb-512img-phylo-vqvae-phase4-8cbperlevel-lowerlr-stronganti.yaml -t True --gpus 0,
+# python main.py --prefix /fastscratch/elhamod --name Phylo-VQVAE --postfix 512img-phase4-multiclass-lowerlr-8cblevel-stronganti-2layers-cyclical --base configs/custom_vqgan-256emb-256img-phylo-vqvae-phase4-8cbperlevel-lowerlr-stronganti-1hiddenlayer.yaml -t True --gpus 0,
+
+# python main.py --prefix /fastscratch/elhamod --name Phylo-VQVAE --postfix 512img-phase4-multiclass-lowerlr-8cblevel-stronganti-2layers-cyclical-classweighting --base configs/custom_vqgan-256emb-256img-phylo-vqvae-phase4-8cbperlevel-lowerlr-stronganti-1hiddenlayer-classweights.yaml -t True --gpus 0,
+
+# python main.py --prefix /fastscratch/elhamod --name Phylo-VQVAE --postfix 256img-phase5-betaforclassification-phylohigher --base configs/custom_vqgan-256emb-256img-phylo-vqvae-phase5-betaforclassification-phylohigher.yaml -t True --gpus 0, 
+# python main.py --prefix /fastscratch/elhamod --name Phylo-VQVAE --postfix 256img-phase5-largerbatch --base configs/custom_vqgan-256emb-256img-phylo-vqvae-phase5-largerbatch.yaml -t True --gpus 0, 
+
+# python main.py --prefix /fastscratch/elhamod --name Phylo-VQVAE --postfix 256img-phase5-speciesout --base configs/custom_vqgan-256emb-256img-phylo-vqvae-phase5-speciesout.yaml -t True --gpus 0, 
+# python main.py --prefix /fastscratch/elhamod --name Phylo-VQVAE --postfix 512img-phase5-4cbperlevel-higherlr --base configs/custom_vqgan-256emb-512img-phylo-vqvae-phase5-4cbperlevel-higherlr.yaml -t True --gpus 0, 
+
+# python main.py --prefix /fastscratch/elhamod --name Phylo-VQVAE --postfix 512img-phase5-evenlargerbatch --base configs/custom_vqgan-256emb-256img-phylo-vqvae-phase5-evenlargerbatch.yaml -t True --gpus 0, 
+# python main.py --prefix /fastscratch/elhamod --name Phylo-VQVAE --postfix 512img-phase5-morecodelocations --base configs/custom_vqgan-256emb-256img-phylo-vqvae-phase5-morecodelocations.yaml -t True --gpus 0, 
+
+python main.py --prefix /fastscratch/elhamod --name Phylo-VQVAE --postfix 512img-phase5-lowerphyloweight --base configs/custom_vqgan-256emb-256img-phylo-vqvae-phase5-lowerphyloweight.yaml -t True --gpus 0, 
 
 exit;
 

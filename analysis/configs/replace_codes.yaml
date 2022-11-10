@@ -1,7 +1,7 @@
 # imagepath: "/home/elhamod/data/Fish/train_padded_256/Notropis percobromus/INHS_FISH_76701.jpg"
 # image_index: 1145 #/home/elhamod/data/Fish/train_padded_256/Lepisosteus platostomus/INHS_FISH_104645.jpg
-image_index: 1395 #/home/elhamod/data/Fish/ /Notropis atherinoides/INHS_FISH_4058.jpg
-# image_index: 1522 # /home/elhamod/data/Fish/train_padded_256/Morone chrysops/INHS_FISH_47675.JPG
+# image_index: 1395 #/home/elhamod/data/Fish/ /Notropis atherinoides/INHS_FISH_4058.jpg
+image_index: 1522 # /home/elhamod/data/Fish/train_padded_256/Morone chrysops/INHS_FISH_47675.JPG
 # image_index: 1648 #/home/elhamod/data/Fish/train_padded_256/Noturus nocturnus/INHS_FISH_42082.jpg
 #10
 
@@ -10,8 +10,10 @@ file_list_path: "/home/elhamod/data/Fish/taming_transforms_fish_train_padded_256
 # size= 512
 # file_list_path = "/home/elhamod/data/Fish/taming_transforms_fish_train_padded_512.txt"
 
+use_nonattr_codes: True 
+
 by_entropy: True 
-add_invalid_codes: False # only used when by_entropy=True
+add_invalid_codes: True # only used when by_entropy=True
 
 cummulative: True
 plot_diff: False
@@ -86,6 +88,10 @@ DEVICE: 0
 # yaml_path: "/home/elhamod/projects/taming-transformers/logs/2022-10-25T22-04-46_Phylo-VQVAE256img-phylo-vqvae-phase2-disentanglerconv-morefclayers/configs/2022-10-25T22-04-46-project.yaml"
 # ckpt_path: "/home/elhamod/projects/taming-transformers/logs/2022-10-25T22-04-46_Phylo-VQVAE256img-phylo-vqvae-phase2-disentanglerconv-morefclayers/checkpoints/last.ckpt"
 
-# slower lr
-yaml_path: "/fastscratch/elhamod/logs/2022-10-30T20-13-25_Phylo-VQVAE256img-phase4-swapconvin-nolastrelu-multiclass-lowerlr/configs/2022-10-30T20-13-25-project.yaml"
-ckpt_path: "/fastscratch/elhamod/logs/2022-10-30T20-13-25_Phylo-VQVAE256img-phase4-swapconvin-nolastrelu-multiclass-lowerlr/checkpoints/last.ckpt"
+# # slower lr
+# yaml_path: "/fastscratch/elhamod/logs/2022-10-30T20-13-25_Phylo-VQVAE256img-phase4-swapconvin-nolastrelu-multiclass-lowerlr/configs/2022-10-30T20-13-25-project.yaml"
+# ckpt_path: "/fastscratch/elhamod/logs/2022-10-30T20-13-25_Phylo-VQVAE256img-phase4-swapconvin-nolastrelu-multiclass-lowerlr/checkpoints/last.ckpt"
+
+# class weights
+ckpt_path: /home/elhamod/projects/taming-transformers/logs/imported/2022-11-05T19-12-52_Phylo-VQVAE512img-phase4-multiclass-lowerlr-8cblevel-stronganti-2layers-cyclical-classweighting/checkpoints/epoch=000068.ckpt
+yaml_path: /home/elhamod/projects/taming-transformers/logs/imported/2022-11-05T19-12-52_Phylo-VQVAE512img-phase4-multiclass-lowerlr-8cblevel-stronganti-2layers-cyclical-classweighting/configs/2022-11-05T19-12-52-project-infer.yaml

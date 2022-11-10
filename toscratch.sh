@@ -13,6 +13,9 @@ cp -avr /home/elhamod/data/Fish/train_padded_256 /fastscratch/elhamod/data/Fish/
 cp -avr /home/elhamod/data/Fish/test_padded_512 /fastscratch/elhamod/data/Fish/test_padded_512
 cp -avr /home/elhamod/data/Fish/train_padded_512 /fastscratch/elhamod/data/Fish/train_padded_512
 
+cp -avr /home/elhamod/data/Fish/taming_transforms_fish_test_padded_256_out.txt /fastscratch/elhamod/data/Fish/taming_transforms_fish_test_padded_256_out.txt
+cp -avr /home/elhamod/data/Fish/taming_transforms_fish_train_padded_256_out.txt /fastscratch/elhamod/data/Fish/taming_transforms_fish_train_padded_256_out.txt
+
 mkdir -p /fastscratch/elhamod/projects/taming-transformers/logs/512pixels_512embedding
 mkdir -p /fastscratch/elhamod/projects/taming-transformers/logs/512pixels_256embedding
 mkdir -p /fastscratch/elhamod/projects/taming-transformers/logs/256pixels_256embedding

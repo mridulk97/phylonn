@@ -5,6 +5,7 @@ from taming.plotting_utils import get_fig_pth, plot_heatmap
 import torch
 
 import taming.constants as CONSTANTS
+from taming.data.custom import CustomTest as CustomDataset
 
 import os
 
@@ -23,10 +24,14 @@ def main(configs_yaml):
     ckpt_path = configs_yaml.ckpt_path
     DEVICE = configs_yaml.DEVICE
     distance_used = configs_yaml.distance_used
+    file_list_path = configs_yaml.file_list_path    
+    size = configs_yaml.size
+    
+    dataset = CustomDataset(size, file_list_path, add_labels=True)
 
     # Load model
     config = load_config(yaml_path, display=False)
-    model = load_phylovqvae(config, ckpt_path=ckpt_path).to(DEVICE)
+    model = load_phylovqvae(config, ckpt_path=ckpt_path, data=dataset.data, cuda=(DEVICE is not None))
     model.set_test_chkpt_path(ckpt_path)
     
 

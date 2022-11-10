@@ -28,10 +28,10 @@ model:
       n_levels_non_attribute: 4 # equivalent of n_phylolevels for non_attributes
       codebooks_per_phylolevel: 8
       #
-      n_phylo_channels: 32
+      n_phylo_channels: 64
       verbose: False
       #
-      ch: 256
+      ch: 128
       # NOT hyperparameters.
       resolution: 16
       in_channels: 256
