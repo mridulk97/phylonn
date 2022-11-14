@@ -16,8 +16,7 @@ module reset
 source activate taming3 
 which python
 
-python main.py --prefix /fastscratch/elhamod --name Phylo-VQVAE --postfix 256img-phase5-stronganti-nophylo-final --base /home/elhamod/projects/taming-transformers/configs/custom_vqgan-256emb-256img-phylo-vqvae-phase4-8cbperlevel-lowerlr-stronganti-nophylo.yaml -t True --gpus 0,1,2
-
+python main.py --prefix /fastscratch/elhamod --name Phylo-VQVAE --postfix 256img-phase6 --base /home/elhamod/projects/taming-transformers/configs/custom_vqgan-256emb-256img-phylo-vqvae-phase6.yaml-t True --gpus 0,1,2
 exit;
 
 
