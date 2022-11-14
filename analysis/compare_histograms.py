@@ -29,14 +29,12 @@ def generate_report(species_names, ckpt_path, attr_info, nonattr_info, converter
     average_distance_attr = torch.mean(attr_distances)
     average_distance_levels = []
     sub_common_levels = []
-    # print('attr_distances', attr_distances.shape)
     for i in range(hist_parser.n_phylolevels-1):
-        sub_distances = converter.reshape_code(converter.reshape_code(attr_distances.unsqueeze(0), reverse = True)[:,:,:i+1])
-        sub_common1 = converter.reshape_code(converter.reshape_code(attr_most_common1.unsqueeze(0), reverse = True)[:,:,:i+1])
-        sub_common2 = converter.reshape_code(converter.reshape_code(attr_most_common2.unsqueeze(0), reverse = True)[:,:,:i+1])
+        sub_distances = converter.get_sub_level(attr_distances.unsqueeze(0), i) 
+        sub_common1 = converter.get_sub_level(attr_most_common1.unsqueeze(0), i) 
+        sub_common2 = converter.get_sub_level(attr_most_common2.unsqueeze(0), i) 
         sub_common_levels.append([sub_common1, sub_common2])
         average_distance_levels.append(torch.mean(sub_distances))
-    # raise
         
     average_distance_nonattr = torch.mean(nonattr_distances)
     
@@ -85,7 +83,6 @@ def main(configs_yaml):
     # Load model
     config = load_config(yaml_path, display=False)
     model = load_phylovqvae(config, ckpt_path=ckpt_path, data=dataset.data, cuda=(DEVICE is not None))
-    model.set_test_chkpt_path(ckpt_path)
     
 
     histograms_file = os.path.join(get_fig_pth(ckpt_path, postfix=CONSTANTS.HISTOGRAMS_FOLDER), CONSTANTS.HISTOGRAMS_FILE)

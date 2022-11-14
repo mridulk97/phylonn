@@ -7,12 +7,17 @@ DEVICE: 0
 
 top_k: 5
 
-num_specimen_generated: 16
+num_specimen_generated: 40
 save_individual_images: True
 
 outputdatasetdir: species
 ##############################
 
 # class weights
-ckpt_path: /fastscratch/elhamod/logs/2022-11-05T15-32-30_Phylo-VQVAE-transformer/checkpoints/last.ckpt
-yaml_path: /fastscratch/elhamod/logs/2022-11-05T15-32-30_Phylo-VQVAE-transformer/configs/2022-11-05T15-32-30-project.yaml
+# ckpt_path: /fastscratch/elhamod/logs/2022-11-05T15-32-30_Phylo-VQVAE-transformer/checkpoints/last.ckpt
+# yaml_path: /fastscratch/elhamod/logs/2022-11-05T15-32-30_Phylo-VQVAE-transformer/configs/2022-11-05T15-32-30-project.yaml
+
+
+# strongeranti
+ckpt_path: /fastscratch/elhamod/logs/2022-11-10T02-23-40_Phylo-VQVAE-transformer256img-phase4-transformer-species-finalstronger/checkpoints/last.ckpt
+yaml_path: /fastscratch/elhamod/logs/2022-11-10T02-23-40_Phylo-VQVAE-transformer256img-phase4-transformer-species-finalstronger/configs/2022-11-10T02-23-40-project.yaml

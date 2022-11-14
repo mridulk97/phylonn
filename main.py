@@ -16,7 +16,10 @@ from taming.data.utils import custom_collate
 
 import wandb
 
-# import gc
+def get_monitor(target):
+    if target not in transformer_classes:
+        return "val"+CONSTANTS.DISENTANGLER_PHYLO_LOSS
+    return CONSTANTS.TRANSFORMER_LOSS
 
 def get_obj_from_str(string, reload=False):
     module, cls = string.rsplit(".", 1)
@@ -500,13 +503,12 @@ if __name__ == "__main__":
         logger_cfg = OmegaConf.merge(default_logger_cfg, logger_cfg)
         trainer_kwargs["logger"] = instantiate_from_config(logger_cfg)
 
-        # wandb extra configs TODO: maybe move this to the wandblogger class.
+        # Wandb configs
         if rank_zero_only.rank == 0:
             trainer_kwargs["logger"].experiment.config["lr"]=config.model.base_learning_rate
             trainer_kwargs["logger"].experiment.config["batch_size"]=config.data.params.batch_size
         trainer_kwargs["logger"].watch(model, log_freq=100)
         #NOTE: log_graph=True not working because old torch-lightning   
-        # TypeError: watch() got an unexpected keyword argument 'log_graph'
 
         # modelcheckpoint - use TrainResult/EvalResult(checkpoint_on=metric) to
         # specify which metric is used to determine best models
@@ -522,7 +524,7 @@ if __name__ == "__main__":
                 "dirpath": ckptdir,
                 "filename": "{epoch:06}",
                 "verbose": True,
-                "monitor": "val"+(CONSTANTS.DISENTANGLER_PHYLO_LOSS if config.model.target not in transformer_classes else CONSTANTS.TRANSFORMER_LOSS), #TODO: This is hacky. make it nicer.
+                "monitor": get_monitor(config.model.target),
                 "save_top_k": 1,
                 "mode": "min",
                 "period": 3,
@@ -625,10 +627,11 @@ if __name__ == "__main__":
         signal.signal(signal.SIGUSR1, melk)
         signal.signal(signal.SIGUSR2, divein)
         
-        
-        # hacky way for class weighing for phylo loss
-        if "class_weighting" in config.model and config.model.class_weighting:
-            model.set_class_weights(data.datasets["train"].data, cuda=not cpu)
+        # For loading first stage model for transformer.
+        if CONSTANTS.COMPLETE_CKPT_KEY in config.model:
+            complete_ckpt_path = config.model[CONSTANTS.COMPLETE_CKPT_KEY]
+            sd = torch.load(complete_ckpt_path, map_location="cpu")["state_dict"]
+            model.first_stage_model.load_state_dict(sd, strict=True)
 
         # run
         if opt.train:

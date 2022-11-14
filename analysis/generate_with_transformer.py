@@ -8,21 +8,13 @@ from taming.models.cond_transformer import Phylo_Net2NetTransformer
 import torch
 from tqdm import tqdm
 
-
-
 import os
 
 from omegaconf import OmegaConf
 import argparse
 
-from torchmetrics import F1Score
-
 GENERATED_FOLDER = "transformer_most_likely_generations"
 GENERATED_DATASET = "transformer_generated_dataset"
-
-# hist_arr structure:
-#hist_arr[lbl][code_location] = [list of codes that occured]
-#TODO: would be nice to have a class for this.
 
 ##########
 
@@ -48,9 +40,7 @@ def main(configs_yaml):
     indices = range(len(dataset.indx_to_label))
     if model.cond_stage_model.phylo_mapper is not None:
         indices = sorted(list(set(model.cond_stage_model.phylo_mapper.get_original_indexing_truth(indices))))
-        # outputname = model.cond_stage_model.phylo_mapper.outputname
-        # F1 = F1Score(num_classes=model.first_stage_model.phylo_disentangler.loss_phylo.classifier_output_sizes[model.cond_stage_model.level], multiclass=True) 
-        
+
     print('generating images...')
 
     # For all species.
@@ -72,15 +62,11 @@ def generate_images(index, species_true_indx,
     list_of_created_sequence = []
     list_of_created_nonattribute_sequence = []     
     
-    
-    #TODO: This whol file assumes we always have nonattr codes. We do not handle the case where there are only attr codes. We might want to either handle that properly or throw an error.
-    assert (model.first_stage_model.phylo_disentangler.loss_anticlassification ), "This code only works with anticlassification for now."
     codebooks_per_phylolevel = model.first_stage_model.phylo_disentangler.codebooks_per_phylolevel
     n_phylolevels = model.first_stage_model.phylo_disentangler.n_phylolevels
     embed_dim = model.first_stage_model.phylo_disentangler.embed_dim
     n_levels_non_attribute = model.first_stage_model.phylo_disentangler.n_levels_non_attribute
     attr_codes_range = codebooks_per_phylolevel*n_phylolevels
-    # nonattr_codes_range = codebooks_per_phylolevel*n_levels_non_attribute
         
     converter = Embedding_Code_converter(model.first_stage_model.phylo_disentangler.quantize.get_codebook_entry_index, model.first_stage_model.phylo_disentangler.quantize.embedding, (embed_dim, codebooks_per_phylolevel, n_phylolevels))
     converter_nonattribute = Embedding_Code_converter(model.first_stage_model.phylo_disentangler.quantize.get_codebook_entry_index, model.first_stage_model.phylo_disentangler.quantize.embedding, (embed_dim, codebooks_per_phylolevel, n_levels_non_attribute))
@@ -132,7 +118,6 @@ if __name__ == "__main__":
     )
     
     cfg, _ = parser.parse_known_args()
-    # cfg = parser.config
     configs = OmegaConf.load(cfg.config)
     cli = OmegaConf.from_cli()
     config = OmegaConf.merge(configs, cli)

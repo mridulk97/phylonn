@@ -30,7 +30,7 @@ class ImagePaths(Dataset):
         self._length = len(paths)
         
         self.labels_without_skipped = None
-        if labels is None and len(unique_skipped_labels)!=0:
+        if len(unique_skipped_labels)!=0:
             self.labels_without_skipped = dict()
             for i in self.labels.keys():
                 self.labels_without_skipped[i] = [a for indx, a in enumerate(labels[i]) if labels['class'][indx] not in unique_skipped_labels]
@@ -61,7 +61,8 @@ class ImagePaths(Dataset):
         return image
 
     def get_unique_labels(self):
-        return np.unique(self.labels['class'])
+        labels = self.labels if self.labels_without_skipped is None else self.labels_without_skipped
+        return np.unique(labels['class'])
     
     def __getitem__(self, i):
         labels = self.labels if self.labels_without_skipped is None else self.labels_without_skipped

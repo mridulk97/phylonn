@@ -9,34 +9,15 @@
 
 ##########SBATCH -o ./SLURM/slurm-%j.out
 
-
-# echo start load env and run python
-
-module reset
-
-module load Anaconda3/2020.11
-# module load gcc/8.2.0
-
-# module reset
-
-# module load Anaconda3/2020.11
-
 # TODO: there is a bug. for some reason I need to reset again here.
+module reset
+module load Anaconda3/2020.11
 source activate taming3 
 module reset
 source activate taming3 
-
 which python
 
-# python main.py --prefix /fastscratch/elhamod --name Phylo-VQVAE-transformer --postfix 256img-phase4-transformer-promising --base configs/phylo_vqgan_transformer.yaml -t True --gpus 0, 
-
-# python main.py --prefix /fastscratch/elhamod --name Phylo-VQVAE-transformer --postfix 512img-phase4-cyclical-largerspace --base configs/phylo_vqgan_transformer-512-cyclical-largerspace.yaml -t True --gpus 0, 
-
-# python main.py --prefix /fastscratch/elhamod --name Phylo-VQVAE-transformer --postfix 256img-phase4-originalVQGAN --base configs/original_VQGAN_transformer_fish.yaml -t True --gpus 0, 
-
-# python main.py --prefix /fastscratch/elhamod --name Phylo-VQVAE-transformer --postfix 256img-phase4-level0 --base configs/phylo_vqgan_transformer-level0.yaml -t True --gpus 0, 
-# python main.py --prefix /fastscratch/elhamod --name Phylo-VQVAE-transformer --postfix 256img-phase4-level1 --base configs/phylo_vqgan_transformer-level1.yaml -t True --gpus 0, 
-python main.py --prefix /fastscratch/elhamod --name Phylo-VQVAE-transformer --postfix 256img-phase4-level2 --base configs/phylo_vqgan_transformer-level2.yaml -t True --gpus 0, 
+python main.py --prefix /fastscratch/elhamod --name Phylo-VQVAE-transformer --postfix 256img-phase4-level2-finalstronger --base configs/phylo_vqgan_transformer-level2.yaml -t True --gpus 0, 
 
 
 exit;

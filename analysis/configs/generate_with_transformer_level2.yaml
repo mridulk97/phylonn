@@ -14,6 +14,9 @@ outputdatasetdir: level2
 ##############################
 
 
-# level2
-ckpt_path: /fastscratch/elhamod/logs/2022-11-08T22-06-32_Phylo-VQVAE-transformer256img-phase4-level2/checkpoints/epoch=000548.ckpt
-yaml_path: /fastscratch/elhamod/logs/2022-11-08T22-06-32_Phylo-VQVAE-transformer256img-phase4-level2/configs/2022-11-08T22-06-32-project.yaml
+# level1
+# ckpt_path: /fastscratch/elhamod/logs/2022-11-08T22-05-34_Phylo-VQVAE-transformer256img-phase4-level1/checkpoints/epoch=000545.ckpt
+# yaml_path: /fastscratch/elhamod/logs/2022-11-08T22-05-34_Phylo-VQVAE-transformer256img-phase4-level1/configs/2022-11-08T22-05-34-project.yaml
+
+ckpt_path: /fastscratch/elhamod/logs/2022-11-10T02-23-56_Phylo-VQVAE-transformer256img-phase4-level2-finalstronger/checkpoints/last.ckpt
+yaml_path: /fastscratch/elhamod/logs/2022-11-10T02-23-56_Phylo-VQVAE-transformer256img-phase4-level2-finalstronger/configs/2022-11-10T02-23-56-project.yaml

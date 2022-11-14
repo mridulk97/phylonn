@@ -66,8 +66,6 @@ def train_model(model, dataloaders, criterion, optimizer, scheduler, device, num
                     
                     if phylomapper is not None:
                         labels = phylomapper.get_mapped_truth(labels)
-                        # layer_truth = list(map(lambda x: siblingfinder.map_speciesId_siblingVector(x, str(phylo_distance).replace(".", "")+"distance"), labels))
-                        # labels = torch.LongTensor(list(map(lambda x: mlb.index(x[0]), layer_truth))).to(device)
                     
                     loss = criterion(outputs, labels)
 
@@ -137,16 +135,8 @@ def main(configs_yaml):
         level = configs_yaml.level
         phylogeny_path = configs_yaml.phylogeny_path
         
-        # TODO this piece of code seems to be shared in multipel places. Try to consolidate it into a function
         phylomapper = get_phylomapper_from_config(Phylogeny(phylogeny_path), phyloDistances_string, level)
-        # phylogeny = Phylogeny(phylogeny_path)
-        # phylo_distances = parse_phyloDistances(phyloDistances_string)
-        # siblingfinder = Species_sibling_finder(phylogeny, phylo_distances)
-        # relative_distance = get_relative_distance_for_level(phylo_distances, level)
-        # species_groups = phylogeny.get_species_groups(relative_distance)
-        # species_groups_representatives = list(map(lambda x: x[0], species_groups))
-        # mlb = list(map(lambda x: phylogeny.getLabelList().index(x), species_groups_representatives))
-    
+
         model_ft = torch.load(pretrained_model)
         outputsize = phylomapper.get_len()
     else:

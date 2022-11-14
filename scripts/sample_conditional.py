@@ -3,10 +3,8 @@ import torch
 import numpy as np
 from omegaconf import OmegaConf
 import streamlit as st
-from streamlit import caching
 from PIL import Image
 from main import instantiate_from_config, DataModuleFromConfig
-from torch.utils.data import DataLoader
 from torch.utils.data.dataloader import default_collate
 
 
@@ -97,7 +95,7 @@ def run_conditional(model, dsets):
         c = model.cond_stage_model.to_rgb(c)
 
     st.write(f"{cond_key}: {tuple(c.shape)}")
-    st.image(bchw_to_st(c), clamp=True, output_format="PNG")
+    # st.image(bchw_to_st(c), clamp=True, output_format="PNG")
 
     idx = z_indices
 

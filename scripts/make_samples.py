@@ -9,11 +9,12 @@ from torch.utils.data.dataloader import default_collate
 from tqdm import trange
 
 
-def save_image(x, path):
+def save_image(x, path, img_name):
     c,h,w = x.shape
     assert c==3
     x = ((x.detach().cpu().numpy().transpose(1,2,0)+1.0)*127.5).clip(0,255).astype(np.uint8)
-    Image.fromarray(x).save(path)
+    os.makedirs(path, exist_ok=True)
+    Image.fromarray(x).save(os.path.join(path, img_name))
 
 
 @torch.no_grad()
@@ -24,17 +25,22 @@ def run_conditional(model, dsets, outdir, top_k, temperature, batch_size=1):
     else:
         dset = next(iter(dsets.datasets.values()))
     print("Dataset: ", dset.__class__.__name__)
+    
     for start_idx in trange(0,len(dset)-batch_size+1,batch_size):
         indices = list(range(start_idx, start_idx+batch_size))
         example = default_collate([dset[i] for i in indices])
-
-        x = model.get_input("image", example).to(model.device)
-        for i in range(x.shape[0]):
-            save_image(x[i], os.path.join(outdir, "originals",
-                                          "{:06}.png".format(indices[i])))
-
+        
         cond_key = model.cond_stage_key
         c = model.get_input(cond_key, example).to(model.device)
+
+        x = model.get_input("image", example).to(model.device)
+        
+        d = os.path.join(outdir, "originals", str(c.item()))
+        os.makedirs(d, exist_ok=True)
+        for i in range(x.shape[0]):
+            save_image(x[i], d, "{:06}.png".format(indices[i]))
+
+        
 
         scale_factor = 1.0
         quant_z, z_indices = model.encode_to_z(x)
@@ -43,9 +49,11 @@ def run_conditional(model, dsets, outdir, top_k, temperature, batch_size=1):
         cshape = quant_z.shape
 
         xrec = model.first_stage_model.decode(quant_z)
+        
+        d = os.path.join(outdir, "reconstructions", str(c.item()))
+        os.makedirs(d, exist_ok=True)
         for i in range(xrec.shape[0]):
-            save_image(xrec[i], os.path.join(outdir, "reconstructions",
-                                             "{:06}.png".format(indices[i])))
+            save_image(xrec[i], d,  "{:06}.png".format(indices[i]))
 
         if cond_key == "segmentation":
             # get image from segmentation mask
@@ -69,7 +77,7 @@ def run_conditional(model, dsets, outdir, top_k, temperature, batch_size=1):
         start_j = start %cshape[3]
 
         cidx = c_indices
-        cidx = cidx.reshape(quant_c.shape[0],quant_c.shape[2],quant_c.shape[3])
+        # cidx = cidx.reshape(quant_c.shape[0],quant_c.shape[2],quant_c.shape[3])
 
         sample = True
 
@@ -94,7 +102,7 @@ def run_conditional(model, dsets, outdir, top_k, temperature, batch_size=1):
                 j_end = j_start+16
                 patch = idx[:,i_start:i_end,j_start:j_end]
                 patch = patch.reshape(patch.shape[0],-1)
-                cpatch = cidx[:, i_start:i_end, j_start:j_end]
+                cpatch = cidx#[:, i_start:i_end, j_start:j_end]
                 cpatch = cpatch.reshape(cpatch.shape[0], -1)
                 patch = torch.cat((cpatch, patch), dim=1)
                 logits,_ = model.transformer(patch[:,:-1])
@@ -116,9 +124,11 @@ def run_conditional(model, dsets, outdir, top_k, temperature, batch_size=1):
                 idx[:,i,j] = ix
 
         xsample = model.decode_to_img(idx[:,:cshape[2],:cshape[3]], cshape)
+        
+        d = os.path.join(outdir, "samples", str(c.item()))
+        os.makedirs(d, exist_ok=True)
         for i in range(xsample.shape[0]):
-            save_image(xsample[i], os.path.join(outdir, "samples",
-                                                "{:06}.png".format(indices[i])))
+            save_image(xsample[i], d, "{:06}.png".format(indices[i]))
 
 
 def get_parser():
@@ -285,7 +295,6 @@ if __name__ == "__main__":
     outdir = os.path.join(opt.outdir, "{:06}_{}_{}".format(global_step,
                                                            opt.top_k,
                                                            opt.temperature))
-    os.makedirs(outdir, exist_ok=True)
     print("Writing samples to ", outdir)
     for k in ["originals", "reconstructions", "samples"]:
         os.makedirs(os.path.join(outdir, k), exist_ok=True)

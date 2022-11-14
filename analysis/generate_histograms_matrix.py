@@ -32,8 +32,7 @@ def main(configs_yaml):
     # Load model
     config = load_config(yaml_path, display=False)
     model = load_phylovqvae(config, ckpt_path=ckpt_path, data=dataset.data, cuda=(DEVICE is not None))
-    model.set_test_chkpt_path(ckpt_path)
-    
+
 
     histograms_file = os.path.join(get_fig_pth(ckpt_path, postfix=CONSTANTS.HISTOGRAMS_FOLDER), CONSTANTS.HISTOGRAMS_FILE)
     histogram_file_exists = os.path.exists(histograms_file)
@@ -57,7 +56,7 @@ def main(configs_yaml):
             jsdistances[species1_indx, species2_indx, 0] = jsdistances[species2_indx, species1_indx, 0] = average_distance_nonattr
             
             for i in range(hist_parser.n_phylolevels-1):
-                sub_distances = converter.reshape_code(converter.reshape_code(attr_distances.unsqueeze(0), reverse = True)[:,:,:i+1])
+                sub_distances = converter.get_sub_level(attr_distances.unsqueeze(0), i)
                 jsdistances[species1_indx, species2_indx, i+1]= jsdistances[species2_indx, species1_indx, i+1] = torch.mean(sub_distances)
                 
             average_distance_attr = torch.mean(attr_distances)

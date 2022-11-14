@@ -1,6 +1,6 @@
 model:
   base_learning_rate: 4.5e-6 #we tried 4.5e-3 #4.5e-6
-  class_weighting: True
+  # class_weighting: True
   target: taming.models.phyloautoencoder.PhyloVQVAE
   project: Phylo-VQVAE
   params:

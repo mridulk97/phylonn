@@ -8,6 +8,8 @@ import numpy as np
 from PIL import Image
 import json
 import csv
+import pandas as pd
+
 
 from sklearn.metrics import ConfusionMatrixDisplay
 
@@ -31,8 +33,11 @@ def save_to_txt(arr, ckpt_path, name='results'):
 
 
 
-def save_image_grid(torch_images, ckpt_path, subfolder=None, postfix="", nrow=10):
-    root = get_fig_pth(ckpt_path, postfix=subfolder)
+def save_image_grid(torch_images, ckpt_path=None, subfolder=None, postfix="", nrow=10):
+    if ckpt_path is not None:
+        root = get_fig_pth(ckpt_path, postfix=subfolder)
+    else:
+        root = subfolder
 
     grid = torchvision.utils.make_grid(torch_images, nrow=nrow)
     grid = torch.clamp(grid, -1., 1.)
@@ -47,15 +52,20 @@ def save_image_grid(torch_images, ckpt_path, subfolder=None, postfix="", nrow=10
     Image.fromarray(grid).save(path)
 
 
-def save_image(torch_image, image_name, ckpt_path, subfolder=None):
-    root = get_fig_pth(ckpt_path, postfix=subfolder)
-
+def unprocess_image(torch_image):
     torch_image = torch.clamp(torch_image, -1., 1.)
 
     torch_image = (torch_image+1.0)/2.0 # -1,1 -> 0,1; c,h,w
     torch_image = torch_image.transpose(0,1).transpose(1,2).squeeze(-1)
     torch_image = torch_image.cpu().numpy()
     torch_image = (torch_image*255).astype(np.uint8)
+    return torch_image
+
+def save_image(torch_image, image_name, ckpt_path, subfolder=None):
+    root = get_fig_pth(ckpt_path, postfix=subfolder)
+
+    torch_image = unprocess_image(torch_image)
+    
     filename = image_name+".png"
     path = os.path.join(root, filename)
     os.makedirs(os.path.split(path)[0], exist_ok=True)
@@ -71,12 +81,24 @@ def get_fig_pth(ckpt_path, postfix=None):
     os.makedirs(fig_path, exist_ok=True)
     return fig_path
 
-def plot_heatmap(heatmap, ckpt_path, title='default', postfix=None):
+def plot_heatmap(heatmap, ckpt_path=None, title='default', postfix=None):
+    if ckpt_path is not None:
+        path = get_fig_pth(ckpt_path, postfix=postfix)
+    else:
+        path = postfix
+        
     # show
     fig = plt.figure()
-    ax = sns.heatmap(heatmap).set(title='heatmap of '+title)
+    ax = sns.heatmap(heatmap, yticklabels=False, xticklabels=False)#.set(title='heatmap of '+title)
+    ax.tick_params(left=False, bottom=False) 
+    cbar = ax.collections[0].colorbar
+    cbar.ax.tick_params(labelsize=15)
     plt.show()
-    fig.savefig(os.path.join(get_fig_pth(ckpt_path, postfix=postfix), title+ " heat_map.png"))
+    fig.savefig(os.path.join(path, title+ " heat_map.png"))
+    pd.DataFrame(heatmap.numpy()).to_csv(os.path.join(path, title+ " heat_map.csv"))
+    
+    
+    
 
 
 

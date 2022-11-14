@@ -2,7 +2,6 @@
 # Author: Sasank Chilamkurthy
 
 
-import itertools
 import os
 from taming.analysis_utils import get_phylomapper_from_config
 from taming.data.phylogeny import Phylogeny
@@ -12,9 +11,6 @@ import torch.nn as nn
 from torchvision import datasets
 import numpy
 import albumentations
-
-from taming.data.custom import CustomTest
-import taming.constants as CONSTANTS
 
 import argparse
 from omegaconf import OmegaConf
@@ -58,7 +54,6 @@ def main(configs_yaml):
     batch_size= configs_yaml.batch_size
     num_workers= configs_yaml.num_workers
     phylogeny_path = configs_yaml.phylogeny_path
-    resnetpath = configs_yaml.resnetpath
     
     level = 3
     if phylogeny_path is not None:
@@ -66,7 +61,6 @@ def main(configs_yaml):
         phyloDistances_string = configs_yaml.phyloDistances_string
     
     
-    # dataset_test = CustomTest(size, file_list_path_test, add_labels=True)
     dataset_test = datasets.ImageFolder(dataset_path, transform= Processor(size).get_preprocess_image())
     dataloader = torch.utils.data.DataLoader(dataset_test, batch_size=batch_size,
                                              shuffle=False, num_workers=num_workers)
@@ -75,22 +69,10 @@ def main(configs_yaml):
     
     if phylogeny_path is not None:
         phylomapper = get_phylomapper_from_config(Phylogeny(phylogeny_path), phyloDistances_string, level)
-        # phylogeny = 
-        # phylo_distances = parse_phyloDistances(phyloDistances_string)
-        # siblingfinder = Species_sibling_finder(phylogeny, phylo_distances)
-        # relative_distance = get_relative_distance_for_level(phylo_distances, level)
-        # species_groups = phylogeny.get_species_groups(relative_distance)
-        # species_groups_representatives = list(map(lambda x: x[0], species_groups))
-        # mlb = list(map(lambda x: phylogeny.getLabelList().index(x), species_groups_representatives))
-    
         num_classes = phylomapper.get_len()
     else:
         num_classes = len(indx_to_class.keys())
         
-    # model_ft = models.resnet18(pretrained=True)
-    # num_ftrs = model_ft.fc.in_features
-    # model_ft.fc = nn.Linear(num_ftrs, num_classes)
-    # model_ft = model_ft.to(DEVICE)
     model_ft = torch.load(bb_model_path)
     model_ft.eval()
     
@@ -100,27 +82,17 @@ def main(configs_yaml):
     preds = []
     classes = []
     for img, target in tqdm(dataloader):
-        # if phylogeny_path is not None:
-        #     target = phylomapper.get_mapped_truth(target)
-            # layer_truth = list(map(lambda x: siblingfinder.map_speciesId_siblingVector(x, str(phylo_distances[level]).replace(".", "")+"distance"), target))
-            # target = torch.LongTensor(list(map(lambda x: mlb.index(x[0]), layer_truth))).to(DEVICE)
-            
-            
+        if phylogeny_path is not None:
+            target = phylomapper.get_mapped_truth(target)
+
         classes.append(target)
         preds.append(model_ft(get_input(img).to(DEVICE)))
     classes = torch.cat(classes, dim=0).to(DEVICE)
     
-    # classes_original_indexing = classes
-    # if phylogeny_path is not None:
-    #     classes_original_indexing = phylomapper.get_reverse_indexing(classes)
-
     preds = torch.cat(preds, dim=0)
     
     a = sorted(set([i.item() for i in classes]))
-    # print(a,indx_to_class, classes_original_indexing) 
     class_names = [indx_to_class[i] for i in a]
-    # print(a, class_names)
-
     print("calculate F1 and Confusion matrix")
     plot_confusionmatrix(preds, classes, class_names, os.path.join(dataset_path, 'fake'), title="Confusion Matrix according to BB model - level {}".format(level))            
     
@@ -145,7 +117,6 @@ if __name__ == "__main__":
     )
     
     cfg, _ = parser.parse_known_args()
-    # cfg = parser.config
     configs = OmegaConf.load(cfg.config)
     cli = OmegaConf.from_cli()
     config = OmegaConf.merge(configs, cli)

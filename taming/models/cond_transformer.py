@@ -398,9 +398,7 @@ class Phylo_Net2NetTransformer(Net2NetTransformer):
         self.outputname = CONSTANTS.DISENTANGLER_CLASS_OUTPUT
         self.F1 =self.first_stage_model.phylo_disentangler.loss_phylo.F1
         if self.cond_stage_model.phylo_mapper is not None:
-            #TODO: change layer_truth to something more meaningful.
             self.outputname = self.cond_stage_model.phylo_mapper.outputname
-            # self.outputname = str(self.cond_stage_model.phylo_distances[self.cond_stage_model.level]).replace(".", "")+"distance"
             self.F1 = F1Score(num_classes=self.first_stage_model.phylo_disentangler.loss_phylo.classifier_output_sizes[self.cond_stage_model.phylo_mapper.level], multiclass=True) 
                 
         
@@ -493,7 +491,6 @@ class Phylo_Net2NetTransformer(Net2NetTransformer):
                     # layer_truth = list(map(lambda x: self.cond_stage_model.siblingfinder.map_speciesId_siblingVector(x, self.outputname), truth))
                     # truth = torch.LongTensor(list(map(lambda x: self.cond_stage_model.mlb.index(x[0]), layer_truth))).to(truth.device)
 
-                print(self.first_stage_model(x_sample)[3][self.outputname], truth)
                 f1_samples_half = self.F1(self.first_stage_model(x_sample)[3][self.outputname], truth)
                 f1_samples_nopix = self.F1(self.first_stage_model(x_sample_nopix)[3][self.outputname], truth)
                 f1_x_sample_det = self.F1(self.first_stage_model(x_sample_det)[3][self.outputname], truth)
