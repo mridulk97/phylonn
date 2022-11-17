@@ -1,15 +1,12 @@
+from taming.import_utils import instantiate_from_config
 import torch.nn as nn
-from sklearn.preprocessing import MultiLabelBinarizer
 import torch
 from torchmetrics import F1Score
-# from torchmetrics.classification import MultilabelF1Score
 import taming.constants as CONSTANTS
 
-from sklearn.utils import class_weight
 import numpy as np
 
-from main import instantiate_from_config
-
+#NOTE: These are distances from tree root. If you want from leaves, you need to call get_relative_distance_for_level 
 def parse_phyloDistances(phyloDistances_string):
     phyloDistances_list_string = phyloDistances_string.split(",")
     sorted_distance = sorted(list(map(lambda x: float(x), phyloDistances_list_string)))
@@ -30,7 +27,7 @@ class Species_sibling_finder():
             self.map[species] = {}
             for indx, distance in enumerate(genetic_distances_from_root):
                 distance_relative = get_relative_distance_for_level(genetic_distances_from_root, indx)
-                self.map[species][get_loss_name(genetic_distances_from_root[indx])] = phylogeny.get_siblings_by_name(species, distance_relative)
+                self.map[species][get_loss_name(genetic_distances_from_root, indx)] = phylogeny.get_siblings_by_name(species, distance_relative)
 
         # print('self.map', self.map)
 
@@ -49,9 +46,9 @@ class Species_sibling_finder():
 
 
 class PhyloLoss(nn.Module):
-    def __init__(self, phyloDistances_string, phylogenyconfig, phylo_weight, fc_layers, use_multiclass=False, beta=1.0, verbose=False):
+    def __init__(self, phyloDistances_string, phylogenyconfig, phylo_weight, fc_layers, beta=1.0, verbose=False):
         super().__init__()
-        self.phylo_distances = parse_phyloDistances(phyloDistances_string) #NOTE: These are distances from tree root. If you want from leaves, you need to call get_relative_distance_for_level 
+        self.phylo_distances = parse_phyloDistances(phyloDistances_string) 
         self.phylogeny = instantiate_from_config(phylogenyconfig)
         self.siblingfinder = Species_sibling_finder(self.phylogeny, self.phylo_distances)
         self.phylo_weight = phylo_weight
@@ -67,7 +64,7 @@ class PhyloLoss(nn.Module):
             species_groups = self.phylogeny.get_species_groups(relative_distance, self.verbose)
             species_groups_representatives = list(map(lambda x: x[0], species_groups))
             species_groups_representatives = list(map(lambda x: self.phylogeny.getLabelList().index(x), species_groups_representatives))
-            self.mlb[self.phylo_distances[level]] = species_groups_representatives
+            self.mlb[get_loss_name(self.phylo_distances, level)] = species_groups_representatives
                 
         self.criterionCE = torch.nn.CrossEntropyLoss()
         self.F1 = F1Score(num_classes=self.classifier_output_sizes[-1], multiclass=True)

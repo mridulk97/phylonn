@@ -1,5 +1,5 @@
 model:
-  base_learning_rate: 4.5e-6 #we tried 4.5e-3 #4.5e-6
+  base_learning_rate: 4.5e-6
   target: taming.models.phyloautoencoder.PhyloVQVAE
   project: Phylo-VQVAE-phase6
   params:
@@ -25,7 +25,7 @@ model:
       n_embed: 64
       #
       n_phylolevels: 4
-      n_levels_non_attribute: 4 
+      n_levels_non_attribute: 4 # equivalent of n_phylolevels for non_attributes
       codebooks_per_phylolevel: 8
       #
       n_phylo_channels: 64
@@ -37,6 +37,7 @@ model:
       resolution: 16
       in_channels: 256
       out_ch: 256
+
 
       lossconfig:
         target: taming.modules.losses.vqperceptual.VQLPIPSWithDiscriminator
@@ -55,6 +56,8 @@ model:
         params:
           phylo_weight: 0.1
           fc_layers: 2
+          beta: 1.0
+          use_multiclass: True
 
           phyloDistances_string: "0.77,0.5,0.33"
           phylogenyconfig:
@@ -92,12 +95,14 @@ data:
         training_images_list_file: /fastscratch/elhamod/data/Fish/taming_transforms_fish_train_padded_256.txt
         size: 256
         add_labels: true
+        unique_skipped_labels: [13,26,35]
     validation:
       target: taming.data.custom.CustomTest
       params:
         test_images_list_file: /fastscratch/elhamod/data/Fish/taming_transforms_fish_test_padded_256.txt
         size: 256
         add_labels: true
+        unique_skipped_labels: [13,26,35]
 
 lightning:
   trainer:

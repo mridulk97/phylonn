@@ -1,9 +1,9 @@
 import os, math
+from taming.import_utils import instantiate_from_config
 import torch
 import torch.nn.functional as F
 import pytorch_lightning as pl
 
-from main import instantiate_from_config
 from taming.modules.util import SOSProvider
 
 import taming.constants as CONSTANTS
@@ -363,16 +363,16 @@ class Net2NetTransformer(pl.LightningModule):
         optimizer = torch.optim.AdamW(optim_groups, lr=self.learning_rate, betas=(0.9, 0.95))
         
         
-        lr_scheduler = {
-            "scheduler": torch.optim.lr_scheduler.CosineAnnealingWarmRestarts(optimizer, 30, eta_min=self.learning_rate*0.01),
-            "monitor": "val"+CONSTANTS.TRANSFORMER_LOSS
-            }
+        # lr_scheduler = {
+        #     "scheduler": torch.optim.lr_scheduler.CosineAnnealingWarmRestarts(optimizer, 30, eta_min=self.learning_rate*0.01),
+        #     "monitor": "val"+CONSTANTS.TRANSFORMER_LOSS
+        #     }
     # {
     #         "scheduler": torch.optim.lr_scheduler.ReduceLROnPlateau(optimizer, mode='min', factor=0.33, min_lr=self.learning_rate*0.01, verbose=True), 
     #         "monitor": "val/loss_epoch"
     #         }
             
-        return [optimizer], [lr_scheduler]
+        return [optimizer]#, [lr_scheduler]
     
     
     
@@ -414,7 +414,6 @@ class Phylo_Net2NetTransformer(Net2NetTransformer):
         return quant_z, indices
     
     def decode_to_img(self, index, zshape):
-        #TODO: This whol file assumes we always have nonattr codes. We do not handle the case where there are only attr codes. We might want to either handle that properly or throw an error.
         assert (self.first_stage_model.phylo_disentangler.loss_anticlassification ), "This code only works with anticlassification for now."
         index = self.permuter(index, reverse=True)
         
@@ -486,11 +485,8 @@ class Phylo_Net2NetTransformer(Net2NetTransformer):
                     
                 truth = quant_c
                 if self.cond_stage_model.phylo_mapper is not None:
-                    #TODO: change layer_truth to something more meaningful.
                     truth = self.cond_stage_model.phylo_mapper.get_mapped_truth(truth)
-                    # layer_truth = list(map(lambda x: self.cond_stage_model.siblingfinder.map_speciesId_siblingVector(x, self.outputname), truth))
-                    # truth = torch.LongTensor(list(map(lambda x: self.cond_stage_model.mlb.index(x[0]), layer_truth))).to(truth.device)
-
+                    
                 f1_samples_half = self.F1(self.first_stage_model(x_sample)[3][self.outputname], truth)
                 f1_samples_nopix = self.F1(self.first_stage_model(x_sample_nopix)[3][self.outputname], truth)
                 f1_x_sample_det = self.F1(self.first_stage_model(x_sample_det)[3][self.outputname], truth)

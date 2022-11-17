@@ -53,7 +53,7 @@ model:
       lossconfig_phylo:
         target: taming.modules.losses.phyloloss.PhyloLoss
         params:
-          phylo_weight: 0.1
+          phylo_weight: 5.0
           fc_layers: 2
 
           phyloDistances_string: "0.77,0.5,0.33"

@@ -1,5 +1,5 @@
-from main import instantiate_from_config
 from taming.analysis_utils import get_phylomapper_from_config
+from taming.import_utils import instantiate_from_config
 import torch
 
 class LabelCond(object):

@@ -54,6 +54,7 @@ model:
         target: taming.modules.losses.phyloloss.PhyloLoss
         params:
           phylo_weight: 0.1
+          beta: 0.7
           fc_layers: 2
 
           phyloDistances_string: "0.77,0.5,0.33"
@@ -73,7 +74,7 @@ model:
         target: taming.modules.losses.anticlassificationloss.AntiClassificationLoss
         params:
           weight: 1.0
-          beta: 0.7
+          beta: 0.1
           
         
 
@@ -89,19 +90,21 @@ data:
     train:
       target: taming.data.custom.CustomTrain
       params:
-        training_images_list_file: /fastscratch/elhamod/data/Fish/taming_transforms_fish_train_padded_256.txt
+        training_images_list_file: /fastscratch/elhamod/data/Fish/taming_transforms_fish_train_padded_256_smaller.txt
         size: 256
         add_labels: true
     validation:
       target: taming.data.custom.CustomTest
       params:
-        test_images_list_file: /fastscratch/elhamod/data/Fish/taming_transforms_fish_test_padded_256.txt
+        test_images_list_file: /fastscratch/elhamod/data/Fish/taming_transforms_fish_test_padded_256_smaller.txt
         size: 256
         add_labels: true
 
 lightning:
   trainer:
     max_epochs: 1000
+    # row_log_interval: 300
+    # log_save_interval: 1000
     # max_steps: 10 
     # limit_train_batches: 10
     # limit_val_batches: 10

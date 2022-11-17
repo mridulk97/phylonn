@@ -1,7 +1,10 @@
-import argparse, os, sys, datetime, glob, importlib
+import argparse, os, sys, datetime, glob
 from omegaconf import OmegaConf
 import numpy as np
 from PIL import Image
+from taming.analysis_utils import aggregate_metric_from_specimen_to_species, get_HammingDistance_matrix
+from taming.import_utils import instantiate_from_config
+from taming.models.phyloautoencoder import PhyloVQVAE
 import torch
 import torchvision
 from torch.utils.data import random_split, DataLoader, Dataset
@@ -19,15 +22,7 @@ import wandb
 def get_monitor(target):
     if target not in transformer_classes:
         return "val"+CONSTANTS.DISENTANGLER_PHYLO_LOSS
-    return CONSTANTS.TRANSFORMER_LOSS
-
-def get_obj_from_str(string, reload=False):
-    module, cls = string.rsplit(".", 1)
-    if reload:
-        module_imp = importlib.import_module(module)
-        importlib.reload(module_imp)
-    return getattr(importlib.import_module(module, package=None), cls)
-
+    return "val"+CONSTANTS.TRANSFORMER_LOSS
 
 def get_parser(**parser_kwargs):
     def str2bool(v):
@@ -128,12 +123,6 @@ def nondefault_trainer_args(opt):
     return sorted(k for k in vars(args) if getattr(opt, k) != getattr(args, k))
 
 
-def instantiate_from_config(config):
-    if not "target" in config:
-        raise KeyError("Expected key `target` to instantiate.")
-    return get_obj_from_str(config["target"])(**config.get("params", dict()))
-
-
 class WrappedDataset(Dataset):
     """Wraps an arbitrary object with __len__ and __getitem__ into a pytorch dataset"""
     def __init__(self, dataset):
@@ -183,11 +172,11 @@ class DataModuleFromConfig(pl.LightningDataModule):
     def _val_dataloader(self):
         return DataLoader(self.datasets["validation"],
                           batch_size=self.batch_size,
-                          num_workers=self.num_workers, collate_fn=custom_collate)
+                          num_workers=self.num_workers, shuffle=True, collate_fn=custom_collate)
 
     def _test_dataloader(self):
         return DataLoader(self.datasets["test"], batch_size=self.batch_size,
-                          num_workers=self.num_workers, collate_fn=custom_collate)
+                          num_workers=self.num_workers, shuffle=True, collate_fn=custom_collate)
 
 
 class SetupCallback(Callback):
@@ -337,15 +326,36 @@ class ImageLogger(Callback):
 
     def on_validation_batch_end(self, trainer, pl_module, outputs, batch, batch_idx, dataloader_idx):
         self.log_img(pl_module, batch, batch_idx, split="val")
+    
+    # def on_training_epoch_end(self, trainer, pl_module):    
+    #     return
         
-    # def log_scatter(self, class_transformer, epoch):
-    #     conditioning_rec = class_transformer["conditioning_rec"]
-    #     conditioning = class_transformer["conditioning"]
-    #     print(conditioning_rec, conditioning)
-    #     data = [[x, y] for (x, y) in zip(conditioning, conditioning_rec)]
-    #     table = wandb.Table(data=data, columns = ["condition", "condition_rec"])
-    #     wandb.log({"label_reconstruction" : wandb.plot.scatter(table, "condition", "condition_rec",
-    #                                     title="Label reconstruction")})
+    #TODO: somehow when this is addedd. logging breaks.
+    # def on_validation_epoch_end(self, trainer, pl_module):    
+    #     if isinstance(pl_module, PhyloVQVAE)  :
+    #         embeddings = {
+    #             'phylo': pl_module.validation_epoch_end_zq_phylos,
+    #             'nonphylo': pl_module.validation_epoch_end_zq_nonphylos
+    #         }
+    #         embedding_dist = {
+    #             'phylo': None,
+    #             'nonphylo': None
+    #         }
+    #         for i in embeddings.keys():
+    #             classes =  pl_module.validation_epoch_end_classes
+    #             classnames =  pl_module.validation_epoch_end_classnames
+    #             sorting_indices = np.argsort(classes.cpu())
+    #             sorted_zq = embeddings[i][sorting_indices, :]
+    #             sorted_zq_codes = pl_module.phylo_disentangler.embedding_converter.get_phylo_codes(sorted_zq)
+    #             reverse_shaped_sorted_zq_codes = pl_module.phylo_disentangler.embedding_converter.reshape_code(sorted_zq_codes, reverse=True)
+    #             sorted_class_names_according_to_class_indx = [classnames[i] for i in sorting_indices]
+    #             sub_sorted_zq_codes = pl_module.phylo_disentangler.embedding_converter.reshape_code(reverse_shaped_sorted_zq_codes)
+    #             zq_hamming_distances = get_HammingDistance_matrix(sub_sorted_zq_codes)
+    #             embedding_dist_ = aggregate_metric_from_specimen_to_species(sorted_class_names_according_to_class_indx, zq_hamming_distances)
+    #             embedding_dist[i] = embedding_dist_
+    #         logger = type(pl_module.logger)
+    #         logger_log_images = self.logger_log_images.get(logger, lambda *args, **kwargs: None)
+    #         logger_log_images(pl_module, embedding_dist, pl_module.global_step, 'val')
 
 
 if __name__ == "__main__":

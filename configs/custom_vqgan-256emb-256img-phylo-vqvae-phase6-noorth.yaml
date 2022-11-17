@@ -65,7 +65,7 @@ model:
       lossconfig_kernelorthogonality:
         target: taming.modules.losses.orthogonalloss.OrthogonalLoss
         params:
-          weight: 1.0
+          weight: 10.0
           padding: 0
           stride: 1
 

@@ -1,14 +1,12 @@
 
+
 import pickle
-from main import instantiate_from_config
 from taming.modules.losses.phyloloss import Species_sibling_finder, get_loss_name, get_relative_distance_for_level, parse_phyloDistances
 import torch
 from scipy.spatial import distance as js_distance
 import tqdm
 
 EPS=1e-10
-
-
 
 ####### Level CrossEntropy 
 

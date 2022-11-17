@@ -54,6 +54,7 @@ model:
         target: taming.modules.losses.phyloloss.PhyloLoss
         params:
           phylo_weight: 0.1
+          beta: 0.7
           fc_layers: 2
 
           phyloDistances_string: "0.77,0.5,0.33"
@@ -65,7 +66,7 @@ model:
       lossconfig_kernelorthogonality:
         target: taming.modules.losses.orthogonalloss.OrthogonalLoss
         params:
-          weight: 1.0
+          weight: 10.0
           padding: 0
           stride: 1
 

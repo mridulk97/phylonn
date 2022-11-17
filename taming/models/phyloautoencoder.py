@@ -1,11 +1,10 @@
+from taming.import_utils import instantiate_from_config
 from taming.modules.losses.phyloloss import get_loss_name
 import torch
 from torch import nn
 import torch.nn.functional as F
 import pytorch_lightning as pl
 import numpy
-
-from main import instantiate_from_config
 
 from taming.modules.vqvae.quantize import VectorQuantizer2 as VectorQuantizer
 from taming.models.vqgan import VQModel
@@ -97,7 +96,7 @@ def create_phylo_classifier_layers(len_features, output_sizes, num_fc_layers, n_
     }
 
     for indx, i in enumerate(phylo_distances):
-        level_name = get_loss_name(phylo_distances[indx])
+        level_name = get_loss_name(phylo_distances, indx)
         
         out_size = output_sizes[indx]
 
@@ -115,7 +114,7 @@ class PhyloDisentangler(torch.nn.Module):
                 embed_dim, n_embed, # same as codebook configs
                 n_phylo_channels, n_phylolevels, codebooks_per_phylolevel, # The dimensions for the phylo descriptors.
                 lossconfig, 
-                n_mlp_layers=1, n_levels_non_attribute=None, relu_last_layer=True, repeatInput=True, convin_switch=False, mlp_relu_last_layer=True,
+                n_mlp_layers=1, n_levels_non_attribute=None,
                 lossconfig_phylo=None, lossconfig_kernelorthogonality=None, lossconfig_anticlassification=None, verbose=False): 
         super().__init__()
 
@@ -126,6 +125,7 @@ class PhyloDisentangler(torch.nn.Module):
         self.embed_dim = embed_dim
         self.n_embed = n_embed
         self.n_levels_non_attribute = n_levels_non_attribute
+        self.n_mlp_layers = n_mlp_layers
 
         self.verbose = verbose
 
@@ -145,7 +145,7 @@ class PhyloDisentangler(torch.nn.Module):
             l.append(nn.SiLU())
             _in = out_sizes[i]
         self.conv_in = nn.Sequential(*l)
-
+        
         # phylo MLP
         self.mlp_in = make_MLP([self.n_phylo_channels,resolution,resolution], [embed_dim, codebooks_per_phylolevel, n_phylolevels], n_mlp_layers, normalize=True)
         self.mlp_out = make_MLP([embed_dim, codebooks_per_phylolevel, n_phylolevels], [self.n_phylo_channels,resolution,resolution], n_mlp_layers, normalize=False)
@@ -161,14 +161,19 @@ class PhyloDisentangler(torch.nn.Module):
 
 
         # upsampling
-        self.conv_out = nn.Sequential(
-            nn.SiLU(),
-            torch.nn.Conv2d(self.ch,
-                            out_ch,
-                            kernel_size=1,
-                            stride=1,
-                            padding=0),
-        )
+        out_sizes = get_hidden_layer_sizes(self.ch, out_ch, n_mlp_layers)
+        out_sizes.append(out_ch)
+        l = []
+        _in = self.ch
+        for i in range(n_mlp_layers):
+            l.append(nn.SiLU())
+            l.append(torch.nn.Conv2d(_in,
+                out_sizes[i],
+                kernel_size=1,
+                stride=1,
+                padding=0))
+            _in = out_sizes[i]
+        self.conv_out = nn.Sequential(*l)
 
         self.loss_kernelorthogonality = None
         if lossconfig_kernelorthogonality is not None:
@@ -232,9 +237,6 @@ class PhyloDisentangler(torch.nn.Module):
         loss_dic = {'quantizer_loss': q_phylo_loss}
         outputs = {CONSTANTS.QUANTIZED_PHYLO_OUTPUT: zq_phylo}
 
-        zq_nonphylo = None
-        info_nonattr = None
-
         z_nonphylo = self.mlp_in_non_attribute(h_img)
         zq_nonphylo, q_nonphylo_loss, info_nonattr = self.quantize(z_nonphylo)
         if overriding_quant_nonattr is not None:
@@ -243,7 +245,9 @@ class PhyloDisentangler(torch.nn.Module):
             loss_dic = {'quantizer_loss': q_phylo_loss + q_nonphylo_loss}
                 
         if self.loss_kernelorthogonality is not None:
-            kernel_orthogonality_loss = self.loss_kernelorthogonality(self.conv_in[1 if not self.convin_switch else 0].weight)
+            kernel_orthogonality_loss = 0
+            for i in range(self.n_mlp_layers):
+                kernel_orthogonality_loss = kernel_orthogonality_loss + self.loss_kernelorthogonality(self.conv_in[i*2].weight)
             loss_dic['kernel_orthogonality_loss'] = kernel_orthogonality_loss    
                             
         return zq_phylo, zq_nonphylo, loss_dic, outputs, h_img, info_attr, info_nonattr
@@ -293,7 +297,7 @@ class PhyloVQVAE(VQModel):
     def __init__(self, **args):
         print(args)
         
-        self.automatic_optimization = False
+        # self.automatic_optimization = False
         
         # For wandb
         self.save_hyperparameters()
@@ -306,7 +310,7 @@ class PhyloVQVAE(VQModel):
         super().__init__(**args)
 
         self.freeze()
-
+ 
         self.phylo_disentangler = PhyloDisentangler(**phylo_args)
 
         self.verbose = phylo_args.get('verbose', False)
@@ -363,75 +367,172 @@ class PhyloVQVAE(VQModel):
         xrec, disentangler_loss_dic, base_loss_dic, in_out_disentangler = self(x)
         out_class_disentangler = {i:in_out_disentangler[i] for i in in_out_disentangler if i not in CONSTANTS.NON_CLASS_TENSORS}
 
-        if optimizer_idx==0 or not self.phylo_disentangler.loss_anticlassification:
+        if optimizer_idx==0 or (self.phylo_disentangler.loss_anticlassification is None):
+            losses = {}
             # base losses
             true_rec_loss = torch.mean(torch.abs(x.contiguous() - xrec.contiguous()))
-            self.log(prefix+"/base_true_rec_loss", true_rec_loss, prog_bar=False, logger=True, on_step=False, on_epoch=True)
-            self.log(prefix+"/base_quantizer_loss", base_loss_dic['quantizer_loss'], prog_bar=False, logger=True, on_step=False, on_epoch=True)
-
+            # self.log(prefix+"/base_true_rec_loss", true_rec_loss, prog_bar=False, logger=True, on_step=False, on_epoch=True)
+            # self.log(prefix+"/base_quantizer_loss", base_loss_dic['quantizer_loss'], prog_bar=False, logger=True, on_step=False, on_epoch=True)
+            losses[prefix+"/base_true_rec_loss"] = true_rec_loss
+            losses[prefix+"/base_quantizer_loss"] = base_loss_dic['quantizer_loss']
+            
             # autoencode
             quantizer_disentangler_loss = disentangler_loss_dic['quantizer_loss']
             total_loss, log_dict_ae = self.phylo_disentangler.loss(quantizer_disentangler_loss, in_out_disentangler[CONSTANTS.DISENTANGLER_ENCODER_INPUT], in_out_disentangler[CONSTANTS.DISENTANGLER_DECODER_OUTPUT], 0, self.global_step, split=prefix)
 
+
+                        
             if self.phylo_disentangler.loss_kernelorthogonality is not None:
                 kernelorthogonality_disentangler_loss = disentangler_loss_dic['kernel_orthogonality_loss']
                 total_loss = total_loss + kernelorthogonality_disentangler_loss*self.phylo_disentangler.loss_kernelorthogonality.weight
-                self.log(prefix+"/disentangler_kernelorthogonality_loss", kernelorthogonality_disentangler_loss, prog_bar=False, logger=True, on_step=False, on_epoch=True)
+                # self.log(prefix+"/disentangler_kernelorthogonality_loss", kernelorthogonality_disentangler_loss, prog_bar=False, logger=True, on_step=False, on_epoch=True)
+                losses[prefix+"/disentangler_kernelorthogonality_loss"] = kernelorthogonality_disentangler_loss
+
+            
+            
             
 
             if self.phylo_disentangler.loss_phylo is not None:
                 phylo_losses_dict = self.phylo_disentangler.loss_phylo(total_loss, out_class_disentangler, batch[CONSTANTS.DISENTANGLER_CLASS_OUTPUT])
                 total_loss = phylo_losses_dict['cumulative_loss']
-                self.log(prefix+CONSTANTS.DISENTANGLER_PHYLO_LOSS, phylo_losses_dict['total_phylo_loss'], prog_bar=self.verbose, logger=True, on_step=False, on_epoch=True)
+                # self.log(prefix+CONSTANTS.DISENTANGLER_PHYLO_LOSS, phylo_losses_dict['total_phylo_loss'], prog_bar=self.verbose, logger=True, on_step=False, on_epoch=True)
+                losses[prefix+CONSTANTS.DISENTANGLER_PHYLO_LOSS] = phylo_losses_dict['total_phylo_loss']
                 
-            if self.phylo_disentangler.loss_anticlassification:
+                for i in phylo_losses_dict['individual_losses']:
+                    # self.log(prefix+"/disentangler_phylo_"+i, phylo_losses_dict['individual_losses'][i], prog_bar=True, logger=True, on_step=False, on_epoch=True)
+                    losses[prefix+"/disentangler_phylo_"+i] = phylo_losses_dict['individual_losses'][i]
+
+                for i in phylo_losses_dict:
+                    if "_f1" in i:
+                        # self.log(prefix+"/disentangler_phylo_"+i, phylo_losses_dict[i], prog_bar=True, logger=True, on_step=False, on_epoch=True)
+                        losses[prefix+"/disentangler_phylo_"+i] = phylo_losses_dict[i]
+            
+            
+            
+            
+
+            
+            
+            if self.phylo_disentangler.loss_anticlassification is not None:
                 learning_loss = disentangler_loss_dic['anti_classification_learning_loss']
                 total_loss = total_loss + learning_loss*self.phylo_disentangler.loss_anticlassification.weight
                 
                 if self.phylo_disentangler.loss_phylo:
                     anti_classification_classifier_output = in_out_disentangler[CONSTANTS.DISENTANGLER_NON_ATTRIBUTE_CLASS_OUTPUT]
                     anti_classification_f1_score = self.phylo_disentangler.loss_phylo.F1(anti_classification_classifier_output, batch[CONSTANTS.DISENTANGLER_CLASS_OUTPUT])
-                    self.log(prefix+"/anti_classification_classifier_output", anti_classification_f1_score, prog_bar=False, logger=True, on_step=False, on_epoch=True)
+                    # self.log(prefix+"/anti_classification_classifier_output", anti_classification_f1_score, prog_bar=False, logger=True, on_step=False, on_epoch=True)
+                    losses[prefix+"/anti_classification_classifier_output"] = anti_classification_f1_score
 
-            if self.verbose:
-                with torch.no_grad():
-                    _, _, _, in_out_disentangler_of_rec = self(xrec)
-                    rec_classification = in_out_disentangler_of_rec[CONSTANTS.DISENTANGLER_CLASS_OUTPUT]
-                    generated_f1_score = self.phylo_disentangler.loss_phylo.F1(rec_classification, batch[CONSTANTS.DISENTANGLER_CLASS_OUTPUT])
-                    self.log(prefix+"/generated_f1_score", generated_f1_score, prog_bar=False, logger=True, on_step=False, on_epoch=True)
+
+
+
+
+            # if self.verbose:
+            with torch.no_grad():
+                _, _, _, in_out_disentangler_of_rec = self(xrec)
+                rec_classification = in_out_disentangler_of_rec[CONSTANTS.DISENTANGLER_CLASS_OUTPUT]
+                generated_f1_score = self.phylo_disentangler.loss_phylo.F1(rec_classification, batch[CONSTANTS.DISENTANGLER_CLASS_OUTPUT])
+                # self.log(prefix+"/generated_f1_score", generated_f1_score, prog_bar=False, logger=True, on_step=False, on_epoch=True)
+                losses[prefix+"/generated_f1_score"] = generated_f1_score
             
 
-            self.log(prefix+"/disentangler_total_loss", total_loss, prog_bar=True, logger=True, on_step=True, on_epoch=True)
-            for i in phylo_losses_dict['individual_losses']:
-                self.log(prefix+"/disentangler_phylo_"+i, phylo_losses_dict['individual_losses'][i], prog_bar=True, logger=True, on_step=False, on_epoch=True)
 
 
-            for i in phylo_losses_dict:
-                if "_f1" in i:
-                    self.log(prefix+"/disentangler_phylo_"+i, phylo_losses_dict[i], prog_bar=True, logger=True, on_step=False, on_epoch=True)
+
+            # self.log(prefix+"/disentangler_total_loss", total_loss, prog_bar=True, logger=True, on_step=True, on_epoch=True)
+            losses[prefix+"/disentangler_total_loss"] = total_loss
+
+
 
 
             rec_loss = log_dict_ae[prefix+"/rec_loss"]
-            self.log(prefix+"/disentangler_quantizer_loss", quantizer_disentangler_loss, prog_bar=True, logger=True, on_step=self.verbose, on_epoch=True)
-            self.log(prefix+"/disentangler_rec_loss", rec_loss, prog_bar=True, logger=True, on_step=False, on_epoch=True)        
-
-            return total_loss
+            # self.log(prefix+"/disentangler_quantizer_loss", quantizer_disentangler_loss, prog_bar=True, logger=True, on_step=self.verbose, on_epoch=True)
+            # self.log(prefix+"/disentangler_rec_loss", rec_loss, prog_bar=True, logger=True, on_step=False, on_epoch=True)        
+            losses[prefix+"/disentangler_quantizer_loss"] = quantizer_disentangler_loss
+            losses[prefix+"/disentangler_rec_loss"] = rec_loss
+            
+            
+            
+            self.log_dict(losses, logger=True, on_step=False, on_epoch=True)
+            
+            # if prefix == 'train':
+            #     return total_loss
+            # else:
+            outputs = {
+                'loss': total_loss,
+                
+                CONSTANTS.QUANTIZED_PHYLO_OUTPUT: in_out_disentangler[CONSTANTS.QUANTIZED_PHYLO_OUTPUT],
+                CONSTANTS.QUANTIZED_PHYLO_NONATTRIBUTE_OUTPUT: in_out_disentangler[CONSTANTS.QUANTIZED_PHYLO_NONATTRIBUTE_OUTPUT],
+                CONSTANTS.DISENTANGLER_CLASS_OUTPUT: batch[CONSTANTS.DISENTANGLER_CLASS_OUTPUT],
+                CONSTANTS.DATASET_CLASSNAME: batch[CONSTANTS.DATASET_CLASSNAME],
+                'logs': losses
+            }
+            
+                
+                # returned = {**{'log':losses}, **outputs}
+            return outputs
+                # return total_loss
+                # return {
+                #     'loss': total_loss,
+                #     CONSTANTS.QUANTIZED_PHYLO_OUTPUT: in_out_disentangler[CONSTANTS.QUANTIZED_PHYLO_OUTPUT],
+                #     CONSTANTS.QUANTIZED_PHYLO_NONATTRIBUTE_OUTPUT: in_out_disentangler[CONSTANTS.QUANTIZED_PHYLO_NONATTRIBUTE_OUTPUT],
+                #     CONSTANTS.DISENTANGLER_CLASS_OUTPUT: batch[CONSTANTS.DISENTANGLER_CLASS_OUTPUT],
+                #     CONSTANTS.DATASET_CLASSNAME: batch[CONSTANTS.DATASET_CLASSNAME],
+                # }
         
-        if optimizer_idx==1 and self.phylo_disentangler.loss_anticlassification:
+        if optimizer_idx==1 and (self.phylo_disentangler.loss_anticlassification is not None):
             mapping_loss = disentangler_loss_dic['anti_classification_mapping_loss']
             total_loss = mapping_loss*self.phylo_disentangler.loss_anticlassification.beta*self.phylo_disentangler.loss_anticlassification.weight
-            self.log(prefix+"/disentangler_anti_classification_loss", mapping_loss, prog_bar=False, logger=True, on_step=False, on_epoch=True)
+            # self.log(prefix+"/disentangler_anti_classification_loss", mapping_loss, prog_bar=False, logger=True, on_step=False, on_epoch=True)
 
-            return total_loss
-
+            # if prefix == 'train':
+            #     return total_loss
+            # else:
+            # self.log_dict({
+            #         prefix+"/disentangler_anti_classification_loss": mapping_loss
+            #     }, logger=True, on_step=True, on_epoch=True)
+            # return total_loss
+            # if prefix == 'train':
+            #     return total_loss
+            # else:
+            losses = {prefix+"/disentangler_anti_classification_loss": mapping_loss}
+            
+            return {
+                'loss': total_loss,
+                'logs': losses
+                # 'log': {
+                #     prefix+"/disentangler_anti_classification_loss": mapping_loss
+                # }
+            }
     
     def training_step(self, batch, batch_idx, optimizer_idx):
-        return self.step(batch, batch_idx, optimizer_idx, 'train')
+        outputs = self.step(batch, batch_idx, optimizer_idx=optimizer_idx, prefix='train')
+        self.log_dict(outputs['logs'], logger=True, on_step=False, on_epoch=True)
+        return outputs['loss']
+        # return self.step(batch, batch_idx, optimizer_idx=optimizer_idx, prefix='train')#['loss']
 
 
     @torch.no_grad()
     def validation_step(self, batch, batch_idx):
-        return self.step(batch, batch_idx, optimizer_idx=0, prefix='val')
+        outputs = self.step(batch, batch_idx, optimizer_idx=0, prefix='val')
+        self.log_dict(outputs['logs'], logger=True, on_step=False, on_epoch=True)
+        del outputs['logs']
+        return outputs
+    
+    
+    # def training_epoch_end(self, outputs):
+    #     return {'log': outputs['logs']}
+        
+    #NOTE: Thois can be added with no problems to logging    
+    # @torch.no_grad()
+    # def validation_epoch_end(self, outputs):
+    #     if CONSTANTS.QUANTIZED_PHYLO_OUTPUT in outputs[0]:
+    #         self.validation_epoch_end_zq_phylos = torch.cat([x[CONSTANTS.QUANTIZED_PHYLO_OUTPUT] for x in outputs], 0)
+    #         self.validation_epoch_end_zq_nonphylos = torch.cat([x[CONSTANTS.QUANTIZED_PHYLO_NONATTRIBUTE_OUTPUT] for x in outputs], 0)
+    #         self.validation_epoch_end_classes = torch.cat([x[CONSTANTS.DISENTANGLER_CLASS_OUTPUT] for x in outputs], 0)
+    #         self.validation_epoch_end_classnames = list(itertools.chain.from_iterable([x[CONSTANTS.DATASET_CLASSNAME] for x in outputs]))
+    #     # return {'log': outputs['logs']}
+        
 
     ##################### test ###########
         
@@ -462,6 +563,7 @@ class PhyloVQVAE(VQModel):
     
     @torch.no_grad()
     def test_epoch_end(self, in_out):
+        assert self.phylo_disentangler.loss_phylo is not None, "testing only enabled when there is phyloloss"
         test_measures = {}
 
         preds =torch.cat([x['pred'] for x in in_out], 0)
@@ -476,7 +578,6 @@ class PhyloVQVAE(VQModel):
         sorted_class_names_according_to_class_indx = [classnames[i] for i in sorting_indices]
         unique_sorted_class_names_according_to_class_indx = sorted(set(sorted_class_names_according_to_class_indx))
 
-        #TODO: add checks for test if there is loss_phylo or not.
         F1 = F1Score(num_classes=self.phylo_disentangler.loss_phylo.classifier_output_sizes[-1], multiclass=True).to(preds.device)
 
         print("calculate F1 and Confusion matrix")
@@ -528,13 +629,13 @@ class PhyloVQVAE(VQModel):
         opt_ae = torch.optim.Adam(self.phylo_disentangler.parameters(), lr=lr, betas=(0.5, 0.9))
         opt_mapping = torch.optim.Adam(self.phylo_disentangler.codebook_mapping_layers.parameters(), lr=lr, betas=(0.5, 0.9))
         
-        # lr_schedulers = [{
-        #     "scheduler": torch.optim.lr_scheduler.CosineAnnealingWarmRestarts(opt_ae, 150, eta_min=lr*0.01),
-        #     "monitor": "val"+CONSTANTS.DISENTANGLER_PHYLO_LOSS
-        #     },{
-        #     "scheduler": torch.optim.lr_scheduler.CosineAnnealingWarmRestarts(opt_ae, 150, eta_min=lr*0.01),
-        #     "monitor": "val"+CONSTANTS.DISENTANGLER_PHYLO_LOSS
-        #     },
-        # ]
+        lr_schedulers = [{
+            "scheduler": torch.optim.lr_scheduler.CosineAnnealingWarmRestarts(opt_ae, 150, eta_min=lr*0.01),
+            "monitor": "val"+CONSTANTS.DISENTANGLER_PHYLO_LOSS
+            },{
+            "scheduler": torch.optim.lr_scheduler.CosineAnnealingWarmRestarts(opt_ae, 150, eta_min=lr*0.01),
+            "monitor": "val"+CONSTANTS.DISENTANGLER_PHYLO_LOSS
+            },
+        ]
         
-        return [opt_ae, opt_mapping]#, lr_schedulers 
+        return [opt_ae, opt_mapping], lr_schedulers 
