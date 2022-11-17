@@ -74,7 +74,7 @@ model:
         target: taming.modules.losses.anticlassificationloss.AntiClassificationLoss
         params:
           weight: 1.0
-          beta: 0.1
+          beta: 0.7
           
         
 
@@ -90,13 +90,13 @@ data:
     train:
       target: taming.data.custom.CustomTrain
       params:
-        training_images_list_file: /fastscratch/elhamod/data/Fish/taming_transforms_fish_train_padded_256_smaller.txt
+        training_images_list_file: /fastscratch/elhamod/data/Fish/taming_transforms_fish_train_padded_256.txt
         size: 256
         add_labels: true
     validation:
       target: taming.data.custom.CustomTest
       params:
-        test_images_list_file: /fastscratch/elhamod/data/Fish/taming_transforms_fish_test_padded_256_smaller.txt
+        test_images_list_file: /fastscratch/elhamod/data/Fish/taming_transforms_fish_test_padded_256.txt
         size: 256
         add_labels: true
 
