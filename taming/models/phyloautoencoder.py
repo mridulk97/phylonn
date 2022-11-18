@@ -242,7 +242,8 @@ class PhyloDisentangler(torch.nn.Module):
         if overriding_quant_nonattr is not None:
             assert z_nonphylo.shape == overriding_quant_nonattr.shape, str(z_nonphylo.shape) + "!=" + str(overriding_quant_nonattr.shape)
             z_nonphylo = overriding_quant_attr
-            loss_dic = {'quantizer_loss': q_phylo_loss + q_nonphylo_loss}
+        
+        loss_dic = {'quantizer_loss': q_phylo_loss + q_nonphylo_loss}
                 
         if self.loss_kernelorthogonality is not None:
             kernel_orthogonality_loss = 0
