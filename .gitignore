@@ -5,3 +5,5 @@ slurm*
 **checkpoint.ipynb
 wandb/**
 taming3/**
+**events.out.tfevents.*
+lightning_logs/**

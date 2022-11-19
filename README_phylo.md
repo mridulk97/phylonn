@@ -1,5 +1,10 @@
 # Installation.
-Please, look at the `README.md` file, especially `environment.yaml`
+Please, look at the `README.md` file, especially `environment.yaml`. Make sure to use the following torch versions:
+
+`pip install  torch==1.7.0+cu110 -f https://download.pytorch.org/whl/cu110/torch-1.7.0%2Bcu110-cp38-cp38-linux_x86_64.whl`
+
+`pip install torchvision==0.8.1+cu110 -f https://download.pytorch.org/whl/cu110/torchvision-0.8.1%2Bcu110-cp38-cp38-linux_x86_64.whl`
+
 
 # How to run an experiment
 I have only run this on ARC, but will probably work on `lambdapgml` too. 

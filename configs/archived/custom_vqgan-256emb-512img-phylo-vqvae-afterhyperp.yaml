@@ -1,0 +1,80 @@
+model:
+  base_learning_rate: 1.0e-5
+  target: taming.models.phyloautoencoder.PhyloVQVAE
+  project: Phylo-VQVAE
+  params:
+    ckpt_path: /home/elhamod/projects/taming-transformers/logs/512pixels_256embedding/checkpoints/last.ckpt
+    embed_dim: 256
+    n_embed: 1024
+    ddconfig:
+      double_z: False
+      z_channels: 256
+      resolution: 512
+      in_channels: 3
+      out_ch: 3
+      ch: 128
+      ch_mult: [ 1,1,2,2,4]  # num_down = len(ch_mult)-1
+      num_res_blocks: 2
+      attn_resolutions: [16]
+      dropout: 0.0
+    lossconfig:
+      target: taming.modules.losses.DummyLoss
+
+    phylomodel_params:
+      embed_dim: 480
+      n_embed: 128
+      #
+      n_phylolevels: 4
+      codebooks_per_phylolevel: 16
+      #
+      n_phylo_channels: 100 # tried 1 #32
+      # NOT hyperparameters.
+      resolution: 32
+      in_channels: 256
+      out_ch: 256
+      ch: 256
+      #ch_mult: [ 1]  # num_down = len(ch_mult)-1
+      # num_res_blocks: 2
+      # attn_resolutions: [16]
+
+      lossconfig:
+        target: taming.modules.losses.vqperceptual.VQLPIPSWithDiscriminator
+        params:
+          codebook_weight: 1.0
+          disc_in_channels: 0
+          disc_num_layers: 0
+          disc_weight: 0.0
+          disc_factor: 0.0
+          perceptual_weight: 0.0
+          disc_start: 10000
+        
+
+
+
+        
+
+data:
+  target: main.DataModuleFromConfig
+  params:
+    batch_size: 5
+    num_workers: 8
+    train:
+      target: taming.data.custom.CustomTrain
+      params:
+        training_images_list_file: /home/elhamod/data/Fish/taming_transforms_fish_train_padded_512.txt
+        size: 512
+    validation:
+      target: taming.data.custom.CustomTest
+      params:
+        test_images_list_file: /home/elhamod/data/Fish/taming_transforms_fish_test_padded_512.txt
+        size: 512
+
+lightning:
+  trainer:
+    # max_steps: 10 
+    # limit_train_batches: 10
+    # limit_val_batches: 10
+    # fast_dev_run: false
+    profiler: simple
+
+

@@ -1,0 +1,89 @@
+
+DEVICE: 0
+
+num_workers: 8
+batch_size: 200 #200 for tinkercliffs
+
+
+size: 256
+# file_list_path: "/home/elhamod/data/Fish/taming_transforms_fish_train_padded_256.txt"
+file_list_path: "/fastscratch/elhamod/data/Fish/taming_transforms_fish_test_padded_256.txt"
+# size= 512
+# file_list_path = "/home/elhamod/data/Fish/taming_transforms_fish_train_padded_512.txt"
+# file_list_path: "/home/elhamod/data/Fish/taming_transforms_fish_test_small.txt" # Just for test
+
+##############
+
+# best 256 with phylo
+# yaml_path = "/home/elhamod/projects/taming-transformers/logs/2022-10-07T12-09-20_Phylo-VQVAE256img-afterhyperp/configs/2022-10-07T12-09-20-project.yaml"
+# ckpt_path = "/home/elhamod/projects/taming-transformers/logs/2022-10-07T12-09-20_Phylo-VQVAE256img-afterhyperp/checkpoints/last.ckpt"
+
+# 256 without phylo (TODO: maybe rerun this with best hyperp?)
+# yaml_path = "/home/elhamod/projects/taming-transformers/logs/256img swap conv and silu 2022-10-05T08-52-16_Phylo-VQVAE-test/configs/2022-10-05T08-52-16-project.yaml"
+# ckpt_path = "/home/elhamod/projects/taming-transformers/logs/256img swap conv and silu 2022-10-05T08-52-16_Phylo-VQVAE-test/checkpoints/last.ckpt"
+
+# # 256 with korthogonality
+# yaml_path = "/home/elhamod/projects/taming-transformers/logs/2022-10-13T01-13-29_Phylo-VQVAE256img-afterhyperp-kernelorthogonality/configs/2022-10-13T01-13-29-project.yaml"
+# ckpt_path = "/home/elhamod/projects/taming-transformers/logs/2022-10-13T01-13-29_Phylo-VQVAE256img-afterhyperp-kernelorthogonality/checkpoints/last.ckpt"
+# 256 less channels
+# yaml_path = "/home/elhamod/projects/taming-transformers/logs/2022-10-12T23-03-58_Phylo-VQVAE256img-afterhyperp-ch64/configs/2022-10-12T23-03-58-project.yaml"
+# ckpt_path = "/home/elhamod/projects/taming-transformers/logs/2022-10-12T23-03-58_Phylo-VQVAE256img-afterhyperp-ch64/checkpoints/last.ckpt"
+# 256 no pass through
+# yaml_path = "/home/elhamod/projects/taming-transformers/logs/2022-10-12T23-04-18_Phylo-VQVAE256img-afterhyperp-nopassthrough/configs/2022-10-12T23-04-18-project.yaml"
+# ckpt_path = "/home/elhamod/projects/taming-transformers/logs/2022-10-12T23-04-18_Phylo-VQVAE256img-afterhyperp-nopassthrough/checkpoints/last.ckpt"
+
+# 256 without phylo
+# yaml_path = "/home/elhamod/projects/taming-transformers/logs/2022-10-12T10-08-53_Phylo-VQVAE256img-afterhyperp-withoutphylo-round2/configs/2022-10-12T10-08-53-project.yaml"
+# ckpt_path = "/home/elhamod/projects/taming-transformers/logs/2022-10-12T10-08-53_Phylo-VQVAE256img-afterhyperp-withoutphylo-round2/checkpoints/last.ckpt"
+
+# # 512 less channels
+# yaml_path = "/home/elhamod/projects/taming-transformers/logs/2022-10-14T11-39-30_Phylo-VQVAE512img-afterhyperp/configs/2022-10-14T11-39-30-project.yaml"
+# ckpt_path = "/home/elhamod/projects/taming-transformers/logs/2022-10-14T11-39-30_Phylo-VQVAE512img-afterhyperp/checkpoints/last.ckpt"
+
+# # 256 combined
+# yaml_path = "/home/elhamod/projects/taming-transformers/logs/2022-10-14T00-55-06_Phylo-VQVAE256img-afterhyperp-combined/configs/2022-10-14T00-55-06-project.yaml"
+# ckpt_path = "/home/elhamod/projects/taming-transformers/logs/2022-10-14T00-55-06_Phylo-VQVAE256img-afterhyperp-combined/checkpoints/last.ckpt"
+
+
+# 256 combined nopass
+# yaml_path = "/home/elhamod/projects/taming-transformers/logs/2022-10-14T10-40-42_Phylo-VQVAE256img-afterhyperp-combined/configs/2022-10-14T10-40-42-project.yaml"
+# ckpt_path = "/home/elhamod/projects/taming-transformers/logs/2022-10-14T10-40-42_Phylo-VQVAE256img-afterhyperp-combined/checkpoints/last.ckpt"
+
+# 4cbs
+# yaml_path: "/home/elhamod/projects/taming-transformers/logs/2022-10-17T12-20-24_Phylo-VQVAE256img-afterhyperp-combined-4cbperlevel/configs/2022-10-17T12-20-24-project.yaml"
+# ckpt_path: "/home/elhamod/projects/taming-transformers/logs/2022-10-17T12-20-24_Phylo-VQVAE256img-afterhyperp-combined-4cbperlevel/checkpoints/last.ckpt"
+
+# # anticlass 256
+# yaml_path: "/home/elhamod/projects/taming-transformers/logs/2022-10-18T17-16-55_Phylo-VQVAE256img-afterhyperp-combined-anticlass/configs/2022-10-18T17-16-55-project.yaml"
+# ckpt_path: "/home/elhamod/projects/taming-transformers/logs/2022-10-18T17-16-55_Phylo-VQVAE256img-afterhyperp-combined-anticlass/checkpoints/last.ckpt"
+
+
+
+# slower lr
+# yaml_path: "/fastscratch/elhamod/logs/2022-10-30T20-13-25_Phylo-VQVAE256img-phase4-swapconvin-nolastrelu-multiclass-lowerlr/configs/2022-10-30T20-13-25-project.yaml"
+# ckpt_path: "/fastscratch/elhamod/logs/2022-10-30T20-13-25_Phylo-VQVAE256img-phase4-swapconvin-nolastrelu-multiclass-lowerlr/checkpoints/last.ckpt"
+
+# # # slower lr stronganti
+# ckpt_path: /fastscratch/elhamod/logs/2022-10-31T12-46-01_Phylo-VQVAE256img-phase4-multiclass-lowerlr-8cblevel-stronganti/checkpoints/last.ckpt
+# yaml_path: /fastscratch/elhamod/logs/2022-10-31T12-46-01_Phylo-VQVAE256img-phase4-multiclass-lowerlr-8cblevel-stronganti/configs/2022-10-31T12-46-01-project.yaml
+
+# # class weights
+# ckpt_path: /home/elhamod/projects/taming-transformers/logs/imported/2022-11-05T19-12-52_Phylo-VQVAE512img-phase4-multiclass-lowerlr-8cblevel-stronganti-2layers-cyclical-classweighting/checkpoints/epoch=000068.ckpt
+# yaml_path: /home/elhamod/projects/taming-transformers/logs/imported/2022-11-05T19-12-52_Phylo-VQVAE512img-phase4-multiclass-lowerlr-8cblevel-stronganti-2layers-cyclical-classweighting/configs/2022-11-05T19-12-52-project-infer.yaml
+
+# #nolastrelumlp
+# ckpt_path: /fastscratch/elhamod/logs/2022-11-07T15-02-16_Phylo-VQVAE256img-phase5-nolastrelumlp/checkpoints/epoch=000068.ckpt
+# yaml_path: /fastscratch/elhamod/logs/2022-11-07T15-02-16_Phylo-VQVAE256img-phase5-nolastrelumlp/configs/2022-11-07T15-02-16-project.yaml
+
+# # no phylo phase4
+# ckpt_path: /fastscratch/elhamod/logs/2022-11-04T15-27-23_Phylo-VQVAE256img-phase4-nophylo/checkpoints/last.ckpt
+# yaml_path: /fastscratch/elhamod/logs/2022-11-04T15-27-23_Phylo-VQVAE256img-phase4-nophylo/configs/2022-11-04T15-27-23-project.yaml
+
+
+
+# # species out
+# ckpt_path: /fastscratch/elhamod/logs/2022-11-07T11-27-56_Phylo-VQVAE256img-phase5-speciesout/checkpoints/last.ckpt
+# yaml_path: /fastscratch/elhamod/logs/2022-11-07T11-27-56_Phylo-VQVAE256img-phase5-speciesout/configs/2022-11-07T11-27-56-project.yaml
+ckpt_path: /fastscratch/elhamod/logs/2022-11-11T02-12-49_Phylo-VQVAE256img-phase5-speciesout-final/checkpoints/last.ckpt
+yaml_path: /fastscratch/elhamod/logs/2022-11-11T02-12-49_Phylo-VQVAE256img-phase5-speciesout-final/configs/2022-11-11T02-12-49-project.yaml
+

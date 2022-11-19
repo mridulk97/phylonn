@@ -1,7 +1,10 @@
-import argparse, os, sys, datetime, glob, importlib
+import argparse, os, sys, datetime, glob
 from omegaconf import OmegaConf
 import numpy as np
 from PIL import Image
+from taming.analysis_utils import aggregate_metric_from_specimen_to_species, get_HammingDistance_matrix
+from taming.import_utils import instantiate_from_config
+from taming.models.phyloautoencoder import PhyloVQVAE
 import torch
 import torchvision
 from torch.utils.data import random_split, DataLoader, Dataset
@@ -11,19 +14,15 @@ from pytorch_lightning.trainer import Trainer
 from pytorch_lightning.callbacks import ModelCheckpoint, Callback, LearningRateMonitor
 from pytorch_lightning.utilities.distributed import rank_zero_only
 
+import taming.constants as CONSTANTS
 from taming.data.utils import custom_collate
 
 import wandb
 
-# import gc
-
-def get_obj_from_str(string, reload=False):
-    module, cls = string.rsplit(".", 1)
-    if reload:
-        module_imp = importlib.import_module(module)
-        importlib.reload(module_imp)
-    return getattr(importlib.import_module(module, package=None), cls)
-
+def get_monitor(target):
+    if target not in transformer_classes:
+        return "val"+CONSTANTS.DISENTANGLER_PHYLO_LOSS
+    return "val"+CONSTANTS.TRANSFORMER_LOSS
 
 def get_parser(**parser_kwargs):
     def str2bool(v):
@@ -45,6 +44,14 @@ def get_parser(**parser_kwargs):
         default="",
         nargs="?",
         help="postfix for logdir",
+    )
+    parser.add_argument(
+        "--prefix",
+        type=str,
+        const=True,
+        default=None,
+        nargs="?",
+        help="prefix for logdir",
     )
     parser.add_argument(
         "-r",
@@ -116,12 +123,6 @@ def nondefault_trainer_args(opt):
     return sorted(k for k in vars(args) if getattr(opt, k) != getattr(args, k))
 
 
-def instantiate_from_config(config):
-    if not "target" in config:
-        raise KeyError("Expected key `target` to instantiate.")
-    return get_obj_from_str(config["target"])(**config.get("params", dict()))
-
-
 class WrappedDataset(Dataset):
     """Wraps an arbitrary object with __len__ and __getitem__ into a pytorch dataset"""
     def __init__(self, dataset):
@@ -171,7 +172,7 @@ class DataModuleFromConfig(pl.LightningDataModule):
     def _val_dataloader(self):
         return DataLoader(self.datasets["validation"],
                           batch_size=self.batch_size,
-                          num_workers=self.num_workers, collate_fn=custom_collate)
+                          num_workers=self.num_workers, collate_fn=custom_collate) #TODO: shuffling validation in pytorch lightning does not work. workaround?
 
     def _test_dataloader(self):
         return DataLoader(self.datasets["test"], batch_size=self.batch_size,
@@ -235,22 +236,6 @@ class ImageLogger(Callback):
     @rank_zero_only
     def _wandb(self, pl_module, images, batch_idx, split):
 
-        #TODO: check when this is fixed by wandb
-
-        # grids = dict()
-        # for k in images:
-        #     grid = torchvision.utils.make_grid(images[k])
-        #     # print('grid', grid.shape, grid.dtype)
-        #     grid = grid.permute(1, 2, 0)
-        #     grid = (grid+1.0)/2.0 # -1,1 -> 0,1; c,h,w
-        #     # print('grid', grid.shape, grid.dtype)
-        #     grids[f"{split}/{k}"] = wandb.Image(grid.numpy())
-        # # print(grids)
-        # pl_module.logger.experiment.log(grids)
-        # # pl_module.logger.experiment.log({
-        # #     "samples": [wandb.Image(grids[key]) for key in grids]
-        # #     })
-
         for k in images:
             grid = torchvision.utils.make_grid(images[k].detach())
             # print('grid', grid.shape, grid.dtype)
@@ -258,14 +243,9 @@ class ImageLogger(Callback):
             grid = (grid+1.0)/2.0 # -1,1 -> 0,1; c,h,w
             grid = (grid * 255).astype(np.uint8)
             grid = Image.fromarray(grid)
-            # print('grid', grid.shape, grid.dtype)
-            # grids[f"{split}/{k}"] = wandb.Image(grid)
-        # print(grids)
-            pl_module.logger.experiment.log({f"{split}/{k}": wandb.Image(grid)})
-            # pl_module.logger.experiment.log({"hi": wandb.Image(grid)})
-        # pl_module.logger.experiment.log({
-        #     "samples": [wandb.Image(grids[key]) for key in grids]
-        #     })
+
+            pl_module.logger.experiment.log({f"{split}/{k}": wandb.Image(grid)}, commit=False) #NOTE: commit=False is very impotant!!
+
     
 
 
@@ -346,7 +326,43 @@ class ImageLogger(Callback):
 
     def on_validation_batch_end(self, trainer, pl_module, outputs, batch, batch_idx, dataloader_idx):
         self.log_img(pl_module, batch, batch_idx, split="val")
+    
+    def on_training_epoch_end(self, trainer, pl_module):    
+        x=0
+        
+    #TODO: somehow when this is addedd. logging breaks.
+    def on_validation_epoch_end(self, trainer, pl_module):    
+        if isinstance(pl_module, PhyloVQVAE):
+            is_train = pl_module.training
+            if is_train:
+                pl_module.eval()
 
+            embeddings = {
+                'phylo': pl_module.validation_epoch_end_zq_phylos,
+                'nonphylo': pl_module.validation_epoch_end_zq_nonphylos
+            }
+            embedding_dist = {
+                'phylo': None,
+                'nonphylo': None
+            }
+            for i in embeddings.keys():
+                classes =  pl_module.validation_epoch_end_classes
+                classnames =  pl_module.validation_epoch_end_classnames
+                sorting_indices = np.argsort(classes.cpu())
+                sorted_zq = embeddings[i][sorting_indices, :]
+                sorted_zq_codes = pl_module.phylo_disentangler.embedding_converter.get_phylo_codes(sorted_zq)
+                reverse_shaped_sorted_zq_codes = pl_module.phylo_disentangler.embedding_converter.reshape_code(sorted_zq_codes, reverse=True)
+                sorted_class_names_according_to_class_indx = [classnames[i] for i in sorting_indices]
+                sub_sorted_zq_codes = pl_module.phylo_disentangler.embedding_converter.reshape_code(reverse_shaped_sorted_zq_codes)
+                zq_hamming_distances = get_HammingDistance_matrix(sub_sorted_zq_codes)
+                embedding_dist_ = aggregate_metric_from_specimen_to_species(sorted_class_names_according_to_class_indx, zq_hamming_distances)
+                embedding_dist[i] = embedding_dist_.detach().cpu()
+            logger = type(pl_module.logger)
+            logger_log_images = self.logger_log_images.get(logger, lambda *args, **kwargs: None)
+            logger_log_images(pl_module, embedding_dist, pl_module.global_step, 'val')
+            
+            if is_train:
+                pl_module.train()
 
 
 if __name__ == "__main__":
@@ -437,6 +453,9 @@ if __name__ == "__main__":
             name = ""
         nowname = now+name+opt.postfix
         logdir = os.path.join("logs", nowname)
+        if opt.prefix is not None:
+            logdir = os.path.join(opt.prefix, logdir)
+        os.makedirs(logdir) #NOTE: needed to fix wandb image generation logging
 
     ckptdir = os.path.join(logdir, "checkpoints")
     cfgdir = os.path.join(logdir, "configs")
@@ -501,24 +520,31 @@ if __name__ == "__main__":
         logger_cfg = OmegaConf.merge(default_logger_cfg, logger_cfg)
         trainer_kwargs["logger"] = instantiate_from_config(logger_cfg)
 
-        # wandb extra configs TODO: maybe move this to the wandblogger class.
+        # Wandb configs
         if rank_zero_only.rank == 0:
             trainer_kwargs["logger"].experiment.config["lr"]=config.model.base_learning_rate
             trainer_kwargs["logger"].experiment.config["batch_size"]=config.data.params.batch_size
         trainer_kwargs["logger"].watch(model, log_freq=100)
         #NOTE: log_graph=True not working because old torch-lightning   
-        # TypeError: watch() got an unexpected keyword argument 'log_graph'
 
         # modelcheckpoint - use TrainResult/EvalResult(checkpoint_on=metric) to
         # specify which metric is used to determine best models
         # https://pytorch-lightning.readthedocs.io/en/stable/api/pytorch_lightning.callbacks.ModelCheckpoint.html
         # https://pytorch-lightning.readthedocs.io/en/stable/common/checkpointing_intermediate.html
+        transformer_classes = [
+            "taming.models.cond_transformer.Phylo_Net2NetTransformer",
+            "taming.models.cond_transformer.Net2NetTransformer"
+        ]
         default_modelckpt_cfg = {
             "target": "pytorch_lightning.callbacks.ModelCheckpoint",
             "params": {
                 "dirpath": ckptdir,
                 "filename": "{epoch:06}",
                 "verbose": True,
+                "monitor": get_monitor(config.model.target),
+                "save_top_k": 1,
+                "mode": "min",
+                "period": 3,
                 "save_last": True,
                 #"every_n_epochs": 10, #NOTE: didnt work because pl version 1.0.8 is too old.
             }
@@ -578,6 +604,7 @@ if __name__ == "__main__":
 
         # configure learning rate
         bs, base_lr = config.data.params.batch_size, config.model.base_learning_rate
+        # use_scheduler = 
         if not cpu:
             ngpu = len(lightning_config.trainer.gpus.strip(",").split(','))
         else:
@@ -616,6 +643,12 @@ if __name__ == "__main__":
         import signal
         signal.signal(signal.SIGUSR1, melk)
         signal.signal(signal.SIGUSR2, divein)
+        
+        # For loading first stage model for transformer.
+        if CONSTANTS.COMPLETE_CKPT_KEY in config.model:
+            complete_ckpt_path = config.model[CONSTANTS.COMPLETE_CKPT_KEY]
+            sd = torch.load(complete_ckpt_path, map_location="cpu")["state_dict"]
+            model.first_stage_model.load_state_dict(sd, strict=True)
 
         # run
         if opt.train:
@@ -625,6 +658,7 @@ if __name__ == "__main__":
                 melk()
                 raise
         if not opt.no_test and not trainer.interrupted:
+            model.set_test_chkpt_path(ckptdir) #FIXME: this will bcause error if model does not have set_test_chkpt_path.
             trainer.test(model, data)
     except Exception:
         if opt.debug and trainer.global_rank==0:

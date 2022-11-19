@@ -2,26 +2,22 @@
 
 #SBATCH --account=ml4science
 #SBATCH --partition=a100_normal_q
-#SBATCH --time=1-00:00:00 
+#SBATCH --time=2-00:00:00 
 #SBATCH --gres=gpu:1
 #SBATCH --nodes=1 --ntasks-per-node=1 --cpus-per-task=8
-#SBATCH -o ./SLURM/slurm-%j.out
+#SBATCH -o /fastscratch/elhamod/projects/taming-transformers/SLURM/slurm-%j.out
 
+##########SBATCH -o ./SLURM/slurm-%j.out
 
-echo start load env and run python
-
+# TODO: there is a bug. for some reason I need to reset again here.
 module reset
-
 module load Anaconda3/2020.11
-module load gcc/8.2.0
-
 source activate taming3 
+module reset
+source activate taming3 
+which python
 
-# python main.py --name Phylo-VQVAE --base configs/custom_vqgan-256emb-512img-phylo-vqvae-afterhyperp.yaml -t True --gpus 0, #1 # crashes... not enough memory?!
-# python main.py --name Phylo-VQVAE --base configs/custom_vqgan-256emb-512img-phylo-vqvae.yaml -t True --gpus 0, #1
-# python main.py --name Phylo-VQVAE --base configs/custom_vqgan-256emb-512img-phylo-vqvae-phyloloss.yaml -t True --gpus 0,
-python main.py --name Phylo-VQVAE --postfix 512img-afterhyperp --base configs/custom_vqgan-256emb-512img-phylo-vqvae-phyloloss-afterhyperp.yaml -t True --gpus 0,
-
+python main.py --prefix /fastscratch/elhamod --name Phylo-VQVAE --postfix 512img-phase5-lowerphyloweight --base configs/custom_vqgan-256emb-256img-phylo-vqvae-phase5-lowerphyloweight.yaml -t True --gpus 0, 
 
 exit;
 

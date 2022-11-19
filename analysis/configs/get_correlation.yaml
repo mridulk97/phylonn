@@ -1,0 +1,57 @@
+# path: /fastscratch/elhamod/logs/2022-10-31T12-46-01_Phylo-VQVAE256img-phase4-multiclass-lowerlr-8cblevel-stronganti/figs/results_summary
+# path: /fastscratch/elhamod/logs/2022-11-04T15-27-23_Phylo-VQVAE256img-phase4-nophylo/figs/results_summary
+
+# path: /fastscratch/elhamod/logs/2022-10-31T12-46-01_Phylo-VQVAE256img-phase4-multiclass-lowerlr-8cblevel-stronganti/figs/results_summary_species
+path: /fastscratch/elhamod/logs/2022-10-31T12-46-01_Phylo-VQVAE256img-phase4-multiclass-lowerlr-8cblevel-stronganti/figs/results_summary_level0
+# path: /fastscratch/elhamod/logs/2022-10-31T12-46-01_Phylo-VQVAE256img-phase4-multiclass-lowerlr-8cblevel-stronganti/figs/results_summary_level1
+# path: /fastscratch/elhamod/logs/2022-10-31T12-46-01_Phylo-VQVAE256img-phase4-multiclass-lowerlr-8cblevel-stronganti/figs/results_summary_level2
+# path: /home/elhamod/projects/taming-transformers/analysis
+# path: /fastscratch/elhamod/projects/taming-transformers/logs/256pixels_256embedding/figs/results_summary
+
+file_name: "js-divergence to phylo"
+# file_name: "js-divergence to morpho"
+
+output_names: [
+  non-attr to phylo,
+  level0,
+  level1,
+  level2,
+  phylo,
+]
+
+# arrays1: [
+#   LSF distances.csv,
+#   CW_distances.csv
+# ]
+
+arrays1: [
+  js_divergence for non-attributes heat_map.csv,
+  js_divergence for phylo attributes for level 0 heat_map.csv,
+  js_divergence for phylo attributes for level 1 heat_map.csv,
+  js_divergence for phylo attributes for level 2 heat_map.csv,
+  js_divergence for phylo attributes heat_map.csv
+
+]
+
+# arrays2: [
+#   /fastscratch/elhamod/logs/2022-11-04T15-27-23_Phylo-VQVAE256img-phase4-nophylo/figs/results_summary/zq hamming species distances for level 3 heat_map.csv,
+#   /fastscratch/elhamod/logs/2022-11-04T15-27-23_Phylo-VQVAE256img-phase4-nophylo/figs/results_summary/zq hamming species distances for level 0 heat_map.csv,
+#   /fastscratch/elhamod/logs/2022-11-04T15-27-23_Phylo-VQVAE256img-phase4-nophylo/figs/results_summary/zq hamming species distances for level 1 heat_map.csv,
+#   /fastscratch/elhamod/logs/2022-11-04T15-27-23_Phylo-VQVAE256img-phase4-nophylo/figs/results_summary/zq hamming species distances for level 2 heat_map.csv,
+#   /fastscratch/elhamod/logs/2022-11-04T15-27-23_Phylo-VQVAE256img-phase4-nophylo/figs/results_summary/zq hamming species distances for level 3 heat_map.csv
+# ]
+
+arrays2: [
+  /fastscratch/elhamod/logs/2022-11-04T15-27-23_Phylo-VQVAE256img-phase4-nophylo/figs/results_summary/phylo species distances for level 3 heat_map.csv,
+  /fastscratch/elhamod/logs/2022-11-04T15-27-23_Phylo-VQVAE256img-phase4-nophylo/figs/results_summary/phylo species distances for level 0 heat_map.csv,
+  /fastscratch/elhamod/logs/2022-11-04T15-27-23_Phylo-VQVAE256img-phase4-nophylo/figs/results_summary/phylo species distances for level 1 heat_map.csv,
+  /fastscratch/elhamod/logs/2022-11-04T15-27-23_Phylo-VQVAE256img-phase4-nophylo/figs/results_summary/phylo species distances for level 2 heat_map.csv,
+  /fastscratch/elhamod/logs/2022-11-04T15-27-23_Phylo-VQVAE256img-phase4-nophylo/figs/results_summary/phylo species distances for level 3 heat_map.csv,]
+
+# arrays2: [
+#   /home/elhamod/projects/taming-transformers/analysis/ancestor_distance_level3 heat_map.csv,
+#   /home/elhamod/projects/taming-transformers/analysis/ancestor_distance_level0 heat_map.csv,
+#   /home/elhamod/projects/taming-transformers/analysis/ancestor_distance_level1 heat_map.csv,
+#   /home/elhamod/projects/taming-transformers/analysis/ancestor_distance_level2 heat_map.csv,
+#   /home/elhamod/projects/taming-transformers/analysis/ancestor_distance_level3 heat_map.csv,
+# ]
