@@ -172,11 +172,11 @@ class DataModuleFromConfig(pl.LightningDataModule):
     def _val_dataloader(self):
         return DataLoader(self.datasets["validation"],
                           batch_size=self.batch_size,
-                          num_workers=self.num_workers, shuffle=False, collate_fn=custom_collate) #TODO: shuffling validation in pytorch lightning does not work. workaround?
+                          num_workers=self.num_workers, collate_fn=custom_collate) #TODO: shuffling validation in pytorch lightning does not work. workaround?
 
     def _test_dataloader(self):
         return DataLoader(self.datasets["test"], batch_size=self.batch_size,
-                          num_workers=self.num_workers, shuffle=False, collate_fn=custom_collate)
+                          num_workers=self.num_workers, collate_fn=custom_collate)
 
 
 class SetupCallback(Callback):

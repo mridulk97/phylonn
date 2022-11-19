@@ -2,9 +2,9 @@
 
 #SBATCH --account=ml4science
 #SBATCH --partition=dgx_normal_q
-#SBATCH --time=0-01:00:00 
+#SBATCH --time=0-12:00:00 
 #SBATCH --gres=gpu:3
-#SBATCH --nodes=1 --ntasks-per-node=1 --cpus-per-task=24
+#SBATCH --nodes=1 --ntasks-per-node=1 --cpus-per-task=8
 #SBATCH -o /fastscratch/elhamod/projects/taming-transformers/SLURM/slurm-%j.out
 ##########SBATCH -o ./SLURM/slurm-%j.out
 
@@ -16,17 +16,19 @@ module reset
 source activate taming3 
 which python
 
-# python main.py --prefix /fastscratch/elhamod --name Phylo-VQVAE-phase6 --postfix 256img-phase6 --base /home/elhamod/projects/taming-transformers/configs/custom_vqgan-256emb-256img-phylo-vqvae-phase6.yaml -t True --gpus 0,
-# python main.py --prefix /fastscratch/elhamod --name Phylo-VQVAE-phase6 --postfix 256img-phase6-phyloalone --base /home/elhamod/projects/taming-transformers/configs/custom_vqgan-256emb-256img-phylo-vqvae-phase6-phyloalone.yaml -t True --gpus 0,
-# python main.py --prefix /fastscratch/elhamod --name Phylo-VQVAE-phase6 --postfix 256img-phase6-speciesout --base /home/elhamod/projects/taming-transformers/configs/custom_vqgan-256emb-256img-phylo-vqvae-phase6-speciesout.yaml -t True --gpus 0,
-# python main.py --prefix /fastscratch/elhamod --name Phylo-VQVAE-phase6 --postfix 256img-phase6-phylohigh --base /home/elhamod/projects/taming-transformers/configs/custom_vqgan-256emb-256img-phylo-vqvae-phase6-phylohigh.yaml -t True --gpus 0,
-# python main.py --prefix /fastscratch/elhamod --name Phylo-VQVAE-phase6 --postfix 256img-phase6-morech --base /home/elhamod/projects/taming-transformers/configs/custom_vqgan-256emb-256img-phylo-vqvae-phase6-morech.yaml -t True --gpus 0,
-# python main.py --prefix /fastscratch/elhamod --name Phylo-VQVAE-phase6 --postfix 256img-phase6-phyloquantize --base /home/elhamod/projects/taming-transformers/configs/custom_vqgan-256emb-256img-phylo-vqvae-phase6-phyloplusquant.yaml -t True --gpus 0,
-# python main.py --prefix /fastscratch/elhamod --name Phylo-VQVAE-phase6 --postfix 256img-phase6-phyloquantizerec --base /home/elhamod/projects/taming-transformers/configs/custom_vqgan-256emb-256img-phylo-vqvae-phase6-phyloplusquantrec.yaml -t True --gpus 0,
-# python main.py --prefix /fastscratch/elhamod --name Phylo-VQVAE-phase6 --postfix 256img-phase6-noorth --base /home/elhamod/projects/taming-transformers/configs/custom_vqgan-256emb-256img-phylo-vqvae-phase6-noorth.yaml -t True --gpus 0,
-# python main.py --prefix /fastscratch/elhamod --name Phylo-VQVAE-phase6 --postfix 256img-phase6-highortho --base /home/elhamod/projects/taming-transformers/configs/custom_vqgan-256emb-256img-phylo-vqvae-phase6-highortho.yaml -t True --gpus 0,
-# python main.py --prefix /fastscratch/elhamod --name Phylo-VQVAE-phase6 --postfix 256img-phase6-lowerlr --base /home/elhamod/projects/taming-transformers/configs/custom_vqgan-256emb-256img-phylo-vqvae-phase6-lowerlr.yaml -t True --gpus 0,
-python main.py --prefix /fastscratch/elhamod --name Phylo-VQVAE-phase6 --postfix 256img-phase6-fixoptimization --base /home/elhamod/projects/taming-transformers/configs/custom_vqgan-256emb-256img-phylo-vqvae-phase6-autooptimization.yaml -t True --gpus 0,1,2
+# python main.py --prefix /fastscratch/elhamod --name Phylo-VQVAE-phase6 --postfix 256img-phase6 --base /home/elhamod/projects/taming-transformers/configs/custom_vqgan-256emb-256img-phylo-vqvae-phase6.yaml -t True --gpus 0,1,2
+# python main.py --prefix /fastscratch/elhamod --name Phylo-VQVAE-phase6 --postfix 256img-phase6-phyloalone --base /home/elhamod/projects/taming-transformers/configs/custom_vqgan-256emb-256img-phylo-vqvae-phase6-phyloalone.yaml -t True --gpus 0,1,2
+# python main.py --prefix /fastscratch/elhamod --name Phylo-VQVAE-phase6 --postfix 256img-phase6-speciesout --base /home/elhamod/projects/taming-transformers/configs/custom_vqgan-256emb-256img-phylo-vqvae-phase6-speciesout.yaml -t True --gpus 0,1,2
+# python main.py --prefix /fastscratch/elhamod --name Phylo-VQVAE-phase6 --postfix 256img-phase6-phylohigh --base /home/elhamod/projects/taming-transformers/configs/custom_vqgan-256emb-256img-phylo-vqvae-phase6-phylohigh.yaml -t True --gpus 0,1,2
+# python main.py --prefix /fastscratch/elhamod --name Phylo-VQVAE-phase6 --postfix 256img-phase6-morech --base /home/elhamod/projects/taming-transformers/configs/custom_vqgan-256emb-256img-phylo-vqvae-phase6-morech.yaml -t True --gpus 0,1,2
+# python main.py --prefix /fastscratch/elhamod --name Phylo-VQVAE-phase6 --postfix 256img-phase6-phyloquantize --base /home/elhamod/projects/taming-transformers/configs/custom_vqgan-256emb-256img-phylo-vqvae-phase6-phyloplusquant.yaml -t True --gpus 0,1,2
+# python main.py --prefix /fastscratch/elhamod --name Phylo-VQVAE-phase6 --postfix 256img-phase6-phyloquantizerec --base /home/elhamod/projects/taming-transformers/configs/custom_vqgan-256emb-256img-phylo-vqvae-phase6-phyloplusquantrec.yaml -t True --gpus 0,1,2
+# python main.py --prefix /fastscratch/elhamod --name Phylo-VQVAE-phase6 --postfix 256img-phase6-noorth --base /home/elhamod/projects/taming-transformers/configs/custom_vqgan-256emb-256img-phylo-vqvae-phase6-noorth.yaml -t True --gpus 0,1,2
+# python main.py --prefix /fastscratch/elhamod --name Phylo-VQVAE-phase6 --postfix 256img-phase6-highortho --base /home/elhamod/projects/taming-transformers/configs/custom_vqgan-256emb-256img-phylo-vqvae-phase6-highortho.yaml -t True --gpus 0,1,2
+# python main.py --prefix /fastscratch/elhamod --name Phylo-VQVAE-phase6 --postfix 256img-phase6-lowerlr --base /home/elhamod/projects/taming-transformers/configs/custom_vqgan-256emb-256img-phylo-vqvae-phase6-lowerlr.yaml -t True --gpus 0,1,2
+# python main.py --prefix /fastscratch/elhamod --name Phylo-VQVAE-phase6 --postfix 256img-phase6-fixoptimization --base /home/elhamod/projects/taming-transformers/configs/custom_vqgan-256emb-256img-phylo-vqvae-phase6-autooptimization.yaml -t True --gpus 0,1,2
+python main.py --prefix /fastscratch/elhamod --name Phylo-VQVAE-phase6 --postfix 256img-phase6-higherlr --base /home/elhamod/projects/taming-transformers/configs/custom_vqgan-256emb-256img-phylo-vqvae-phase6-higherlr.yaml -t True --gpus 0,1,2
+
 
 
 exit;
