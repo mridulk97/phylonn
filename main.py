@@ -172,11 +172,11 @@ class DataModuleFromConfig(pl.LightningDataModule):
     def _val_dataloader(self):
         return DataLoader(self.datasets["validation"],
                           batch_size=self.batch_size,
-                          num_workers=self.num_workers, shuffle=True, collate_fn=custom_collate)
+                          num_workers=self.num_workers, shuffle=False, collate_fn=custom_collate) #TODO: shuffling validation in pytorch lightning does not work. workaround?
 
     def _test_dataloader(self):
         return DataLoader(self.datasets["test"], batch_size=self.batch_size,
-                          num_workers=self.num_workers, shuffle=True, collate_fn=custom_collate)
+                          num_workers=self.num_workers, shuffle=False, collate_fn=custom_collate)
 
 
 class SetupCallback(Callback):
@@ -244,7 +244,7 @@ class ImageLogger(Callback):
             grid = (grid * 255).astype(np.uint8)
             grid = Image.fromarray(grid)
 
-            pl_module.logger.experiment.log({f"{split}/{k}": wandb.Image(grid)})
+            pl_module.logger.experiment.log({f"{split}/{k}": wandb.Image(grid)}, commit=False) #NOTE: commit=False is very impotant!!
 
     
 
@@ -327,35 +327,42 @@ class ImageLogger(Callback):
     def on_validation_batch_end(self, trainer, pl_module, outputs, batch, batch_idx, dataloader_idx):
         self.log_img(pl_module, batch, batch_idx, split="val")
     
-    # def on_training_epoch_end(self, trainer, pl_module):    
-    #     return
+    def on_training_epoch_end(self, trainer, pl_module):    
+        x=0
         
     #TODO: somehow when this is addedd. logging breaks.
-    # def on_validation_epoch_end(self, trainer, pl_module):    
-    #     if isinstance(pl_module, PhyloVQVAE)  :
-    #         embeddings = {
-    #             'phylo': pl_module.validation_epoch_end_zq_phylos,
-    #             'nonphylo': pl_module.validation_epoch_end_zq_nonphylos
-    #         }
-    #         embedding_dist = {
-    #             'phylo': None,
-    #             'nonphylo': None
-    #         }
-    #         for i in embeddings.keys():
-    #             classes =  pl_module.validation_epoch_end_classes
-    #             classnames =  pl_module.validation_epoch_end_classnames
-    #             sorting_indices = np.argsort(classes.cpu())
-    #             sorted_zq = embeddings[i][sorting_indices, :]
-    #             sorted_zq_codes = pl_module.phylo_disentangler.embedding_converter.get_phylo_codes(sorted_zq)
-    #             reverse_shaped_sorted_zq_codes = pl_module.phylo_disentangler.embedding_converter.reshape_code(sorted_zq_codes, reverse=True)
-    #             sorted_class_names_according_to_class_indx = [classnames[i] for i in sorting_indices]
-    #             sub_sorted_zq_codes = pl_module.phylo_disentangler.embedding_converter.reshape_code(reverse_shaped_sorted_zq_codes)
-    #             zq_hamming_distances = get_HammingDistance_matrix(sub_sorted_zq_codes)
-    #             embedding_dist_ = aggregate_metric_from_specimen_to_species(sorted_class_names_according_to_class_indx, zq_hamming_distances)
-    #             embedding_dist[i] = embedding_dist_
-    #         logger = type(pl_module.logger)
-    #         logger_log_images = self.logger_log_images.get(logger, lambda *args, **kwargs: None)
-    #         logger_log_images(pl_module, embedding_dist, pl_module.global_step, 'val')
+    def on_validation_epoch_end(self, trainer, pl_module):    
+        if isinstance(pl_module, PhyloVQVAE):
+            is_train = pl_module.training
+            if is_train:
+                pl_module.eval()
+
+            embeddings = {
+                'phylo': pl_module.validation_epoch_end_zq_phylos,
+                'nonphylo': pl_module.validation_epoch_end_zq_nonphylos
+            }
+            embedding_dist = {
+                'phylo': None,
+                'nonphylo': None
+            }
+            for i in embeddings.keys():
+                classes =  pl_module.validation_epoch_end_classes
+                classnames =  pl_module.validation_epoch_end_classnames
+                sorting_indices = np.argsort(classes.cpu())
+                sorted_zq = embeddings[i][sorting_indices, :]
+                sorted_zq_codes = pl_module.phylo_disentangler.embedding_converter.get_phylo_codes(sorted_zq)
+                reverse_shaped_sorted_zq_codes = pl_module.phylo_disentangler.embedding_converter.reshape_code(sorted_zq_codes, reverse=True)
+                sorted_class_names_according_to_class_indx = [classnames[i] for i in sorting_indices]
+                sub_sorted_zq_codes = pl_module.phylo_disentangler.embedding_converter.reshape_code(reverse_shaped_sorted_zq_codes)
+                zq_hamming_distances = get_HammingDistance_matrix(sub_sorted_zq_codes)
+                embedding_dist_ = aggregate_metric_from_specimen_to_species(sorted_class_names_according_to_class_indx, zq_hamming_distances)
+                embedding_dist[i] = embedding_dist_.detach().cpu()
+            logger = type(pl_module.logger)
+            logger_log_images = self.logger_log_images.get(logger, lambda *args, **kwargs: None)
+            logger_log_images(pl_module, embedding_dist, pl_module.global_step, 'val')
+            
+            if is_train:
+                pl_module.train()
 
 
 if __name__ == "__main__":

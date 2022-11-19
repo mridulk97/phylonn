@@ -22,8 +22,6 @@ from torchmetrics import F1Score
 
 import math
 
-
-
 def get_hidden_layer_sizes(num_of_inputs, num_of_outputs, num_of_layers): 
     out_sizes = []
     if num_of_layers > 1:
@@ -510,8 +508,6 @@ class PhyloVQVAE(VQModel):
         outputs = self.step(batch, batch_idx, optimizer_idx=optimizer_idx, prefix='train')
         self.log_dict(outputs['logs'], logger=True, on_step=False, on_epoch=True)
         return outputs['loss']
-        # return self.step(batch, batch_idx, optimizer_idx=optimizer_idx, prefix='train')#['loss']
-
 
     @torch.no_grad()
     def validation_step(self, batch, batch_idx):
@@ -519,20 +515,15 @@ class PhyloVQVAE(VQModel):
         self.log_dict(outputs['logs'], logger=True, on_step=False, on_epoch=True)
         del outputs['logs']
         return outputs
-    
-    
-    # def training_epoch_end(self, outputs):
-    #     return {'log': outputs['logs']}
         
     #NOTE: Thois can be added with no problems to logging    
-    # @torch.no_grad()
-    # def validation_epoch_end(self, outputs):
-    #     if CONSTANTS.QUANTIZED_PHYLO_OUTPUT in outputs[0]:
-    #         self.validation_epoch_end_zq_phylos = torch.cat([x[CONSTANTS.QUANTIZED_PHYLO_OUTPUT] for x in outputs], 0)
-    #         self.validation_epoch_end_zq_nonphylos = torch.cat([x[CONSTANTS.QUANTIZED_PHYLO_NONATTRIBUTE_OUTPUT] for x in outputs], 0)
-    #         self.validation_epoch_end_classes = torch.cat([x[CONSTANTS.DISENTANGLER_CLASS_OUTPUT] for x in outputs], 0)
-    #         self.validation_epoch_end_classnames = list(itertools.chain.from_iterable([x[CONSTANTS.DATASET_CLASSNAME] for x in outputs]))
-    #     # return {'log': outputs['logs']}
+    @torch.no_grad()
+    def validation_epoch_end(self, outputs):
+        if CONSTANTS.QUANTIZED_PHYLO_OUTPUT in outputs[0]:
+            self.validation_epoch_end_zq_phylos = torch.cat([x[CONSTANTS.QUANTIZED_PHYLO_OUTPUT] for x in outputs], 0)
+            self.validation_epoch_end_zq_nonphylos = torch.cat([x[CONSTANTS.QUANTIZED_PHYLO_NONATTRIBUTE_OUTPUT] for x in outputs], 0)
+            self.validation_epoch_end_classes = torch.cat([x[CONSTANTS.DISENTANGLER_CLASS_OUTPUT] for x in outputs], 0)
+            self.validation_epoch_end_classnames = list(itertools.chain.from_iterable([x[CONSTANTS.DATASET_CLASSNAME] for x in outputs]))
         
 
     ##################### test ###########

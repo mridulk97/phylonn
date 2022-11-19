@@ -2,7 +2,7 @@
 
 #SBATCH --account=ml4science
 #SBATCH --partition=dgx_normal_q
-#SBATCH --time=0-10:00:00 
+#SBATCH --time=0-01:00:00 
 #SBATCH --gres=gpu:3
 #SBATCH --nodes=1 --ntasks-per-node=1 --cpus-per-task=24
 #SBATCH -o /fastscratch/elhamod/projects/taming-transformers/SLURM/slurm-%j.out
@@ -26,7 +26,7 @@ which python
 # python main.py --prefix /fastscratch/elhamod --name Phylo-VQVAE-phase6 --postfix 256img-phase6-noorth --base /home/elhamod/projects/taming-transformers/configs/custom_vqgan-256emb-256img-phylo-vqvae-phase6-noorth.yaml -t True --gpus 0,
 # python main.py --prefix /fastscratch/elhamod --name Phylo-VQVAE-phase6 --postfix 256img-phase6-highortho --base /home/elhamod/projects/taming-transformers/configs/custom_vqgan-256emb-256img-phylo-vqvae-phase6-highortho.yaml -t True --gpus 0,
 # python main.py --prefix /fastscratch/elhamod --name Phylo-VQVAE-phase6 --postfix 256img-phase6-lowerlr --base /home/elhamod/projects/taming-transformers/configs/custom_vqgan-256emb-256img-phylo-vqvae-phase6-lowerlr.yaml -t True --gpus 0,
-python main.py --prefix /fastscratch/elhamod --name Phylo-VQVAE-phase6 --postfix 256img-phase6-fixoptimization --base /home/elhamod/projects/taming-transformers/configs/custom_vqgan-256emb-256img-phylo-vqvae-phase6-autooptimization.yaml -t True --gpus 0,
+python main.py --prefix /fastscratch/elhamod --name Phylo-VQVAE-phase6 --postfix 256img-phase6-fixoptimization --base /home/elhamod/projects/taming-transformers/configs/custom_vqgan-256emb-256img-phylo-vqvae-phase6-autooptimization.yaml -t True --gpus 0,1,2
 
 
 exit;
