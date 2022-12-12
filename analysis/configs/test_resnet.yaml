@@ -1,0 +1,16 @@
+
+DEVICE: 0
+
+num_workers: 8
+batch_size: 32 #100
+
+bb_model_path: analysis/classification_model_3.path
+
+#naive bayes
+# dataset_path: logs/imported/2022-11-05T19-12-52_Phylo-VQVAE512img-phase4-multiclass-lowerlr-8cblevel-stronganti-2layers-cyclical-classweighting/figs/generated_dataset/species
+
+# dataset_path: /fastscratch/elhamod/logs/2022-11-05T15-32-30_Phylo-VQVAE-transformer/figs/transformer_generated_dataset/species
+# dataset_path: /home/mridul/taming-transformers/logs/2022-11-09T15-00-05_CW-VQGAN-transformer256img-cw-transformer/figs/transformer_generated_dataset/species_top_40/
+dataset_path: /home/mridul/taming-transformers/logs/2022-11-11T17-46-51_CW-VQGAN-transformernew-tinker-latest/figs/transformer_generated_dataset/species_top_40/
+# dataset_path: /fastscratch/mridul/transformer_generated_images/species_top_40/
+size: 256

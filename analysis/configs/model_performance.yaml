@@ -1,0 +1,19 @@
+
+DEVICE: 0
+
+num_workers: 8
+batch_size: 200 #200 for tinkercliffs
+
+
+size: 256
+file_list_path: "/home/mridul/data/phylo-VQVAE/taming_transforms_fish_test_padded_256.txt"
+
+# class weights
+# ckpt_path: /home/mridul/taming-transformers/logs/2022-11-09T15-00-05_CW-VQGAN-transformer256img-cw-transformer/checkpoints/last.ckpt
+# yaml_path: /home/mridul/taming-transformers/logs/2022-11-09T15-00-05_CW-VQGAN-transformer256img-cw-transformer/configs/2022-11-09T15-00-05-project.yaml
+
+# ckpt_path: /home/mridul/taming-transformers/logs/2022-11-07T02-39-00_CW-VQVAE256img-infer-cw-model/checkpoints/last.ckpt
+# yaml_path: /home/mridul/taming-transformers/logs/2022-11-07T02-39-00_CW-VQVAE256img-infer-cw-model/configs/2022-11-07T02-39-00-project_infer.yaml
+
+ckpt_path: /home/mridul/taming-transformers/logs/2022-11-07T12-10-33_CW-VQVAE256img-tinker-cw-model/checkpoints/last.ckpt
+yaml_path: /home/mridul/taming-transformers/logs/2022-11-07T12-10-33_CW-VQVAE256img-tinker-cw-model/configs/2022-11-07T12-10-33-project_infer.yaml
