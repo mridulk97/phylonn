@@ -78,7 +78,7 @@ model:
     concept_data:
       target: main.DataModuleFromConfig
       params:
-        batch_size: 5
+        batch_size: 30
         num_workers: 8
         train:
           target: taming.data.custom.CustomTrain

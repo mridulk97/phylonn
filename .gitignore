@@ -6,3 +6,6 @@ slurm*
 wandb/**
 taming3/**
 plot/**
+*.path
+*.log
+lightning_logs/

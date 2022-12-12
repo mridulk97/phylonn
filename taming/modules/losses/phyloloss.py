@@ -11,6 +11,12 @@ def parse_phyloDistances(phyloDistances_string):
     sorted_distance = sorted(list(map(lambda x: float(x), phyloDistances_list_string)))
     return sorted_distance
 
+def get_relative_distance_for_level(phylo_distances, level):
+    return 1.0- (phylo_distances[level] if level < len(phylo_distances) else 1.0)
+
+def get_loss_name(phylo_distances, level):
+    return str(phylo_distances[level]).replace(".", "")+"distance"
+
 
 class Species_sibling_finder():
     # Contructor
@@ -29,7 +35,7 @@ class Species_sibling_finder():
         species = label_list[speciesId]
         siblings = self.map[species][loss_name]
         siblings_indices = list(map(lambda x: label_list.index(x), siblings))
-        # print('siblings0', loss_name, speciesId, species, siblings, siblings_indices, range(len(fine_list)))
+        print('siblings0', loss_name, speciesId, species, siblings, siblings_indices)
         return siblings_indices
 
 ###----------------------------------###
