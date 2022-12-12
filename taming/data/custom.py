@@ -28,10 +28,15 @@ class CustomTrain(CustomBase):
         if add_labels:
             labels_per_file = list(map(lambda path: path.split('/')[-2], paths))
             labels_set = sorted(list(set(labels_per_file)))
-            labels_to_idx = {label_name: i for i, label_name in enumerate(labels_set)}
-            labels = {'class': [labels_to_idx[label_name] for label_name in labels_per_file]}
+            self.labels_to_idx = {label_name: i for i, label_name in enumerate(labels_set)}
+            # labels = {'class': [self.labels_to_idx[label_name] for label_name in labels_per_file]}
+            labels = {
+                'class': [self.labels_to_idx[label_name] for label_name in labels_per_file],
+                'class_name': labels_per_file
+            }
 
         self.data = ImagePaths(paths=paths, size=size, random_crop=False, labels=labels)
+        self.indx_to_label = {v: k for k, v in self.labels_to_idx.items()}
 
 
 class CustomTest(CustomTrain):

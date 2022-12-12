@@ -10,7 +10,6 @@ from pytorch_lightning import seed_everything
 from pytorch_lightning.trainer import Trainer
 from pytorch_lightning.callbacks import ModelCheckpoint, Callback, LearningRateMonitor
 from pytorch_lightning.utilities.distributed import rank_zero_only
-from MODELS.iterative_normalization import IterNormRotation as cw_layer
 
 from taming.data.utils import custom_collate
 # from taming.data.cw_analysis import plot_concept_top50
@@ -479,9 +478,6 @@ if __name__ == "__main__":
 
         # model
         model = instantiate_from_config(config.model)
-        model.encoder.norm_out = cw_layer(model.encoder.block_in)
-        print("Changed to cw layer")
-        print("block size : ", model.encoder.block_in)
 
         # trainer and callbacks
         trainer_kwargs = dict()
