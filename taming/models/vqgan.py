@@ -23,6 +23,7 @@ class VQModel(pl.LightningModule):
                  n_embed,
                  embed_dim,
                  ckpt_path=None,
+                 cw_module_transformers=False,
                  ignore_keys=[],
                  image_key="image",
                  colorize_nlabels=None,
@@ -31,12 +32,14 @@ class VQModel(pl.LightningModule):
                  sane_index_shape=False,  # tell vector quantizer to return indices as bhw
                  ):
         super().__init__()
+        self.cw_module_transformers = cw_module_transformers
         self.image_key = image_key
         self.encoder = Encoder(**ddconfig)
         self.decoder = Decoder(**ddconfig)
-        # self.encoder.norm_out = cw_layer(self.encoder.block_in)
-        # print("Changed to cw layer")
-        # print("block size : ", self.encoder.block_in)
+        if self.cw_module_transformers:
+            self.encoder.norm_out = cw_layer(self.encoder.block_in)
+            print("Changed to cw layer before loading cw model")
+        
         self.loss = instantiate_from_config(lossconfig)
         self.quantize = VectorQuantizer(n_embed, embed_dim, beta=0.25,
                                         remap=remap, sane_index_shape=sane_index_shape)

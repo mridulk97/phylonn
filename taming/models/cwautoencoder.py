@@ -20,23 +20,15 @@ from torchinfo import summary
 import collections
 import itertools
 
-PHYLOCONFIG_KEY = "phylomodel_params"
-BASEMODEL_KEY = "basemodel"
 CONCEPT_DATA_KEY = "concept_data"
 activation_mode = 'pool_max'
 
-DISENTANGLER_DECODER_OUTPUT = 'output'
-DISENTANGLER_ENCODER_INPUT = 'in'
-DISENTANGLER_CLASS_OUTPUT = 'class'
 
 class CWmodelVQGAN(VQModel):
     def __init__(self, **args):
         print(args)
         
         self.save_hyperparameters()
-
-        # phylo_args = args[PHYLOCONFIG_KEY]
-        # del args[PHYLOCONFIG_KEY]
 
         concept_data_args = args[CONCEPT_DATA_KEY]
         print("Concepts params : ", concept_data_args)
@@ -47,8 +39,10 @@ class CWmodelVQGAN(VQModel):
 
 
         super().__init__(**args)
-        # self.encoder.norm_out = cw_layer(self.encoder.block_in)
-        # print("Changed to cw layer")
+        
+        if not self.cw_module_transformers:
+            self.encoder.norm_out = cw_layer(self.encoder.block_in)
+            print("Changed to cw layer after loading base VQGAN")
 
         # self.freeze()
 
@@ -180,8 +174,6 @@ class CWmodelVQGAN_baseline(VQModel):
         
         self.save_hyperparameters()
 
-        # phylo_args = args[PHYLOCONFIG_KEY]
-        # del args[PHYLOCONFIG_KEY]
 
         concept_data_args = args[CONCEPT_DATA_KEY]
         print("Concepts params : ", concept_data_args)
