@@ -263,8 +263,8 @@ class Net2NetTransformer(pl.LightningModule):
                 cond_rec = F.one_hot(cond_rec, num_classes=num_classes)
                 cond_rec = cond_rec.squeeze(1).permute(0, 3, 1, 2).float()
                 cond_rec = self.cond_stage_model.to_rgb(cond_rec)
-            log["conditioning_rec"] = cond_rec
-            log["conditioning"] = c
+            # log["conditioning_rec"] = cond_rec
+            # log["conditioning"] = c
 
         log["samples_half"] = x_sample
         log["samples_nopix"] = x_sample_nopix

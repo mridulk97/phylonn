@@ -1,6 +1,6 @@
 model:
   base_learning_rate: 4.5e-06
-  project: CW-VQGAN-transformer
+  project: CW-VQGAN
   target: taming.models.cond_transformer.Net2NetTransformer
   params:
     cond_stage_key: class
@@ -21,6 +21,7 @@ model:
         ckpt_path: ./logs/2022-11-07T12-10-33_CW-VQVAE256img-tinker-cw-model/checkpoints/last.ckpt
         embed_dim: 256
         n_embed: 1024
+        cw_module_transformers: False
         ddconfig:
           double_z: False
           z_channels: 256
