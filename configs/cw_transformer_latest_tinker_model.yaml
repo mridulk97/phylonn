@@ -21,7 +21,7 @@ model:
         ckpt_path: ./logs/2022-11-07T12-10-33_CW-VQVAE256img-tinker-cw-model/checkpoints/last.ckpt
         embed_dim: 256
         n_embed: 1024
-        cw_module_transformers: False
+        cw_module_transformers: True
         ddconfig:
           double_z: False
           z_channels: 256
