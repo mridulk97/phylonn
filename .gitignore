@@ -8,4 +8,5 @@ taming3/**
 plot/**
 *.path
 *.log
-lightning_logs/
+**events.out.tfevents.*
+lightning_logs/**

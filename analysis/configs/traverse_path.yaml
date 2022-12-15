@@ -1,0 +1,42 @@
+# transformers
+transformer_paths: [
+  { 
+    ckpt_path: /fastscratch/elhamod/logs/2022-11-10T02-23-47_Phylo-VQVAE-transformer256img-phase4-level0-finalstronger/checkpoints/last.ckpt,
+    yaml_path: /fastscratch/elhamod/logs/2022-11-10T02-23-47_Phylo-VQVAE-transformer256img-phase4-level0-finalstronger/configs/2022-11-10T02-23-47-project.yaml
+  },
+  { 
+    ckpt_path: /fastscratch/elhamod/logs/2022-11-10T02-23-52_Phylo-VQVAE-transformer256img-phase4-level1-finalstronger/checkpoints/last.ckpt,
+    yaml_path: /fastscratch/elhamod/logs/2022-11-10T02-23-52_Phylo-VQVAE-transformer256img-phase4-level1-finalstronger/configs/2022-11-10T02-23-52-project.yaml
+  },
+  { 
+    ckpt_path: /fastscratch/elhamod/logs/2022-11-10T02-23-56_Phylo-VQVAE-transformer256img-phase4-level2-finalstronger/checkpoints/last.ckpt,
+    yaml_path: /fastscratch/elhamod/logs/2022-11-10T02-23-56_Phylo-VQVAE-transformer256img-phase4-level2-finalstronger/configs/2022-11-10T02-23-56-project.yaml
+  },
+  { 
+    ckpt_path: /fastscratch/elhamod/logs/2022-11-10T02-23-40_Phylo-VQVAE-transformer256img-phase4-transformer-species-finalstronger/checkpoints/last.ckpt,
+    yaml_path: /fastscratch/elhamod/logs/2022-11-10T02-23-40_Phylo-VQVAE-transformer256img-phase4-transformer-species-finalstronger/configs/2022-11-10T02-23-40-project.yaml
+  },
+]
+
+DEVICE: 0
+top_k: 5
+
+num_of_samples: 10
+
+# BB_model_paths: [
+#   analysis/classification_model_0.path,
+#   analysis/classification_model_1.path,
+#   analysis/classification_model_2.path,
+#   analysis/classification_model_3.path
+# ]
+
+
+image_index1: 1522 # /home/elhamod/data/Fish/train_padded_256/Morone chrysops/INHS_FISH_47675.JPG
+image_index2: 1648 #/home/elhamod/data/Fish/train_padded_256/Noturus nocturnus/INHS_FISH_42082.jpg
+
+size: 256
+file_list_path: "/home/elhamod/data/Fish/taming_transforms_fish_train_padded_256.txt"
+
+phylogeny_path: "/home/elhamod/data/Fish"
+phyloDistances_string: "0.77,0.5,0.33"
+

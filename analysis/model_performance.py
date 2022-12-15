@@ -27,9 +27,11 @@ def main(configs_yaml):
     
     # Load model
     config = load_config(yaml_path, display=False)
-    model = load_CWVQGAN(config, ckpt_path=ckpt_path, data=dataset.data, cuda=(DEVICE is not None))
-    # model.set_test_chkpt_path(ckpt_path)
+    # model = load_CWVQGAN(config, ckpt_path=ckpt_path, data=dataset.data, cuda=(DEVICE is not None))
+    # # model.set_test_chkpt_path(ckpt_path)
 
+    model = load_phylovqvae(config, ckpt_path=ckpt_path, data=dataset.data, cuda=(DEVICE is not None))
+    model.set_test_chkpt_path(ckpt_path)
 
     trainer = Trainer(distributed_backend='ddp', gpus='0,')
     test_measures = trainer.test(model, dataloader)

@@ -5,6 +5,8 @@ from torch.utils.data import Dataset
 
 from taming.data.base import ImagePaths, NumpyPaths, ConcatDatasetWithIndex
 
+import taming.constants as CONSTANTS
+
 
 class CustomBase(Dataset):
     def __init__(self, *args, **kwargs):
@@ -19,7 +21,7 @@ class CustomBase(Dataset):
         return example
 
 class CustomTrain(CustomBase):
-    def __init__(self, size, training_images_list_file, add_labels=False):
+    def __init__(self, size, training_images_list_file, add_labels=False, unique_skipped_labels=[]):
         super().__init__()
         with open(training_images_list_file, "r") as f:
             paths = f.read().splitlines()
@@ -29,18 +31,18 @@ class CustomTrain(CustomBase):
             labels_per_file = list(map(lambda path: path.split('/')[-2], paths))
             labels_set = sorted(list(set(labels_per_file)))
             self.labels_to_idx = {label_name: i for i, label_name in enumerate(labels_set)}
-            # labels = {'class': [self.labels_to_idx[label_name] for label_name in labels_per_file]}
             labels = {
-                'class': [self.labels_to_idx[label_name] for label_name in labels_per_file],
-                'class_name': labels_per_file
+                CONSTANTS.DISENTANGLER_CLASS_OUTPUT: [self.labels_to_idx[label_name] for label_name in labels_per_file],
+                CONSTANTS.DATASET_CLASSNAME: labels_per_file
             }
-
-        self.data = ImagePaths(paths=paths, size=size, random_crop=False, labels=labels)
+            
         self.indx_to_label = {v: k for k, v in self.labels_to_idx.items()}
+
+        self.data = ImagePaths(paths=paths, size=size, random_crop=False, labels=labels, unique_skipped_labels=unique_skipped_labels)
 
 
 class CustomTest(CustomTrain):
-    def __init__(self, size, test_images_list_file, add_labels=False):
-        super().__init__(size, test_images_list_file, add_labels)
+    def __init__(self, size, test_images_list_file, add_labels=False, unique_skipped_labels=[]):
+        super().__init__(size, test_images_list_file, add_labels, unique_skipped_labels=unique_skipped_labels)
 
 

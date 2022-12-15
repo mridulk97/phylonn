@@ -2,7 +2,6 @@
 # Author: Sasank Chilamkurthy
 
 
-import itertools
 import os
 from taming.analysis_utils import get_phylomapper_from_config
 from taming.data.phylogeny import Phylogeny
@@ -13,8 +12,6 @@ from torchvision import datasets
 import numpy
 import albumentations
 
-from taming.data.custom import CustomTest
-import taming.constants as CONSTANTS
 
 import argparse
 from omegaconf import OmegaConf
@@ -22,15 +19,6 @@ from tqdm import tqdm
 
 from torchmetrics import F1Score
 
-level2_mapping = [['Alosa chrysochloris'],
-    ['Carassius auratus', 'Cyprinus carpio'] ,
-    ['Esox americanus'],
-    ['Gambusia affinis'],
-    ['Lepisosteus osseus', 'Lepisosteus platostomus'],
-    ['Lepomis auritus', 'Lepomis cyanellus', 'Lepomis gibbosus', 'Lepomis gulosus', 'Lepomis humilis', 'Lepomis macrochirus', 'Lepomis megalotis', 'Lepomis microlophus'],
-    ['Morone chrysops', 'Morone mississippiensis'],
-    ['Notropis atherinoides', 'Notropis blennius', 'Notropis boops', 'Notropis buccatus', 'Notropis buchanani', 'Notropis dorsalis', 'Notropis hudsonius', 'Notropis leuciodus', 'Notropis nubilus', 'Notropis percobromus', 'Notropis stramineus', 'Notropis telescopus', 'Notropis texanus', 'Notropis volucellus', 'Notropis wickliffi', 'Phenacobius mirabilis'],
-    ['Noturus exilis', 'Noturus flavus', 'Noturus gyrinus', 'Noturus miurus', 'Noturus nocturnus']]
 
 def get_input(x):
     if len(x.shape) == 3:
@@ -81,10 +69,6 @@ class Processor:
             return image
         
         return preprocess_image
-
-def get_target_mapping(target, mapping):
-    breakpoint()
-    return None
         
 @torch.no_grad()
 def main(configs_yaml):
@@ -95,17 +79,14 @@ def main(configs_yaml):
     batch_size= configs_yaml.batch_size
     num_workers= configs_yaml.num_workers
     phylogeny_path = configs_yaml.phylogeny_path
-    resnetpath = configs_yaml.resnetpath
+    resnetpath = configs_yaml.resnetpath #check for this
     
     level = 3
     if phylogeny_path is not None:
         level = configs_yaml.level
         phyloDistances_string = configs_yaml.phyloDistances_string
-
-
     
     
-    # dataset_test = CustomTest(size, file_list_path_test, add_labels=True)
     dataset_test = datasets.ImageFolder(dataset_path, transform= Processor(size).get_preprocess_image())
     dataloader = torch.utils.data.DataLoader(dataset_test, batch_size=batch_size,
                                              shuffle=False, num_workers=num_workers)
@@ -114,22 +95,10 @@ def main(configs_yaml):
     
     if phylogeny_path is not None:
         phylomapper = get_phylomapper_from_config(Phylogeny(phylogeny_path), phyloDistances_string, level)
-        # phylogeny = 
-        # phylo_distances = parse_phyloDistances(phyloDistances_string)
-        # siblingfinder = Species_sibling_finder(phylogeny, phylo_distances)
-        # relative_distance = get_relative_distance_for_level(phylo_distances, level)
-        # species_groups = phylogeny.get_species_groups(relative_distance)
-        # species_groups_representatives = list(map(lambda x: x[0], species_groups))
-        # mlb = list(map(lambda x: phylogeny.getLabelList().index(x), species_groups_representatives))
-    
         num_classes = phylomapper.get_len()
     else:
         num_classes = len(indx_to_class.keys())
         
-    # model_ft = models.resnet18(pretrained=True)
-    # num_ftrs = model_ft.fc.in_features
-    # model_ft.fc = nn.Linear(num_ftrs, num_classes)
-    # model_ft = model_ft.to(DEVICE)
     model_ft = torch.load(bb_model_path)
     model_ft.eval()
     
@@ -157,60 +126,32 @@ def main(configs_yaml):
     ['Esox americanus', 'Gambusia affinis', 'Lepomis auritus', 'Lepomis cyanellus', 'Lepomis gibbosus', 'Lepomis gulosus', 'Lepomis humilis', 'Lepomis macrochirus', 'Lepomis megalotis', 'Lepomis microlophus', 'Morone chrysops', 'Morone mississippiensis'],
     ['Lepisosteus osseus', 'Lepisosteus platostomus']]
 
-
-    # mapped=[]
-    # level2_mapper = {}
-    # for i in range(len(level2_mapping)):
-    #     a = []
-    #     for j in range(len(level2_mapping[i])):
-    #         a.append(get_key(indx_to_class,level2_mapping[i][j]))
-    #     mapped.append(a)
-    #     level2_mapper[a[0]] = a
-    # breakpoint()
     level_dict = {0: level0_mapping, 1: level1_mapping, 2: level2_mapping}
     preds = []
     classes = []
-    classes_phylo = []
     for img, target in tqdm(dataloader):
-         
         if phylogeny_path is not None:
-            # breakpoint()
-            level_mapper_dict = level_mapper(indx_to_class, level_dict[level])
-            target = list(map(lambda x: get_key_from_list(level_mapper_dict,x), target))
-            target = torch.LongTensor(list(map(lambda x: phylomapper.mlb.index(x), target)))
-            # target = phylomapper.get_mapped_truth(target)
-            # target_phylo = torch.tensor(phylomapper.get_original_indexing_truth(target))
-            # layer_truth = list(map(lambda x: siblingfinder.map_speciesId_siblingVector(x, str(phylo_distances[level]).replace(".", "")+"distance"), target))
-            # target = torch.LongTensor(list(map(lambda x: mlb.index(x[0]), layer_truth))).to(DEVICE)
-        # breakpoint()
-        # classes_phylo.append(target_phylo)
+            target = phylomapper.get_mapped_truth(target)
+
+            # # For CW (remove the previous line)
+            # level_mapper_dict = level_mapper(indx_to_class, level_dict[level])
+            # target = list(map(lambda x: get_key_from_list(level_mapper_dict,x), target))
+            # target = torch.LongTensor(list(map(lambda x: phylomapper.mlb.index(x), target)))
+
         classes.append(target)
         preds.append(model_ft(get_input(img).to(DEVICE)))
     classes = torch.cat(classes, dim=0).to(DEVICE)
-    # classes_phylo = torch.cat(classes_phylo, dim=0).to(DEVICE)
-    # breakpoint()
-    
-    # classes_original_indexing = classes
-    # if phylogeny_path is not None:
-    #     classes_original_indexing = phylomapper.get_reverse_indexing(classes)
 
     preds = torch.cat(preds, dim=0)
     
     a = sorted(set([i.item() for i in classes]))
-    # print(a,indx_to_class, classes_original_indexing) 
     class_names = [indx_to_class[i] for i in a]
-    # print(a, class_names)
-    # breakpoint()
-
     print("calculate F1 and Confusion matrix")
+    plot_confusionmatrix(preds, classes, class_names, os.path.join(dataset_path, 'fake'), title="Confusion Matrix according to BB model - level {}".format(level))  
 
     test_measures = {}
     test_measures['class_f1'] = F1(preds, classes).item()
     dump_to_json(test_measures, os.path.join(dataset_path, 'fake'), name='f1_BB- level {}'.format(level))
-
-    plot_confusionmatrix(preds, classes, class_names, os.path.join(dataset_path, 'fake'), title="Confusion Matrix according to BB model - level {}".format(level))            
-    
-
     
 
 
@@ -229,7 +170,6 @@ if __name__ == "__main__":
     )
     
     cfg, _ = parser.parse_known_args()
-    # cfg = parser.config
     configs = OmegaConf.load(cfg.config)
     cli = OmegaConf.from_cli()
     config = OmegaConf.merge(configs, cli)

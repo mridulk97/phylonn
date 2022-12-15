@@ -1,0 +1,9 @@
+fileNames: [
+    '/home/elhamod/projects/taming-transformers/analysis/level0.csv',
+    '/home/elhamod/projects/taming-transformers/analysis/level1.csv',
+    '/home/elhamod/projects/taming-transformers/analysis/level2.csv',
+    '/home/elhamod/projects/taming-transformers/analysis/level3.csv',
+]
+
+size: 256
+file_list_path: "/home/elhamod/data/Fish/taming_transforms_fish_train_padded_256.txt"

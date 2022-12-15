@@ -1,8 +1,8 @@
+from taming.import_utils import instantiate_from_config
 import torch
 import torch.nn.functional as F
 import pytorch_lightning as pl
 
-from main import instantiate_from_config
 
 from taming.modules.diffusionmodules.model import Encoder, Decoder
 from taming.modules.vqvae.quantize import VectorQuantizer2 as VectorQuantizer
@@ -176,85 +176,6 @@ class VQModel(pl.LightningModule):
         x = F.conv2d(x, weight=self.colorize)
         x = 2.*(x-x.min())/(x.max()-x.min()) - 1.
         return x
-
-
-#NOTE: This model assumes the base VQModel is frozen and there is no discriminator.
-#NOTE: This is depricated. Might delete later.
-class VQModelWithPhylo(VQModel):
-    def __init__(self, **args):
-        phylo_args = args[PHYLOCONFIG_KEY]
-        del args[PHYLOCONFIG_KEY]
-
-        super().__init__(**args)
-        self.freeze()
-
-        self.phylo_net = VQModel(**phylo_args)
-
-        # print model
-        print('model', self)
-        summary(self.cuda(), (1, 3, 512, 512))
-
-    def encode(self, x):
-        encoder_out = self.encoder(x)
-        phylo_out, phylo_quantizer_loss = self.phylo_net(encoder_out)
-        h = self.quant_conv(phylo_out)
-        quant, base_quantizer_loss, info = self.quantize(h)
-        return quant, phylo_quantizer_loss + base_quantizer_loss, encoder_out, phylo_out, info
-
-    def forward(self, input):
-        quant, diff, encoder_out, phylo_out, _ = self.encode(input)
-        dec = self.decode(quant)
-        return dec, diff, encoder_out, phylo_out
-
-    def training_step(self, batch, batch_idx):
-        x = self.get_input(batch, self.image_key)
-        xrec, total_qloss, encoder_out, phylo_out = self(x)
-
-        # autoencode
-        aeloss, log_dict_ae = self.phylo_net.loss(total_qloss, encoder_out, phylo_out, 0, self.global_step,
-                                        last_layer=self.get_last_layer(), split="train")
-
-        self.log("train/phylo_aeloss", aeloss, prog_bar=True, logger=True, on_step=True, on_epoch=True)
-        self.log_dict(log_dict_ae, prog_bar=False, logger=True, on_step=True, on_epoch=True)
-        return aeloss
-
-    def validation_step(self, batch, batch_idx):
-        x = self.get_input(batch, self.image_key)
-        xrec, total_qloss, encoder_out, phylo_out = self(x)
-        aeloss, log_dict_ae = self.phylo_net.loss(total_qloss, encoder_out, phylo_out, 0, self.global_step,
-                                            last_layer=self.get_last_layer(), split="val")
-
-        rec_loss = log_dict_ae["val/rec_loss"]
-        self.log("val/rec_loss", rec_loss,
-                   prog_bar=True, logger=True, on_step=True, on_epoch=True, sync_dist=True)
-        self.log("val/aeloss", aeloss,
-                   prog_bar=True, logger=True, on_step=True, on_epoch=True, sync_dist=True)
-        self.log_dict(log_dict_ae)
-        return self.log_dict
-
-    
-    def configure_optimizers(self):
-        lr = self.learning_rate
-        opt_ae = torch.optim.Adam(list(self.phylo_net.encoder.parameters())+
-                                list(self.phylo_net.decoder.parameters())+
-                                list(self.phylo_net.quantize.parameters())+
-                                list(self.phylo_net.quant_conv.parameters())+
-                                list(self.phylo_net.post_quant_conv.parameters()),
-                                lr=lr, betas=(0.5, 0.9))
-        
-        return [opt_ae], []
-
-
-        
-
-
-
-
-
-
-
-
-
 
 class VQSegmentationModel(VQModel):
     def __init__(self, n_labels, *args, **kwargs):

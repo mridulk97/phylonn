@@ -5,30 +5,22 @@ from taming.models.cond_transformer import Net2NetTransformer
 from taming.data.custom import CustomTest as CustomDataset
 from taming.analysis_utils import Embedding_Code_converter
 from main import instantiate_from_config
+from taming.models.cond_transformer import Phylo_Net2NetTransformer
 
 import torch
 from tqdm import tqdm
-
-
-
 import os
 
 from omegaconf import OmegaConf
 import argparse
 
-from torchmetrics import F1Score
-
 GENERATED_FOLDER = "transformer_most_likely_generations"
 GENERATED_DATASET = "transformer_generated_dataset"
-
-# hist_arr structure:
-#hist_arr[lbl][code_location] = [list of codes that occured]
-#TODO: would be nice to have a class for this.
 
 ##########
 
 @torch.no_grad()
-def main(configs_yaml):
+def main_cw(configs_yaml):
     yaml_path = configs_yaml.yaml_path
     ckpt_path = configs_yaml.ckpt_path
     DEVICE = configs_yaml.DEVICE
@@ -38,7 +30,6 @@ def main(configs_yaml):
     top_k = configs_yaml.top_k
     save_individual_images = configs_yaml.save_individual_images
     outputdatasetdir = configs_yaml.outputdatasetdir
-    
 
     # load image
     dataset = CustomDataset(size, file_list_path, add_labels=True)
@@ -61,20 +52,48 @@ def main(configs_yaml):
 
     # For all species.
     for index, species_true_indx in enumerate(tqdm(indices)):  
-        generate_images_org(index, species_true_indx,
+        generate_images_cw(index, species_true_indx,
                 num_specimen_generated, top_k,
                 model, dataset.indx_to_label,
                 DEVICE, ckpt_path, outputdatasetdir, save_individual_images=save_individual_images)
 
-def generate_images_org(index, species_true_indx, 
+@torch.no_grad()
+def main(configs_yaml):
+    yaml_path = configs_yaml.yaml_path
+    ckpt_path = configs_yaml.ckpt_path
+    DEVICE = configs_yaml.DEVICE
+    file_list_path = configs_yaml.file_list_path    
+    size = configs_yaml.size
+    num_specimen_generated = configs_yaml.num_specimen_generated
+    top_k = configs_yaml.top_k
+    save_individual_images = configs_yaml.save_individual_images
+    outputdatasetdir = configs_yaml.outputdatasetdir
+
+    # load image
+    dataset = CustomDataset(size, file_list_path, add_labels=True)
+
+    # Load model
+    config = load_config(yaml_path, display=False)
+    model = load_phylovqvae(config, ckpt_path=ckpt_path, data=dataset.data, cuda=(DEVICE is not None), model_type=Phylo_Net2NetTransformer)
+    
+    indices = range(len(dataset.indx_to_label))
+    if model.cond_stage_model.phylo_mapper is not None:
+        indices = sorted(list(set(model.cond_stage_model.phylo_mapper.get_original_indexing_truth(indices))))
+
+    print('generating images...')
+
+    # For all species.
+    for index, species_true_indx in enumerate(tqdm(indices)):  
+        generate_images(index, species_true_indx,
+                num_specimen_generated, top_k,
+                model, dataset.indx_to_label,
+                DEVICE, ckpt_path, outputdatasetdir, save_individual_images=save_individual_images)
+
+def generate_images_cw(index, species_true_indx, 
                     num_specimen_generated, top_k,
                     model, indx_to_label,
                     device, ckpt_path, prefix_text, save_individual_images=False):
     sequence_length = model.transformer.block_size-1
-    
-    
-    list_of_created_sequence = []
-    list_of_created_nonattribute_sequence = []
 
     # for all images
     generated_imgs = []
@@ -115,16 +134,11 @@ def generate_images(index, species_true_indx,
     list_of_created_sequence = []
     list_of_created_nonattribute_sequence = []     
     
-    
-    
-    #TODO: This whol file assumes we always have nonattr codes. We do not handle the case where there are only attr codes. We might want to either handle that properly or throw an error.
-    assert (model.first_stage_model.phylo_disentangler.loss_anticlassification ), "This code only works with anticlassification for now."
     codebooks_per_phylolevel = model.first_stage_model.phylo_disentangler.codebooks_per_phylolevel
     n_phylolevels = model.first_stage_model.phylo_disentangler.n_phylolevels
     embed_dim = model.first_stage_model.phylo_disentangler.embed_dim
     n_levels_non_attribute = model.first_stage_model.phylo_disentangler.n_levels_non_attribute
     attr_codes_range = codebooks_per_phylolevel*n_phylolevels
-    # nonattr_codes_range = codebooks_per_phylolevel*n_levels_non_attribute
         
     converter = Embedding_Code_converter(model.first_stage_model.phylo_disentangler.quantize.get_codebook_entry_index, model.first_stage_model.phylo_disentangler.quantize.embedding, (embed_dim, codebooks_per_phylolevel, n_phylolevels))
     converter_nonattribute = Embedding_Code_converter(model.first_stage_model.phylo_disentangler.quantize.get_codebook_entry_index, model.first_stage_model.phylo_disentangler.quantize.embedding, (embed_dim, codebooks_per_phylolevel, n_levels_non_attribute))
@@ -176,10 +190,10 @@ if __name__ == "__main__":
     )
     
     cfg, _ = parser.parse_known_args()
-    # cfg = parser.config
     configs = OmegaConf.load(cfg.config)
     cli = OmegaConf.from_cli()
     config = OmegaConf.merge(configs, cli)
     print(config)
     
     main(config)
+    # main_cw(config)

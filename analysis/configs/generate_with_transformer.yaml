@@ -1,5 +1,5 @@
 size: 256
-file_list_path: "/home/mridul/data/phylo-VQVAE/taming_transforms_fish_train_padded_256.txt"
+file_list_path: "/fastscratch/elhamod/data/Fish/taming_transforms_fish_train_padded_256.txt"
 # size= 512
 # file_list_path = "/home/elhamod/data/Fish/taming_transforms_fish_train_padded_512.txt"
 
@@ -10,31 +10,25 @@ top_k: 5
 num_specimen_generated: 40
 save_individual_images: True
 
-outputdatasetdir: species_top_40
+# outputdatasetdir: species_top_40
+##############################
+
+# # class weights
+# # ckpt_path: /home/mridul/taming-transformers/logs/2022-11-09T15-00-05_CW-VQGAN-transformer256img-cw-transformer/checkpoints/last.ckpt
+# # yaml_path: /home/mridul/taming-transformers/logs/2022-11-09T15-00-05_CW-VQGAN-transformer256img-cw-transformer/configs/2022-11-09T15-00-05-project.yaml
+# ckpt_path: /home/mridul/taming-transformers/logs/2022-11-11T17-46-51_CW-VQGAN-transformernew-tinker-latest/checkpoints/last.ckpt
+# yaml_path: /home/mridul/taming-transformers/logs/2022-11-11T17-46-51_CW-VQGAN-transformernew-tinker-latest/configs/2022-11-11T17-46-51-project.yaml
+
+
+
+outputdatasetdir: species
 ##############################
 
 # class weights
-# ckpt_path: /home/mridul/taming-transformers/logs/2022-11-09T15-00-05_CW-VQGAN-transformer256img-cw-transformer/checkpoints/last.ckpt
-# yaml_path: /home/mridul/taming-transformers/logs/2022-11-09T15-00-05_CW-VQGAN-transformer256img-cw-transformer/configs/2022-11-09T15-00-05-project.yaml
-ckpt_path: /home/mridul/taming-transformers/logs/2022-11-11T17-46-51_CW-VQGAN-transformernew-tinker-latest/checkpoints/last.ckpt
-yaml_path: /home/mridul/taming-transformers/logs/2022-11-11T17-46-51_CW-VQGAN-transformernew-tinker-latest/configs/2022-11-11T17-46-51-project.yaml
-
-# data:
-#   target: main.DataModuleFromConfig
-#   params:
-#     batch_size: 5
-#     num_workers: 8
-#     train:
-#       target: taming.data.custom.CustomTrain
-#       params:
-#         training_images_list_file: /home/mridul/data/phylo-VQVAE/taming_transforms_fish_train_padded_256.txt
-#         size: 256
-#         add_labels: True
-#     validation:
-#       target: taming.data.custom.CustomTest
-#       params:
-#         test_images_list_file: //home/mridul/data/phylo-VQVAE/taming_transforms_fish_test_padded_256.txt
-#         size: 256
-#         add_labels: True
+# ckpt_path: /fastscratch/elhamod/logs/2022-11-05T15-32-30_Phylo-VQVAE-transformer/checkpoints/last.ckpt
+# yaml_path: /fastscratch/elhamod/logs/2022-11-05T15-32-30_Phylo-VQVAE-transformer/configs/2022-11-05T15-32-30-project.yaml
 
 
+# strongeranti
+ckpt_path: /fastscratch/elhamod/logs/2022-11-10T02-23-40_Phylo-VQVAE-transformer256img-phase4-transformer-species-finalstronger/checkpoints/last.ckpt
+yaml_path: /fastscratch/elhamod/logs/2022-11-10T02-23-40_Phylo-VQVAE-transformer256img-phase4-transformer-species-finalstronger/configs/2022-11-10T02-23-40-project.yaml

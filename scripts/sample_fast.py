@@ -1,4 +1,5 @@
 import argparse, os, sys, glob
+from taming.import_utils import instantiate_from_config
 import torch
 import time
 import numpy as np
@@ -7,7 +8,6 @@ from PIL import Image
 from tqdm import tqdm, trange
 from einops import repeat
 
-from main import instantiate_from_config
 from taming.modules.transformer.mingpt import sample_with_past
 
 

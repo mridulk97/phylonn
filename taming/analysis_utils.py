@@ -1,19 +1,15 @@
-
 from main import instantiate_from_config
+import pickle
 from taming.modules.losses.phyloloss import Species_sibling_finder, get_loss_name, get_relative_distance_for_level, parse_phyloDistances
 import torch
 from scipy.spatial import distance as js_distance
 import tqdm
-from torchmetrics import F1Score
 
 EPS=1e-10
-
-
 
 ####### Level CrossEntropy 
 
 def get_phylomapper_from_config(phylogeny, phyloDistances_string, level):
-    # phylogeny = instantiate_from_config(phylogenyconfig)
     phylo_distances = parse_phyloDistances(phyloDistances_string)
     siblingfinder = Species_sibling_finder(phylogeny, phylo_distances)
     
@@ -51,7 +47,6 @@ class PhylogenyMapper:
     # maps from species indexing to fresh level indexing
     def get_mapped_truth(self, truth):
         sibling_truth = self.get_original_indexing_truth(truth)
-        breakpoint()
         return torch.LongTensor(list(map(lambda x: self.mlb.index(x), sibling_truth))).to(truth.device)
 
                 
@@ -118,6 +113,41 @@ class HistogramParser:
         
         return distances, most_common1, most_common2
 
+
+######## Histogram freq construction
+
+class HistogramFrequency:
+    def __init__(self, num_of_classes, num_of_locations, num_of_locations_nonattr=None):
+        self.hist_arr = [[] for x in range(num_of_classes)]
+        for i in range(len(self.hist_arr)):
+            self.hist_arr[i] = [[] for x in range(num_of_locations)]
+        
+        self.hist_arr_nonattr = None 
+        if num_of_locations_nonattr is not None:
+            self.hist_arr_nonattr = [[] for x in range(num_of_classes)]
+            for i in range(len(self.hist_arr)):
+                self.hist_arr_nonattr[i] = [[] for x in range(num_of_locations_nonattr)]
+            
+    def load_from_file(self, file_path):
+        temp = pickle.load(open(file_path, "rb"))
+        self.hist_arr=temp[0]
+        self.hist_arr_nonattr=temp[1]
+        print(file_path, 'loaded!')
+        
+    def save_to_file(self, file_path):
+        pickle.dump((self.hist_arr, self.hist_arr_nonattr), open(file_path, "wb"))
+        print(file_path, 'saved!')
+    
+    def set_location_frequencies(self, lbl,output_indices, output_indices_nonattr=None):
+        # iterate through code locations
+        for code_location in range(output_indices.shape[1]):
+            code = output_indices[0, code_location]
+            self.hist_arr[lbl][code_location].append(code.item()) 
+            
+        if self.hist_arr_nonattr is not None:
+            for code_location in range(output_indices_nonattr.shape[1]):
+                code = output_indices_nonattr[0, code_location]
+                self.hist_arr_nonattr[lbl][code_location].append(code.item()) 
 
 ######### Misc
 
@@ -244,12 +274,29 @@ class Embedding_Code_converter():
         else:
             return i//n_levels, i%n_levels, 
 
+    def get_sub_level(self, code, level):
+        code_reshaped = self.reshape_code(code, reverse = True)
+        sub_code_reshaped = code_reshaped[:,:,:level+1]
+        sub_code_reshaped_back = self.reshape_code(sub_code_reshaped)
+        return sub_code_reshaped_back
+        
+    def set_sub_level(self, code, replacement, index):
+        code_reshaped = self.reshape_code(code, reverse = True)
+        replacement_reshaped = self.reshape_code(replacement, reverse = True)
+        answer =torch.clone(code_reshaped)
+        answer[:, :, :index+1] = replacement_reshaped
+        answer_reshaped = self.reshape_code(answer)
+        return answer_reshaped
+        
+        
+
+    
     ### (n, 8, k) < - > (n, 8*k)
     def reshape_code(self, code, reverse = False):
         if not reverse:
             ans = code.reshape(code.shape[0], -1)
         else:
-            ans = code.reshape((code.shape[0], -1, self.embedding_shape[-1]))
+            ans = code.reshape((code.shape[0], self.embedding_shape[-2], -1))
         
         return ans
     
