@@ -36,7 +36,7 @@ class Species_sibling_finder():
         species = label_list[speciesId]
         siblings = self.map[species][loss_name]
         siblings_indices = list(map(lambda x: label_list.index(x), siblings))
-        print('siblings0', loss_name, speciesId, species, siblings, siblings_indices)
+        # print('siblings0', loss_name, speciesId, species, siblings, siblings_indices, range(len(fine_list)))
         return siblings_indices
     
 ###----------------------------------###

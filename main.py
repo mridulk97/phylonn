@@ -16,7 +16,6 @@ from pytorch_lightning.utilities.distributed import rank_zero_only
 
 import taming.constants as CONSTANTS
 from taming.data.utils import custom_collate
-# from taming.data.cw_analysis import plot_concept_top50
 
 import wandb
 
@@ -114,15 +113,6 @@ def get_parser(**parser_kwargs):
         help="post-postfix for default name",
     )
 
-    parser.add_argument(
-        "-pl",
-        "--plot",
-        type=str2bool,
-        const=True,
-        default=False,
-        nargs="?",
-        help="plot cw images",
-    )
 
     return parser
 
@@ -427,6 +417,7 @@ if __name__ == "__main__":
 
     parser = get_parser()
     parser = Trainer.add_argparse_args(parser)
+
     opt, unknown = parser.parse_known_args()
     if opt.name and opt.resume:
         raise ValueError(
@@ -659,11 +650,6 @@ if __name__ == "__main__":
             complete_ckpt_path = config.model[CONSTANTS.COMPLETE_CKPT_KEY]
             sd = torch.load(complete_ckpt_path, map_location="cpu")["state_dict"]
             model.first_stage_model.load_state_dict(sd, strict=True)
-
-        # # plot
-        # if opt.plot:
-        #     print('here for plotting')
-        #     plot_concept_top50(data.val_dataloader(), model, whitened_layers='encoder')
 
 
         # run
