@@ -10,12 +10,12 @@ top_k: 5
 num_specimen_generated: 40
 save_individual_images: True
 
+
+## CW
 # outputdatasetdir: species_top_40
 ##############################
 
 # # class weights
-# # ckpt_path: /home/mridul/taming-transformers/logs/2022-11-09T15-00-05_CW-VQGAN-transformer256img-cw-transformer/checkpoints/last.ckpt
-# # yaml_path: /home/mridul/taming-transformers/logs/2022-11-09T15-00-05_CW-VQGAN-transformer256img-cw-transformer/configs/2022-11-09T15-00-05-project.yaml
 # ckpt_path: /home/mridul/taming-transformers/logs/2022-11-11T17-46-51_CW-VQGAN-transformernew-tinker-latest/checkpoints/last.ckpt
 # yaml_path: /home/mridul/taming-transformers/logs/2022-11-11T17-46-51_CW-VQGAN-transformernew-tinker-latest/configs/2022-11-11T17-46-51-project.yaml
 

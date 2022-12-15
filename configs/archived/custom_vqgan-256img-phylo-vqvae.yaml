@@ -1,8 +1,7 @@
 model:
   base_learning_rate: 4.5e-6 #we tried 4.5e-3 #4.5e-6
-  # target: taming.models.cwautoencoder.CWmodelVQGAN
-  target: taming.models.vqgan.VQModel
-  project: CW-VQVAE
+  target: taming.models.phyloautoencoder.PhyloVQVAE
+  project: Phylo-VQVAE
   params:
     ckpt_path: ./logs/256pixels_256embedding/checkpoints/last.ckpt
     embed_dim: 256
@@ -38,14 +37,16 @@ model:
       # num_res_blocks: 2
       # attn_resolutions: [16]
 
-    lossconfig:
-      target: taming.modules.losses.vqperceptual.VQLPIPSWithDiscriminator
-      params:
-        disc_conditional: False
-        disc_in_channels: 3
-        disc_start: 10000
-        disc_weight: 0.8
-        codebook_weight: 1.0
+      lossconfig:
+        target: taming.modules.losses.vqperceptual.VQLPIPSWithDiscriminator
+        params:
+          codebook_weight: 1.0
+          disc_in_channels: 0
+          disc_num_layers: 0
+          disc_weight: 0.0
+          disc_factor: 0.0
+          perceptual_weight: 0.0
+          disc_start: 10000
 
 
 
@@ -61,12 +62,12 @@ data:
     train:
       target: taming.data.custom.CustomTrain
       params:
-        training_images_list_file: /home/mridul/data/phylo-VQVAE/taming_transforms_fish_train_padded_256.txt
+        training_images_list_file: /home/elhamod/data/Fish/taming_transforms_fish_train_padded_256.txt
         size: 256
     validation:
       target: taming.data.custom.CustomTest
       params:
-        test_images_list_file: /home/mridul/data/phylo-VQVAE/taming_transforms_fish_test_padded_256.txt
+        test_images_list_file: /home/elhamod/data/Fish/taming_transforms_fish_test_padded_256.txt
         size: 256
 
 lightning:
