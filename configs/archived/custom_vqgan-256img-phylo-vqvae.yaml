@@ -47,8 +47,7 @@ model:
           disc_factor: 0.0
           perceptual_weight: 0.0
           disc_start: 10000
-
-
+        
 
 
 
@@ -77,5 +76,4 @@ lightning:
     # limit_val_batches: 10
     # fast_dev_run: false
     profiler: advanced #simple
-
 

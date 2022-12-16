@@ -40,3 +40,4 @@ data:
       params:
         test_images_list_file: /home/elhamod/data/Fish/taming_transforms_fish_test_padded_256.txt
         size: 256
+
