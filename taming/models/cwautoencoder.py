@@ -107,6 +107,10 @@ class CWmodelVQGAN(VQModel):
                 'label': class_label,
                 'class_name': batch['class_name']}
 
+    # NOTE: This is kinda hacky. But ok for now for test purposes.
+    def set_test_chkpt_path(self, chkpt_path):
+        self.test_chkpt_path = chkpt_path
+
     @torch.no_grad()
     def test_epoch_end(self, in_out):
         z_cw =torch.cat([x['z_cw'] for x in in_out], 0)
