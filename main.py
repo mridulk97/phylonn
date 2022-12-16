@@ -113,7 +113,6 @@ def get_parser(**parser_kwargs):
         help="post-postfix for default name",
     )
 
-
     return parser
 
 
@@ -650,7 +649,6 @@ if __name__ == "__main__":
             complete_ckpt_path = config.model[CONSTANTS.COMPLETE_CKPT_KEY]
             sd = torch.load(complete_ckpt_path, map_location="cpu")["state_dict"]
             model.first_stage_model.load_state_dict(sd, strict=True)
-
 
         # run
         if opt.train:
