@@ -247,41 +247,14 @@ class ImageLogger(Callback):
 
     @rank_zero_only
     def _wandb(self, pl_module, images, batch_idx, split):
-
-        #TODO: check when this is fixed by wandb
-
-        # grids = dict()
-        # for k in images:
-        #     grid = torchvision.utils.make_grid(images[k])
-        #     # print('grid', grid.shape, grid.dtype)
-        #     grid = grid.permute(1, 2, 0)
-        #     grid = (grid+1.0)/2.0 # -1,1 -> 0,1; c,h,w
-        #     # print('grid', grid.shape, grid.dtype)
-        #     grids[f"{split}/{k}"] = wandb.Image(grid.numpy())
-        # # print(grids)
-        # pl_module.logger.experiment.log(grids)
-        # # pl_module.logger.experiment.log({
-        # #     "samples": [wandb.Image(grids[key]) for key in grids]
-        # #     })
-
         for k in images:
             grid = torchvision.utils.make_grid(images[k].detach())
-            # print('grid', grid.shape, grid.dtype)
             grid = grid.cpu().numpy().transpose((1, 2, 0))
             grid = (grid+1.0)/2.0 # -1,1 -> 0,1; c,h,w
             grid = (grid * 255).astype(np.uint8)
             grid = Image.fromarray(grid)
-            # print('grid', grid.shape, grid.dtype)
-            # grids[f"{split}/{k}"] = wandb.Image(grid)
-        # print(grids)
             pl_module.logger.experiment.log({f"{split}/{k}": wandb.Image(grid)})
-            # pl_module.logger.experiment.log({"hi": wandb.Image(grid)})
-        # pl_module.logger.experiment.log({
-        #     "samples": [wandb.Image(grids[key]) for key in grids]
-        #     })
-    
-
-
+ 
 
     @rank_zero_only
     def _testtube(self, pl_module, images, batch_idx, split):
@@ -438,8 +411,6 @@ if __name__ == "__main__":
     # model
     model = instantiate_from_config(config.model)
 
-    # from data.fish_labels_to_idx import labels_to_idx
-
     data = instantiate_from_config(config.data)
     data.prepare_data()
     data.setup()
@@ -536,7 +507,4 @@ if __name__ == "__main__":
     output_dir = '/home/harishbabu/projects/taming-transformers/translations18'
     base_img_path = '/home/harishbabu/data/Fish/phylo-VQVAE/train_padded_256/Lepomis humilis/INHS_FISH_13404.jpg'
     target_img_path='/home/harishbabu/data/Fish/phylo-VQVAE/train_padded_256/Gambusia affinis/INHS_FISH_32786.JPG'
-    # output_dir = 'translations19'
-    # base_img_path = 'data/Fish/phylo-VQVAE/train_padded_256/Lepomis humilis/INHS_FISH_13404.jpg'
-    # target_img_path='data/Fish/phylo-VQVAE/train_padded_256/Gambusia affinis/INHS_FISH_32786.JPG'
     imgs = pic_morphing(output_dir, base_img_path, target_img_path, test_data=train_data, step=7)

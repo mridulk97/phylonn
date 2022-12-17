@@ -45,8 +45,8 @@ class LSFVQVAE(VQModel):
         if ckpt_path is not None:
             del LSF_args['ckpt_path']
 
-        # self.LSF_disentangler = LSFDisentangler(**LSF_args)
         self.LSF_disentangler = LSFDisentangler(**LSF_args)
+        LSF_args['ckpt_path'] = ckpt_path
 
         if ckpt_path is not None:
             self.init_from_ckpt(ckpt_path, ignore_keys=[])
@@ -86,7 +86,6 @@ class LSFVQVAE(VQModel):
 
     def step(self, batch, batch_idx, prefix):
         x = self.get_input(batch, self.image_key)
-        # print('-'*10, 'x shape', x.shape)
         xrec, base_loss_dic, in_out_disentangler = self(x)
         out_disentangler = {i:in_out_disentangler[i] for i in in_out_disentangler if i not in [DISENTANGLER_ENCODER_INPUT, DISENTANGLER_DECODER_OUTPUT]}
 
@@ -101,17 +100,8 @@ class LSFVQVAE(VQModel):
         self.log(prefix+"/base_true_rec_loss", true_rec_loss, prog_bar=False, logger=True, on_step=False, on_epoch=True)
         self.log(prefix+"/base_quantizer_loss", base_loss_dic['quantizer_loss'], prog_bar=False, logger=True, on_step=False, on_epoch=True)
 
-        # # # autoencode
-        # # quantizer_disentangler_loss = disentangler_loss_dic['quantizer_loss']
-        # # Calculates GAN discriminator loss - passed disentangler quantizer loss as 0
-        # total_loss, log_dict_ae = self.LSF_disentangler.loss(torch.tensor([0], dtype=torch.float32), in_out_disentangler[DISENTANGLER_ENCODER_INPUT], in_out_disentangler[DISENTANGLER_DECODER_OUTPUT], 0, self.global_step, split=prefix)
-
         total_loss, LSF_losses_dict = self.LSF_disentangler.loss(in_out_disentangler[DISENTANGLER_DECODER_OUTPUT], in_out_disentangler[DISENTANGLER_ENCODER_INPUT], 
                                                                      batch['class'], in_out_disentangler['embedding'], in_out_disentangler['vae_mu'], in_out_disentangler['vae_logvar'])
-        
-        # if self.LSF_disentangler.loss_LSF is not None:
-        #     LSF_losses_dict = self.LSF_disentangler.loss_LSF(total_loss, in_out_disentangler, self.LSF_disentangler.M, batch[DISENTANGLER_CLASS_OUTPUT], batch[VQGAN_MODEL_INPUT])
-        #     total_loss = LSF_losses_dict['cumulative_loss']
         
         if self.verbose:
             self.log(prefix+"/disentangler_total_loss", total_loss, prog_bar=False, logger=True, on_step=True, on_epoch=True)
@@ -125,17 +115,6 @@ class LSFVQVAE(VQModel):
 
         self.log(prefix+"/disentangler_learning_rate", self.LSF_disentangler.learning_rate, prog_bar=False, logger=True, on_step=False, on_epoch=True)
 
-
-        # rec_loss = log_dict_ae[prefix+"/rec_loss"]
-        # self.log(prefix+"/disentangler_quantizer_loss", quantizer_disentangler_loss, prog_bar=True, logger=True, on_step=True, on_epoch=True)
-        # self.log(prefix+"/disentangler_rec_loss", rec_loss, prog_bar=True, logger=True, on_step=True, on_epoch=True)
-
-        # if self.LSF_disentangler.loss_LSF is not None:
-        #     self.log(prefix+"/disentangler_LSF_loss", LSF_losses_dict['total_LSF_loss'], prog_bar=True, logger=True, on_step=True, on_epoch=True)
-        #     self.log(prefix+"/disentangler_LSF_L1_loss", LSF_losses_dict['LSF_L1_loss'], prog_bar=True, logger=True, on_step=True, on_epoch=True)
-        #     self.log(prefix+"/disentangler_LSF_L2_loss", LSF_losses_dict['LSF_L2_loss'], prog_bar=True, logger=True, on_step=True, on_epoch=True)
-
-        # self.log_dict(log_dict_ae, prog_bar=False, logger=True, on_step=True, on_epoch=True)
         return total_loss
     
     def training_step(self, batch, batch_idx):
@@ -146,17 +125,6 @@ class LSFVQVAE(VQModel):
         return self.step(batch, batch_idx, 'val')
     
     def configure_optimizers(self):
-        # lr = self.learning_rate
-
-        # opt_ae = torch.optim.Adam(list(self.phylo_disentangler.encoder.parameters())+
-        #                         list(self.phylo_disentangler.decoder.parameters())+
-        #                         list(self.phylo_disentangler.quantize.parameters())+
-        #                         list(self.phylo_disentangler.quant_conv.parameters())+
-        #                         list(self.phylo_disentangler.post_quant_conv.parameters()),
-        #                         lr=lr, betas=(0.5, 0.9))
-        # opt_ae = torch.optim.Adam(self.LSF_disentangler.parameters(), lr=lr, betas=(0.5, 0.9))
-
-        # same as LSF originial implementation
         lr = self.LSF_disentangler.learning_rate
         opt_ae = torch.optim.Adam(self.LSF_disentangler.parameters(), lr=lr)
         
@@ -176,7 +144,11 @@ class LSFVQVAE(VQModel):
         return rec
 
     def image_translate(self, x, current_label, target_label, n_labels):
-        # Based on the approach mentioned in paper
+        """
+        Based on the approach mentioned in paper -
+        'Latent Space Factorisation and Manipulation via Matrix Subspace Projection'
+        Link: https://arxiv.org/abs/1907.12385
+        """
         quant, base_loss_dic, in_out_disentangler, _ = self.encode(x)
         z = in_out_disentangler[DISENTANGLER_EMBEDDING]
         U = self.LSF_disentangler.get_U()
@@ -193,7 +165,7 @@ class LSFVQVAE(VQModel):
 
         rec_current = self.encoding2image(z)
         rec_current_pure = self.encoding2image(z_current_pure)
-        rec_target = self.encoding2image(z_target)#.add_(1.0).div_(2.0)
+        rec_target = self.encoding2image(z_target)
 
         return rec_current, rec_current_pure, rec_target
 
@@ -213,32 +185,9 @@ class LSFVQVAE(VQModel):
         y_cap_new[:,target_label] = a + ((b-a) * (target_percentage))
         z_new = torch.cat([y_cap_new, s_cap], -1) @ U
 
-        rec_new = self.encoding2image(z_new)#.add_(1.0).div_(2.0)
+        rec_new = self.encoding2image(z_new)
 
         return rec_new
-
-
-    # def predict(self, x, new_ls=None, weight=1.0):
-    #     z, _ = self.encode(x)
-    #     if new_ls is not None:
-    #         zl = z @ self.M.t()
-    #         d = torch.zeros_like(zl)
-    #         for i, v in new_ls:
-    #             d[:,i] = v*weight - zl[:,i]
-    #         z += d @ self.M
-    #     prod = self.decoder(z)
-    #     return prod
-
-    def predict(self, x, new_ls=None, weight=1.0):
-        # Based on approach from LSF orig implementation
-        quant, base_loss_dic, in_out_disentangler, _ = self.encode(x)
-        disentangler_in = in_out_disentangler[DISENTANGLER_ENCODER_INPUT]
-        disentangler_out = self.LSF_disentangler.predict(disentangler_in, new_ls)
-        h = self.quant_conv(disentangler_out)
-        quant, base_quantizer_loss, info = self.quantize(h)
-        rec = self.decode(quant)
-        return rec
-
 
     def generate(self, output_dir, labels, dataset, n_images=16, n_labels=38):
         label_dataset = collections.defaultdict(list)
