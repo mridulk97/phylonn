@@ -630,4 +630,4 @@ class PhyloVQVAE(VQModel):
             },
         ]
         
-        return [opt_ae, opt_mapping], lr_schedulers
+        return [opt_ae, opt_mapping], lr_schedulers 
