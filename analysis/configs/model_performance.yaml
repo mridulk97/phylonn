@@ -4,6 +4,9 @@ DEVICE: 0
 num_workers: 8
 batch_size: 200 #200 for tinkercliffs
 
+load_model: Phylo
+# load_model: CW
+
 
 size: 256
 # file_list_path: "/home/elhamod/data/Fish/taming_transforms_fish_train_padded_256.txt"
@@ -79,6 +82,10 @@ file_list_path: "/fastscratch/elhamod/data/Fish/taming_transforms_fish_test_padd
 # ckpt_path: /fastscratch/elhamod/logs/2022-11-04T15-27-23_Phylo-VQVAE256img-phase4-nophylo/checkpoints/last.ckpt
 # yaml_path: /fastscratch/elhamod/logs/2022-11-04T15-27-23_Phylo-VQVAE256img-phase4-nophylo/configs/2022-11-04T15-27-23-project.yaml
 
+
+# # cw model
+# ckpt_path: /home/mridul/taming-transformers/logs/2022-11-07T12-10-33_CW-VQVAE256img-tinker-cw-model/checkpoints/last.ckpt
+# yaml_path: /home/mridul/taming-transformers/logs/2022-11-07T12-10-33_CW-VQVAE256img-tinker-cw-model/configs/2022-11-07T12-10-33-project_infer.yaml
 
 
 # # species out

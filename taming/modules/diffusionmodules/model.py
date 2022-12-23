@@ -350,6 +350,7 @@ class Encoder(nn.Module):
         self.num_res_blocks = num_res_blocks
         self.resolution = resolution
         self.in_channels = in_channels
+        self.block_in = None
 
         # downsampling
         self.conv_in = torch.nn.Conv2d(in_channels,
@@ -364,39 +365,39 @@ class Encoder(nn.Module):
         for i_level in range(self.num_resolutions):
             block = nn.ModuleList()
             attn = nn.ModuleList()
-            block_in = ch*in_ch_mult[i_level]
+            self.block_in = ch*in_ch_mult[i_level]
             block_out = ch*ch_mult[i_level]
             for i_block in range(self.num_res_blocks):
-                block.append(ResnetBlock(in_channels=block_in,
+                block.append(ResnetBlock(in_channels=self.block_in,
                                          out_channels=block_out,
                                          temb_channels=self.temb_ch,
                                          dropout=dropout))
-                block_in = block_out
+                self.block_in = block_out
                 if curr_res in attn_resolutions:
-                    attn.append(AttnBlock(block_in))
+                    attn.append(AttnBlock(self.block_in))
             down = nn.Module()
             down.block = block
             down.attn = attn
             if i_level != self.num_resolutions-1:
-                down.downsample = Downsample(block_in, resamp_with_conv)
+                down.downsample = Downsample(self.block_in, resamp_with_conv)
                 curr_res = curr_res // 2
             self.down.append(down)
 
         # middle
         self.mid = nn.Module()
-        self.mid.block_1 = ResnetBlock(in_channels=block_in,
-                                       out_channels=block_in,
+        self.mid.block_1 = ResnetBlock(in_channels=self.block_in,
+                                       out_channels=self.block_in,
                                        temb_channels=self.temb_ch,
                                        dropout=dropout)
-        self.mid.attn_1 = AttnBlock(block_in)
-        self.mid.block_2 = ResnetBlock(in_channels=block_in,
-                                       out_channels=block_in,
+        self.mid.attn_1 = AttnBlock(self.block_in)
+        self.mid.block_2 = ResnetBlock(in_channels=self.block_in,
+                                       out_channels=self.block_in,
                                        temb_channels=self.temb_ch,
                                        dropout=dropout)
 
         # end
-        self.norm_out = Normalize(block_in)
-        self.conv_out = torch.nn.Conv2d(block_in,
+        self.norm_out = Normalize(self.block_in)
+        self.conv_out = torch.nn.Conv2d(self.block_in,
                                         2*z_channels if double_z else z_channels,
                                         kernel_size=3,
                                         stride=1,
