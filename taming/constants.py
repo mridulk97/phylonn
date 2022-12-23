@@ -15,7 +15,8 @@ DATASET_CLASSNAME = 'class_name'
 PHYLOCONFIG_KEY = "phylomodel_params"
 DISENTANGLERTYPE_KEY = 'disentangler_type'
 COMPLETE_CKPT_KEY = "posttraining_ckpt"
-PHYLOMODEL_KEY = "phyloModel"
+NONPHYLOONLY_KEY = "non_phylo_only"
+PHYLOTONONPHYLO_KEY = "phylo_to_nonphylo"
 
 HISTOGRAMS_FOLDER='code_histograms'
 HISTOGRAMS_FILE="histograms.pkl"
@@ -24,3 +25,5 @@ DISENTANGLER_PHYLO_LOSS="/disentangler_phylo_loss"
 TRANSFORMER_LOSS="/loss"
 
 TEST_DIR="results_summary"
+
+TSNE_FOLDER='tsne'

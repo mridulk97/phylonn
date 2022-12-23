@@ -13,7 +13,7 @@ def load_config(config_path, display=False):
     return config
 
 
-def load_phylovqvae(config, ckpt_path=None, data=None, cuda=False, model_type=PhyloVQVAE):
+def load_phylovqvae(config, ckpt_path=None, cuda=False, model_type=PhyloVQVAE):
     model = model_type(**config.model.params)
     if ckpt_path is not None:
         sd = torch.load(ckpt_path, map_location="cpu")["state_dict"]

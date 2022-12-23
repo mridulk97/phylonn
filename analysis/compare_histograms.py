@@ -82,7 +82,7 @@ def main(configs_yaml):
     
     # Load model
     config = load_config(yaml_path, display=False)
-    model = load_phylovqvae(config, ckpt_path=ckpt_path, data=dataset.data, cuda=(DEVICE is not None))
+    model = load_phylovqvae(config, ckpt_path=ckpt_path, cuda=(DEVICE is not None))
     
 
     histograms_file = os.path.join(get_fig_pth(ckpt_path, postfix=CONSTANTS.HISTOGRAMS_FOLDER), CONSTANTS.HISTOGRAMS_FILE)

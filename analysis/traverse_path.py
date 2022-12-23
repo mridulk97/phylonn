@@ -20,12 +20,12 @@ class Model_loader:
         self.transformer_paths = transformer_paths
         self.models = [None]*len(transformer_paths)
         
-    def load_model(self, model_index, data, DEVICE):
+    def load_model(self, model_index, DEVICE):
         if self.models[model_index] is None:
             config_species = self.transformer_paths[model_index]['yaml_path']
             ckpt_path_species = self.transformer_paths[model_index]['ckpt_path']
             config = load_config(config_species, display=False)
-            model = load_phylovqvae(config, ckpt_path=ckpt_path_species, data=data, cuda=(DEVICE is not None), model_type=Phylo_Net2NetTransformer)
+            model = load_phylovqvae(config, ckpt_path=ckpt_path_species, cuda=(DEVICE is not None), model_type=Phylo_Net2NetTransformer)
             self.models[model_index] = model
             
         return self.models[model_index]
@@ -50,7 +50,7 @@ def main(configs_yaml):
     
     # Load model
     model_loader = Model_loader(transformer_paths)
-    species_model = model_loader.load_model(len(phylo_distances), dataset.data, DEVICE).first_stage_model
+    species_model = model_loader.load_model(len(phylo_distances), DEVICE).first_stage_model
     
     # load image. get class and zq_phylo and z_qnonattr
     classes = []
@@ -114,7 +114,7 @@ def main(configs_yaml):
         a1 = ancestors[reversed_index][0]
         a2 = ancestors[reversed_index][1]
         
-        transformer = model_loader.load_model(reversed_index, dataset.data, DEVICE)
+        transformer = model_loader.load_model(reversed_index, DEVICE)
         original_code = codes[0].repeat(num_of_samples, 1)
         
         
@@ -137,7 +137,7 @@ def main(configs_yaml):
         for indx, i in enumerate(range(last_index+1, total_ancestors)):
             a2 = ancestors[indx][1]
                 
-            transformer = model_loader.load_model(indx, dataset.data, DEVICE)
+            transformer = model_loader.load_model(indx, DEVICE)
             original_code = codes[1].repeat(num_of_samples, 1)
                     
             c = torch.LongTensor([a2]).repeat(num_of_samples, 1).to(DEVICE)

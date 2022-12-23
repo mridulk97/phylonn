@@ -35,25 +35,32 @@ def main(configs_yaml):
 
     # Load model
     config = load_config(yaml_path, display=False)
-    model = load_phylovqvae(config, ckpt_path=ckpt_path, data=dataset.data, cuda=(DEVICE is not None), model_type=Phylo_Net2NetTransformer)
+    model = load_phylovqvae(config, ckpt_path=ckpt_path, cuda=(DEVICE is not None), model_type=Phylo_Net2NetTransformer)
     
-    indices = range(len(dataset.indx_to_label))
-    if model.cond_stage_model.phylo_mapper is not None:
-        indices = sorted(list(set(model.cond_stage_model.phylo_mapper.get_original_indexing_truth(indices))))
+    if not model.be_unconditional:
+        indices = range(len(dataset.indx_to_label))
+        if model.cond_stage_model.phylo_mapper is not None:
+            indices = sorted(list(set(model.cond_stage_model.phylo_mapper.get_original_indexing_truth(indices))))
 
-    print('generating images...')
+        print('generating images...')
 
-    # For all species.
-    for index, species_true_indx in enumerate(tqdm(indices)):  
-        generate_images(index, species_true_indx,
-                num_specimen_generated, top_k,
-                model, dataset.indx_to_label,
-                DEVICE, ckpt_path, outputdatasetdir, save_individual_images=save_individual_images)
-
-
-def generate_images(index, species_true_indx, 
+        # For all species.
+        for index, species_true_indx in enumerate(tqdm(indices)):  
+            lbl = dataset.indx_to_label[species_true_indx]
+            generate_images(index, lbl,
                     num_specimen_generated, top_k,
-                    model, indx_to_label,
+                    model,
+                    DEVICE, ckpt_path, outputdatasetdir, save_individual_images=save_individual_images)
+    else:
+        generate_images(0, "unconditional",
+                    num_specimen_generated, top_k,
+                    model,
+                    DEVICE, ckpt_path, outputdatasetdir, save_individual_images=save_individual_images)
+
+
+def generate_images(index, lbl, 
+                    num_specimen_generated, top_k,
+                    model,
                     device, ckpt_path, prefix_text, save_individual_images=False):
     
     sequence_length = model.transformer.block_size-1
@@ -93,16 +100,16 @@ def generate_images(index, species_true_indx,
         generated_imgs.append(dec_image_new[j, :, :, :].unsqueeze(0))
         
         if save_individual_images:
-            save_image(dec_image_new[j, :, :, :], str(j), ckpt_path, subfolder= os.path.join(GENERATED_DATASET,prefix_text,"{}".format(indx_to_label[species_true_indx])))
+            save_image(dec_image_new[j, :, :, :], str(j), ckpt_path, subfolder= os.path.join(GENERATED_DATASET,prefix_text,"{}".format(lbl)))
         
     
     # Save the sequences
-    save_to_cvs(ckpt_path, GENERATED_FOLDER, "{}_attributecodes_{}_{}.csv".format(prefix_text, index, indx_to_label[species_true_indx]), list_of_created_sequence)
-    save_to_cvs(ckpt_path, GENERATED_FOLDER, "{}_non_attributecodes_{}_{}.csv".format(prefix_text, index, indx_to_label[species_true_indx]), list_of_created_nonattribute_sequence)
+    save_to_cvs(ckpt_path, GENERATED_FOLDER, "{}_attributecodes_{}_{}.csv".format(prefix_text, index, lbl), list_of_created_sequence)
+    save_to_cvs(ckpt_path, GENERATED_FOLDER, "{}_non_attributecodes_{}_{}.csv".format(prefix_text, index, lbl), list_of_created_nonattribute_sequence)
 
     # save the images
     generated_imgs = torch.cat(generated_imgs, dim=0)
-    save_image_grid(generated_imgs, ckpt_path, subfolder=GENERATED_FOLDER, postfix= "{}_{}_{}".format(prefix_text, index, indx_to_label[species_true_indx]))
+    save_image_grid(generated_imgs, ckpt_path, subfolder=GENERATED_FOLDER, postfix= "{}_{}_{}".format(prefix_text, index, lbl))
 
 
 

@@ -1,7 +1,7 @@
 #!/bin/bash
 
 #SBATCH --account=ml4science
-#SBATCH --partition=dgx_normal_q  #a100_normal_q
+#SBATCH --partition=dgx_normal_q #a100_normal_q  #dgx_normal_q  #a100_normal_q
 #SBATCH --time=2-00:00:00 
 #SBATCH --gres=gpu:1
 #SBATCH --nodes=1 --ntasks-per-node=1 --cpus-per-task=8
@@ -17,10 +17,23 @@ module reset
 source activate taming3 
 which python
 
-# python main.py --prefix /fastscratch/elhamod --name Phylo-VQVAE-transformer --postfix 256img-phase4-level2-finalstronger --base configs/phylo_vqgan_transformer-level2.yaml -t True --gpus 0, 
+# python main.py --prefix /fastscratch/elhamod --name Phylo-VQVAE-transformer --postfix 256img-phase4-level3-finalstronger --base configs/phylo_vqgan_transformer-level3.yaml -t True --gpus 0, 
 # python main.py --prefix /fastscratch/elhamod --name Phylo-VQVAE-transformer-phase6 --postfix 256img-phase6 --base /home/elhamod/projects/taming-transformers/configs/phylo_vqgan_transformer-phase6.yaml -t True --gpus 0, 
-python main.py --prefix /fastscratch/elhamod --name Phylo-VQVAE-transformer-phase6 --postfix 256img-phase6-less --base /home/elhamod/projects/taming-transformers/configs/phylo_vqgan_transformer-phase6-less.yaml -t True --gpus 0, 
+# python main.py --prefix /fastscratch/elhamod --name Phylo-VQVAE-transformer-phase6 --postfix 256img-phase6-less --base /home/elhamod/projects/taming-transformers/configs/phylo_vqgan_transformer-phase6-less.yaml -t True --gpus 0, 
+
+# python main.py --prefix /fastscratch/elhamod --name Phylo-VQVAE-transformer-phase7 --postfix 256img-phase7-level3-idea3 --base /home/elhamod/projects/taming-transformers/configs/phylo_vqgan_transformer-phase7-level3-idea3.yaml -t True --gpus 0,
+# python main.py --prefix /fastscratch/elhamod --name Phylo-VQVAE-transformer-phase7 --postfix 256img-phase7-level2-idea3 --base /home/elhamod/projects/taming-transformers/configs/phylo_vqgan_transformer-phase7-level2-idea3.yaml -t True --gpus 0,
+# python main.py --prefix /fastscratch/elhamod --name Phylo-VQVAE-transformer-phase7 --postfix 256img-phase7-level1-idea3 --base /home/elhamod/projects/taming-transformers/configs/phylo_vqgan_transformer-phase7-level1-idea3.yaml -t True --gpus 0,
+# python main.py --prefix /fastscratch/elhamod --name Phylo-VQVAE-transformer-phase7 --postfix 256img-phase7-level0-idea3 --base /home/elhamod/projects/taming-transformers/configs/phylo_vqgan_transformer-phase7-level0-idea3.yaml -t True --gpus 0,
+# python main.py --prefix /fastscratch/elhamod --name Phylo-VQVAE-transformer-phase7 --postfix 256img-phase7-uncoditional-nonphylo --base /home/elhamod/projects/taming-transformers/configs/phylo_vqgan_transformer-phase7-uncoditional-nonphylo.yaml -t True --gpus 0,
+# python main.py --prefix /fastscratch/elhamod --name Phylo-VQVAE-transformer-phase7 --postfix 256img-phase7-uncoditional --base /home/elhamod/projects/taming-transformers/configs/phylo_vqgan_transformer-phase7-uncoditional.yaml -t True --gpus 0,
+
+# python main.py --prefix /fastscratch/elhamod --name Phylo-VQVAE-transformer-phase7 --postfix 256img-phase7-level3-partial_codes-morespace-samelayers-slower --base /home/elhamod/projects/taming-transformers/configs/phylo_vqgan_transformer-phase7-level3-morespace-samelayers-slower.yaml -t True --gpus 0,
+
+python main.py --prefix /fastscratch/elhamod --name Phylo-VQVAE-transformer-phase7 --postfix 256img-phase7-uncoditional-phylo-to-nonphylo --base /home/elhamod/projects/taming-transformers/configs/phylo_vqgan_transformer-phase7-phylo-to-nonphylo.yaml -t True --gpus 0,
+
 exit;
+
 
 
 
