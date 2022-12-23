@@ -8,7 +8,8 @@ from taming.modules.diffusionmodules.model import Encoder, Decoder
 from taming.modules.vqvae.quantize import VectorQuantizer2 as VectorQuantizer
 from taming.modules.vqvae.quantize import GumbelQuantize
 from taming.modules.vqvae.quantize import EMAVectorQuantizer
-from MODELS.iterative_normalization import IterNormRotation as cw_layer
+# from MODELS.iterative_normalization import IterNormRotation as cw_layer
+from taming.models.iterative_normalization import IterNormRotation as cw_layer
 
 
 # from torchsummary import summary
