@@ -10,7 +10,7 @@ from main import instantiate_from_config
 from taming.modules.vqvae.quantize import VectorQuantizer2 as VectorQuantizer
 from taming.models.vqgan import VQModel
 
-from MODELS.iterative_normalization import IterNormRotation as cw_layer
+from taming.models.iterative_normalization import IterNormRotation as cw_layer
 
 from taming.analysis_utils import get_CosineDistance_matrix, aggregate_metric_from_specimen_to_species
 from taming.plotting_utils import plot_heatmap, dump_to_json, plot_confusionmatrix
