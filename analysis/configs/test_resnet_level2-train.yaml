@@ -4,10 +4,10 @@ DEVICE: 0
 num_workers: 8
 batch_size: 32 #100
 
-bb_model_path: analysis/BBmodels/classification_model_1.path
+bb_model_path: analysis/BBmodels/classification_model_2.path
 
 # Just set phylogeny_path to None for training species level
-# level: 1
+# level: 2
 # phyloDistances_string: "0.77,0.5,0.33"
 # phylogeny_path: /fastscratch/elhamod/data/Fish
 
@@ -16,9 +16,9 @@ bb_model_path: analysis/BBmodels/classification_model_1.path
 # dataset_path: /fastscratch/elhamod/logs/2022-11-10T02-23-40_Phylo-VQVAE-transformer256img-phase4-transformer-species-finalstronger/figs/transformer_generated_dataset/species
 
 
-# dataset_path: /fastscratch/elhamod/logs/2022-11-08T22-05-34_Phylo-VQVAE-transformer256img-phase4-level1/figs/transformer_generated_dataset/level1
+# dataset_path: /fastscratch/elhamod/logs/2022-11-08T22-06-32_Phylo-VQVAE-transformer256img-phase4-level2/figs/transformer_generated_dataset/level2
 size: 256
 
-file_name: "generated"
-dataset_path: /fastscratch/elhamod/logs/2022-12-14T16-39-31_Phylo-VQVAE-transformer-phase7256img-phase7-level1/figs/transformer_generated_dataset/level1
-save_path: /fastscratch/elhamod/logs/2022-12-14T16-39-31_Phylo-VQVAE-transformer-phase7256img-phase7-level1/figs/transformer_generated_dataset/level1
+file_name: "train"
+dataset_path: /fastscratch/elhamod/data/Fish/train_padded_256_level2
+save_path: /home/elhamod/projects/taming-transformers/analysis/BBmodels/level2

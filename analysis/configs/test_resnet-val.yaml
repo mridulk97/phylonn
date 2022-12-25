@@ -13,7 +13,6 @@ bb_model_path: analysis/BBmodels/classification_model_3.path
 
 size: 256
 
-file_name: "generated"
-dataset_path: /fastscratch/elhamod/logs/2022-12-14T16-50-57_Phylo-VQVAE-transformer-phase7256img-phase7-level3/figs/transformer_generated_dataset/species
-save_path: /fastscratch/elhamod/logs/2022-12-14T16-50-57_Phylo-VQVAE-transformer-phase7256img-phase7-level3/figs/transformer_generated_dataset/species
-
+file_name: "val"
+dataset_path: /fastscratch/elhamod/data/Fish/test_padded_256
+save_path: /home/elhamod/projects/taming-transformers/analysis/BBmodels/level3

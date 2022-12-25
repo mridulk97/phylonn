@@ -21,6 +21,6 @@ bb_model_path: analysis/BBmodels/classification_model_0.path
 # dataset_path: /fastscratch/elhamod/logs/2022-11-10T02-23-40_Phylo-VQVAE-transformer256img-phase4-transformer-species-finalstronger/figs/transformer_generated_dataset/species
 # dataset_path: /fastscratch/elhamod/logs/2022-11-08T22-01-06_Phylo-VQVAE-transformer256img-phase4-level0/figs/transformer_generated_dataset/level0
 
-file_name: "generated"
-dataset_path: /fastscratch/elhamod/logs/2022-12-14T16-39-42_Phylo-VQVAE-transformer-phase7256img-phase7-level0/figs/transformer_generated_dataset/level0
-save_path: /fastscratch/elhamod/logs/2022-12-14T16-39-42_Phylo-VQVAE-transformer-phase7256img-phase7-level0/figs/transformer_generated_dataset/level0
+file_name: "train"
+dataset_path: /fastscratch/elhamod/data/Fish/train_padded_256_level0
+save_path: /home/elhamod/projects/taming-transformers/analysis/BBmodels/level0

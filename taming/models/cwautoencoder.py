@@ -3,17 +3,15 @@ from torch import nn
 import numpy as np
 import pandas as pd
 import torch.nn.functional as F
-import pytorch_lightning as pl
-
+import pytorch_lightning as p
 from main import instantiate_from_config
 
-from taming.modules.vqvae.quantize import VectorQuantizer2 as VectorQuantizer
 from taming.models.vqgan import VQModel
 
-from MODELS.iterative_normalization import IterNormRotation as cw_layer
+# from MODELS.iterative_normalization import IterNormRotation as cw_layer
 
 from taming.analysis_utils import get_CosineDistance_matrix, aggregate_metric_from_specimen_to_species
-from taming.plotting_utils import plot_heatmap, dump_to_json, plot_confusionmatrix
+from taming.plotting_utils import plot_heatmap
 
 # from torchsummary import summary
 from torchinfo import summary
