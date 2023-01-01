@@ -23,6 +23,7 @@ HISTOGRAMS_FILE="histograms.pkl"
 
 DISENTANGLER_PHYLO_LOSS="/disentangler_phylo_loss"
 TRANSFORMER_LOSS="/loss"
+RECLOSS = "/rec_loss_epoch"
 
 TEST_DIR="results_summary"
 
