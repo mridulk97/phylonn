@@ -20,9 +20,11 @@ from taming.data.utils import custom_collate
 import wandb
 
 def get_monitor(target):
-    if target not in transformer_classes:
+    if target == phylomodel_class:
         return "val"+CONSTANTS.DISENTANGLER_PHYLO_LOSS
-    return "val"+CONSTANTS.TRANSFORMER_LOSS
+    elif target in transformer_classes:
+        return "val"+CONSTANTS.TRANSFORMER_LOSS
+    return "val" +CONSTANTS.RECLOSS
 
 def get_parser(**parser_kwargs):
     def str2bool(v):
@@ -531,6 +533,7 @@ if __name__ == "__main__":
         # specify which metric is used to determine best models
         # https://pytorch-lightning.readthedocs.io/en/stable/api/pytorch_lightning.callbacks.ModelCheckpoint.html
         # https://pytorch-lightning.readthedocs.io/en/stable/common/checkpointing_intermediate.html
+        phylomodel_class = "taming.models.phyloautoencoder.PhyloVQVAE"
         transformer_classes = [
             "taming.models.cond_transformer.Phylo_Net2NetTransformer",
             "taming.models.cond_transformer.Net2NetTransformer"

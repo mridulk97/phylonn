@@ -61,14 +61,10 @@ def main(configs_yaml):
     ckpt_path = configs_yaml.ckpt_path
     DEVICE = configs_yaml.DEVICE
     distance_used = configs_yaml.distance_used
-    file_list_path = configs_yaml.file_list_path    
-    size = configs_yaml.size
-    
-    dataset = CustomDataset(size, file_list_path, add_labels=True)
 
     # Load model
     config = load_config(yaml_path, display=False)
-    model = load_phylovqvae(config, ckpt_path=ckpt_path, data=dataset.data, cuda=(DEVICE is not None), model_type=VQModel)
+    model = load_phylovqvae(config, ckpt_path=ckpt_path, cuda=(DEVICE is not None), model_type=VQModel)
 
 
 

@@ -7,7 +7,6 @@ from omegaconf import OmegaConf
 from taming.plotting_utils import plot_heatmap
 import torch
 import numpy as np
-import scipy
 
 replace_nan = -1
 

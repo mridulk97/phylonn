@@ -18,5 +18,9 @@ outputdatasetdir: level1
 # ckpt_path: /fastscratch/elhamod/logs/2022-11-08T22-05-34_Phylo-VQVAE-transformer256img-phase4-level1/checkpoints/epoch=000545.ckpt
 # yaml_path: /fastscratch/elhamod/logs/2022-11-08T22-05-34_Phylo-VQVAE-transformer256img-phase4-level1/configs/2022-11-08T22-05-34-project.yaml
 
-ckpt_path: /fastscratch/elhamod/logs/2022-11-10T02-23-52_Phylo-VQVAE-transformer256img-phase4-level1-finalstronger/checkpoints/last.ckpt
-yaml_path: /fastscratch/elhamod/logs/2022-11-10T02-23-52_Phylo-VQVAE-transformer256img-phase4-level1-finalstronger/configs/2022-11-10T02-23-52-project.yaml
+# ckpt_path: /fastscratch/elhamod/logs/2022-11-10T02-23-52_Phylo-VQVAE-transformer256img-phase4-level1-finalstronger/checkpoints/last.ckpt
+# yaml_path: /fastscratch/elhamod/logs/2022-11-10T02-23-52_Phylo-VQVAE-transformer256img-phase4-level1-finalstronger/configs/2022-11-10T02-23-52-project.yaml
+
+
+ckpt_path: /fastscratch/elhamod/logs/2022-12-14T16-39-31_Phylo-VQVAE-transformer-phase7256img-phase7-level1/checkpoints/epoch=000863.ckpt
+yaml_path: /fastscratch/elhamod/logs/2022-12-14T16-39-31_Phylo-VQVAE-transformer-phase7256img-phase7-level1/configs/2022-12-14T16-39-31-project.yaml

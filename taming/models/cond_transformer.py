@@ -86,6 +86,16 @@ class Net2NetTransformer(pl.LightningModule):
         _, c_indices = self.encode_to_c(c)
         # print('z_indices', z_indices.shape)
         # print('c_indices', c_indices.shape)
+        
+        if isinstance(self, Phylo_Net2NetTransformer):
+            if (self.non_phylo_only or self.phylo_to_nonphylo):
+                num_phylo_features = self.first_stage_model.phylo_disentangler.n_phylolevels * self.first_stage_model.phylo_disentangler.codebooks_per_phylolevel
+                z_indices = z_indices[:, num_phylo_features:]
+            elif not self.be_unconditional and self.cond_stage_model.partial_codes:
+                num_phylo_features = self.first_stage_model.phylo_disentangler.n_phylolevels * self.first_stage_model.phylo_disentangler.codebooks_per_phylolevel
+                z_indices_phylo = z_indices[:, :num_phylo_features]
+                z_indices_phylo_sub = self.first_stage_model.phylo_disentangler.embedding_converter.get_post_level(z_indices_phylo, self.cond_stage_model.level)
+                z_indices = z_indices_phylo_sub
 
         if self.training and self.pkeep < 1.0:
             mask = torch.bernoulli(self.pkeep*torch.ones(z_indices.shape,
@@ -102,12 +112,9 @@ class Net2NetTransformer(pl.LightningModule):
         # differently because we are conditioning)
         target = z_indices
         # make the prediction
-        # print('cz_indices', cz_indices.shape)
         logits, _ = self.transformer(cz_indices[:, :-1])
-        # print('logits', logits.shape)
         # cut off conditioning outputs - output i corresponds to p(z_i | z_{<i}, c)
         logits = logits[:, c_indices.shape[1]-1:]
-        # print('logits2', logits.shape)
 
         return logits, target
 
@@ -295,6 +302,18 @@ class Net2NetTransformer(pl.LightningModule):
     def get_xc(self, batch, N=None):
         x = self.get_input(self.first_stage_key, batch)
         c = self.get_input(self.cond_stage_key, batch)
+        
+        if not self.be_unconditional and self.cond_stage_model.postfix_codes:
+            zq_phylo, _, _, _, _, _, _, _ = self.first_stage_model.encode(x.to(device=self.device))
+            zq_phylo = zq_phylo[:, :, :, :self.cond_stage_model.level+1]
+            zq_phylo_sub = self.first_stage_model.phylo_disentangler.embedding_converter.get_phylo_codes(zq_phylo, verify=False)
+            c =torch.cat((c.view(c.shape[0], 1).to(device=self.device), zq_phylo_sub), 1)
+        elif isinstance(self, Phylo_Net2NetTransformer) and self.phylo_to_nonphylo:
+            zq_phylo, _, _, _, _, _, _, _ = self.first_stage_model.encode(x.to(device=self.device))
+            zq_phylo = self.first_stage_model.phylo_disentangler.embedding_converter.get_phylo_codes(zq_phylo, verify=False)
+            c =torch.cat((c.view(c.shape[0], 1).to(device=self.device), zq_phylo), 1)
+            
+            
         if N is not None:
             x = x[:N]
             c = c[:N]
@@ -384,8 +403,16 @@ class Phylo_Net2NetTransformer(Net2NetTransformer):
         # For wandb
         self.save_hyperparameters()
         
-        self.phyloModel = args[CONSTANTS.PHYLOMODEL_KEY]
-        del args[CONSTANTS.PHYLOMODEL_KEY]
+        has_key = CONSTANTS.NONPHYLOONLY_KEY in args.keys()
+        self.non_phylo_only = args[CONSTANTS.NONPHYLOONLY_KEY] if has_key else False
+        if has_key:
+            del args[CONSTANTS.NONPHYLOONLY_KEY]
+        
+        has_key = CONSTANTS.PHYLOTONONPHYLO_KEY in args.keys()  
+        self.phylo_to_nonphylo = args[CONSTANTS.PHYLOTONONPHYLO_KEY] if has_key else False
+        if has_key:
+            del args[CONSTANTS.PHYLOTONONPHYLO_KEY]
+        
         self.top_k = 100
         if "top_k" in args.keys():
             self.top_k = args["top_k"]
@@ -397,11 +424,11 @@ class Phylo_Net2NetTransformer(Net2NetTransformer):
         
         self.outputname = CONSTANTS.DISENTANGLER_CLASS_OUTPUT
         self.F1 =self.first_stage_model.phylo_disentangler.loss_phylo.F1
-        if self.cond_stage_model.phylo_mapper is not None:
+        if not self.be_unconditional and self.cond_stage_model.phylo_mapper is not None:
             self.outputname = self.cond_stage_model.phylo_mapper.outputname
             self.F1 = F1Score(num_classes=self.first_stage_model.phylo_disentangler.loss_phylo.classifier_output_sizes[self.cond_stage_model.phylo_mapper.level], multiclass=True) 
                 
-        
+    @torch.no_grad()
     def encode_to_z(self, x):
         zq_phylo, zq_nonphylo, _, _, _, _, info_attr, info_nonattr = self.first_stage_model.encode(x)
         info_attr=info_attr[2]
@@ -446,10 +473,7 @@ class Phylo_Net2NetTransformer(Net2NetTransformer):
     
     def shared_step(self, batch, batch_idx, split='train'):
         loss = super().shared_step(batch, batch_idx)
-        # x, c = self.get_xc(batch)
-        # logits, target = self(x, c)
-        # loss = F.cross_entropy(logits.reshape(-1, logits.size(-1)), target.reshape(-1))
-
+        
         if batch_idx%100==0:
             with torch.no_grad():
                 x, c = self.get_xc(batch)
@@ -484,7 +508,7 @@ class Phylo_Net2NetTransformer(Net2NetTransformer):
                 x_sample_det = self.decode_to_img(index_sample, quant_z.shape)
                     
                 truth = quant_c
-                if self.cond_stage_model.phylo_mapper is not None:
+                if not self.be_unconditional and self.cond_stage_model.phylo_mapper is not None:
                     truth = self.cond_stage_model.phylo_mapper.get_mapped_truth(truth)
                     
                 f1_samples_half = self.F1(self.first_stage_model(x_sample)[3][self.outputname], truth)

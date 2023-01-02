@@ -51,9 +51,11 @@ def main(configs_yaml):
     size= configs_yaml.size
     bb_model_path = configs_yaml.bb_model_path
     dataset_path = configs_yaml.dataset_path
+    save_path = configs_yaml.save_path
     batch_size= configs_yaml.batch_size
     num_workers= configs_yaml.num_workers
     phylogeny_path = configs_yaml.phylogeny_path
+    file_name = configs_yaml.file_name
     
     level = 3
     if phylogeny_path is not None:
@@ -94,11 +96,14 @@ def main(configs_yaml):
     a = sorted(set([i.item() for i in classes]))
     class_names = [indx_to_class[i] for i in a]
     print("calculate F1 and Confusion matrix")
-    plot_confusionmatrix(preds, classes, class_names, os.path.join(dataset_path, 'fake'), title="Confusion Matrix according to BB model - level {}".format(level))            
+    plot_confusionmatrix(preds, classes, class_names, save_path, title="Confusion Matrix according to BB model - level {} {}".format(level, file_name), get_fig_path=False)            
     
     test_measures = {}
     test_measures['class_f1'] = F1(preds, classes).item()
-    dump_to_json(test_measures, os.path.join(dataset_path, 'fake'), name='f1_BB- level {}'.format(level))
+    
+    dump_to_json(test_measures, save_path, name='f1_BB- level {} {}'.format(level, file_name), get_fig_path=False)
+    print(test_measures)
+    print('*********')
     
 
 
@@ -118,6 +123,7 @@ if __name__ == "__main__":
     
     cfg, _ = parser.parse_known_args()
     configs = OmegaConf.load(cfg.config)
+    print(cfg.config)
     cli = OmegaConf.from_cli()
     config = OmegaConf.merge(configs, cli)
     print(config)

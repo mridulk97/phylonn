@@ -27,7 +27,18 @@ which python
 # python main.py --prefix /fastscratch/elhamod --name Phylo-VQVAE-phase6 --postfix 256img-phase6-highortho --base /home/elhamod/projects/taming-transformers/configs/custom_vqgan-256emb-256img-phylo-vqvae-phase6-highortho.yaml -t True --gpus 0,1,2
 # python main.py --prefix /fastscratch/elhamod --name Phylo-VQVAE-phase6 --postfix 256img-phase6-lowerlr --base /home/elhamod/projects/taming-transformers/configs/custom_vqgan-256emb-256img-phylo-vqvae-phase6-lowerlr.yaml -t True --gpus 0,1,2
 # python main.py --prefix /fastscratch/elhamod --name Phylo-VQVAE-phase6 --postfix 256img-phase6-fixoptimization --base /home/elhamod/projects/taming-transformers/configs/custom_vqgan-256emb-256img-phylo-vqvae-phase6-autooptimization.yaml -t True --gpus 0,1,2
-python main.py --prefix /fastscratch/elhamod --name Phylo-VQVAE-phase6 --postfix 256img-phase6-higherlr --base /home/elhamod/projects/taming-transformers/configs/custom_vqgan-256emb-256img-phylo-vqvae-phase6-higherlr.yaml -t True --gpus 0,1,2
+# python main.py --prefix /fastscratch/elhamod --name Phylo-VQVAE-phase6 --postfix 256img-phase6-higherlr --base /home/elhamod/projects/taming-transformers/configs/custom_vqgan-256emb-256img-phylo-vqvae-phase6-higherlr.yaml -t True --gpus 0,1,2
+
+# python main.py --prefix /fastscratch/elhamod --name Phylo-VQVAE-phase7 --postfix 256img-mediumbeta --base /home/elhamod/projects/taming-transformers/configs/archived/custom_vqgan-256emb-256img-phylo-vqvae-phase7-lessbeta.yaml -t True --gpus 0,1,2
+
+# python main.py --prefix /fastscratch/elhamod --name Phylo-VQVAE-phase7 --postfix 256img-largeremebdding --base /home/elhamod/projects/taming-transformers/configs/archived/custom_vqgan-256emb-256img-phylo-vqvae-phase7-largercode.yaml -t True --gpus 0,1,2
+
+# python main.py --prefix /fastscratch/elhamod --name Phylo-VQVAE-phase7 --postfix 256img-morelayers --base /home/elhamod/projects/taming-transformers/configs/archived/custom_vqgan-256emb-256img-phylo-vqvae-phase7-morelayers.yaml -t True --gpus 0,1,2
+# python main.py --prefix /fastscratch/elhamod --name Phylo-VQVAE-phase7 --postfix 256img-morephyloweight --base /home/elhamod/projects/taming-transformers/configs/archived/custom_vqgan-256emb-256img-phylo-vqvae-phase7-morephyloweight.yaml -t True --gpus 0,1,2
+python main.py --prefix /fastscratch/elhamod --name Phylo-VQVAE-phase7 --postfix 256img-noanti --base /home/elhamod/projects/taming-transformers/configs/archived/custom_vqgan-256emb-256img-phylo-vqvae-phase7-noanti.yaml -t True --gpus 0,1,2
+# python main.py --prefix /fastscratch/elhamod --name Phylo-VQVAE-phase7 --postfix 256img-nokernel --base /home/elhamod/projects/taming-transformers/configs/archived/custom_vqgan-256emb-256img-phylo-vqvae-phase7-nokernelorth.yaml -t True --gpus 0,1,2
+
+
 
 
 
