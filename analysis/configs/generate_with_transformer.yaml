@@ -30,5 +30,13 @@ outputdatasetdir: species
 
 
 # strongeranti
-ckpt_path: /fastscratch/elhamod/logs/2022-11-10T02-23-40_Phylo-VQVAE-transformer256img-phase4-transformer-species-finalstronger/checkpoints/last.ckpt
-yaml_path: /fastscratch/elhamod/logs/2022-11-10T02-23-40_Phylo-VQVAE-transformer256img-phase4-transformer-species-finalstronger/configs/2022-11-10T02-23-40-project.yaml
+# ckpt_path: /fastscratch/elhamod/logs/2022-11-10T02-23-40_Phylo-VQVAE-transformer256img-phase4-transformer-species-finalstronger/checkpoints/last.ckpt
+# yaml_path: /fastscratch/elhamod/logs/2022-11-10T02-23-40_Phylo-VQVAE-transformer256img-phase4-transformer-species-finalstronger/configs/2022-11-10T02-23-40-project.yaml
+
+
+# ckpt_path: /fastscratch/elhamod/logs/2022-12-17T16-37-17_Phylo-VQVAE-transformer-phase7256img-phase7-uncoditional/checkpoints/epoch=000914.ckpt
+# yaml_path: /fastscratch/elhamod/logs/2022-12-17T16-37-17_Phylo-VQVAE-transformer-phase7256img-phase7-uncoditional/configs/2022-12-17T16-37-17-project.yaml
+
+
+ckpt_path: /fastscratch/elhamod/logs/2022-12-14T16-50-57_Phylo-VQVAE-transformer-phase7256img-phase7-level3/checkpoints/epoch=000848.ckpt
+yaml_path: /fastscratch/elhamod/logs/2022-12-14T16-50-57_Phylo-VQVAE-transformer-phase7256img-phase7-level3/configs/2022-12-14T16-50-57-project.yaml

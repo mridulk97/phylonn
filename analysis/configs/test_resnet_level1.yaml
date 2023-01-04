@@ -4,17 +4,21 @@ DEVICE: 0
 num_workers: 8
 batch_size: 32 #100
 
-bb_model_path: analysis/classification_model_1.path
+bb_model_path: analysis/BBmodels/classification_model_1.path
 
 # Just set phylogeny_path to None for training species level
-level: 1
-phyloDistances_string: "0.77,0.5,0.33"
-phylogeny_path: /fastscratch/elhamod/data/Fish
+# level: 1
+# phyloDistances_string: "0.77,0.5,0.33"
+# phylogeny_path: /fastscratch/elhamod/data/Fish
 
 #naive bayes
 # dataset_path: logs/imported/2022-11-05T19-12-52_Phylo-VQVAE512img-phase4-multiclass-lowerlr-8cblevel-stronganti-2layers-cyclical-classweighting/figs/generated_dataset/species
-dataset_path: /fastscratch/elhamod/logs/2022-11-10T02-23-40_Phylo-VQVAE-transformer256img-phase4-transformer-species-finalstronger/figs/transformer_generated_dataset/species
+# dataset_path: /fastscratch/elhamod/logs/2022-11-10T02-23-40_Phylo-VQVAE-transformer256img-phase4-transformer-species-finalstronger/figs/transformer_generated_dataset/species
 
 
 # dataset_path: /fastscratch/elhamod/logs/2022-11-08T22-05-34_Phylo-VQVAE-transformer256img-phase4-level1/figs/transformer_generated_dataset/level1
 size: 256
+
+file_name: "generated"
+dataset_path: /fastscratch/elhamod/logs/2022-12-14T16-39-31_Phylo-VQVAE-transformer-phase7256img-phase7-level1/figs/transformer_generated_dataset/level1
+save_path: /fastscratch/elhamod/logs/2022-12-14T16-39-31_Phylo-VQVAE-transformer-phase7256img-phase7-level1/figs/transformer_generated_dataset/level1

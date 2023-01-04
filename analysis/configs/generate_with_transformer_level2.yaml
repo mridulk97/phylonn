@@ -7,7 +7,7 @@ DEVICE: 0
 
 top_k: 5
 
-num_specimen_generated: 16
+num_specimen_generated: 40
 save_individual_images: True
 
 outputdatasetdir: level2
@@ -18,5 +18,8 @@ outputdatasetdir: level2
 # ckpt_path: /fastscratch/elhamod/logs/2022-11-08T22-05-34_Phylo-VQVAE-transformer256img-phase4-level1/checkpoints/epoch=000545.ckpt
 # yaml_path: /fastscratch/elhamod/logs/2022-11-08T22-05-34_Phylo-VQVAE-transformer256img-phase4-level1/configs/2022-11-08T22-05-34-project.yaml
 
-ckpt_path: /fastscratch/elhamod/logs/2022-11-10T02-23-56_Phylo-VQVAE-transformer256img-phase4-level2-finalstronger/checkpoints/last.ckpt
-yaml_path: /fastscratch/elhamod/logs/2022-11-10T02-23-56_Phylo-VQVAE-transformer256img-phase4-level2-finalstronger/configs/2022-11-10T02-23-56-project.yaml
+# ckpt_path: /fastscratch/elhamod/logs/2022-11-10T02-23-56_Phylo-VQVAE-transformer256img-phase4-level2-finalstronger/checkpoints/last.ckpt
+# yaml_path: /fastscratch/elhamod/logs/2022-11-10T02-23-56_Phylo-VQVAE-transformer256img-phase4-level2-finalstronger/configs/2022-11-10T02-23-56-project.yaml
+
+ckpt_path: /fastscratch/elhamod/logs/2022-12-14T16-39-19_Phylo-VQVAE-transformer-phase7256img-phase7-level2/checkpoints/epoch=000629.ckpt
+yaml_path: /fastscratch/elhamod/logs/2022-12-14T16-39-19_Phylo-VQVAE-transformer-phase7256img-phase7-level2/configs/2022-12-14T16-39-19-project.yaml

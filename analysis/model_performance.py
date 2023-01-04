@@ -28,12 +28,13 @@ def main(configs_yaml):
     
     # Load model
     config = load_config(yaml_path, display=False)
+
     if load_model=='CW':
         print('loading CW model')
         model = load_CWVQGAN(config, ckpt_path=ckpt_path, data=dataset.data, cuda=(DEVICE is not None))
     else:
         print('loading Phlyo-NN')
-        model = load_phylovqvae(config, ckpt_path=ckpt_path, data=dataset.data, cuda=(DEVICE is not None))
+        model = load_phylovqvae(config, ckpt_path=ckpt_path, cuda=(DEVICE is not None))
     
     model.set_test_chkpt_path(ckpt_path)
 

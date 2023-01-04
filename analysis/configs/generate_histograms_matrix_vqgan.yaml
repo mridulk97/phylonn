@@ -1,15 +1,5 @@
 distance_used: "js_divergence" #"chi2" 
 
-size: 256
-# file_list_path: "/fastscratch/elhamod/data/Fish/taming_transforms_fish_train_padded_256.txt"
-# file_list_path: /fastscratch/elhamod/logs/2022-11-10T02-23-40_Phylo-VQVAE-transformer256img-phase4-transformer-species-finalstronger/figs/transformer_generated_dataset/list.txt
-# file_list_path: /fastscratch/elhamod/logs/2022-11-10T02-23-47_Phylo-VQVAE-transformer256img-phase4-level0-finalstronger/figs/transformer_generated_dataset/list.txt
-# file_list_path: /fastscratch/elhamod/logs/2022-11-10T02-23-52_Phylo-VQVAE-transformer256img-phase4-level1-finalstronger/figs/transformer_generated_dataset/list.txt
-# file_list_path: /fastscratch/elhamod/logs/2022-11-10T02-23-56_Phylo-VQVAE-transformer256img-phase4-level2-finalstronger/figs/transformer_generated_dataset/list.txt
-file_list_path: /fastscratch/elhamod/logs/2022-11-08T00-00-03_Phylo-VQVAE-transformer256img-phase4-originalVQGAN/generated/1012026_100_1.0/list.txt
-# size= 512
-# file_list_path = "/home/elhamod/data/Fish/taming_transforms_fish_train_padded_512.txt"
-
 DEVICE: 0
 
 ##############################

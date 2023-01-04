@@ -44,7 +44,7 @@ def main(configs_yaml):
     
     # Load model
     config = load_config(yaml_path, display=False)
-    model = load_phylovqvae(config, ckpt_path=ckpt_path, data=dataset.data, cuda=(DEVICE is not None))
+    model = load_phylovqvae(config, ckpt_path=ckpt_path, cuda=(DEVICE is not None))
         
     # create the converter.
     item = next(iter(dataloader))

@@ -33,5 +33,21 @@ python analysis/test_resnet.py --config analysis/configs/test_resnet_level0.yaml
 python analysis/test_resnet.py --config analysis/configs/test_resnet_level1.yaml
 python analysis/test_resnet.py --config analysis/configs/test_resnet_level2.yaml
 
+python analysis/test_resnet.py --config analysis/configs/test_resnet-train.yaml
+python analysis/test_resnet.py --config analysis/configs/test_resnet_level0-train.yaml
+python analysis/test_resnet.py --config analysis/configs/test_resnet_level1-train.yaml
+python analysis/test_resnet.py --config analysis/configs/test_resnet_level2-train.yaml
+
+python analysis/test_resnet.py --config analysis/configs/test_resnet-val.yaml
+python analysis/test_resnet.py --config analysis/configs/test_resnet_level0-val.yaml
+python analysis/test_resnet.py --config analysis/configs/test_resnet_level1-val.yaml
+python analysis/test_resnet.py --config analysis/configs/test_resnet_level2-val.yaml
+
+python analysis/test_resnet.py --config /home/elhamod/projects/taming-transformers/analysis/configs/test_resnet_originalvqgan.yaml
+python analysis/test_resnet.py --config /home/elhamod/projects/taming-transformers/analysis/configs/test_resnet_originalvqgan-level0.yaml
+python analysis/test_resnet.py --config /home/elhamod/projects/taming-transformers/analysis/configs/test_resnet_originalvqgan-level1.yaml
+python analysis/test_resnet.py --config /home/elhamod/projects/taming-transformers/analysis/configs/test_resnet_originalvqgan-level2.yaml
+
+
 
 exit;
