@@ -1,25 +1,24 @@
+import os
 import glob
+import argparse
 
-train = []
-for dir in glob.glob('fastscratch/mridul/cub_190_split_resized/official/CUB_200_2011/train_256/*'):
-    train.append(glob.glob(str(dir)+'/*'))
+def create_text_file(image_dir, output_file):
+    file_list = []
+    for dir in glob.glob(os.path.join(image_dir, '*')):
+        file_list.append(glob.glob(str(dir)+'/*'))
 
-flat_list_train = [item for sublist in train for item in sublist]
-print('Train', len(flat_list_train))
+    file_list_flattened = [item for sublist in file_list for item in sublist]
+    print('Number of images:', len(file_list_flattened))
 
-with open('/fastscratch/mridul/cub_190_split_resized/official/CUB_200_2011/train_256.txt', 'w') as f:
-    for line in flat_list_train:
-        f.write(f"{line}\n")
+    with open(output_file, 'w') as f:
+        for line in file_list_flattened:
+            f.write(f"{line}\n")
 
 
+if __name__ == "__main__":
+    parser = argparse.ArgumentParser(description='List cub data files')
+    parser.add_argument('--image_dir', type=str, help='Path of images to create list files')
+    parser.add_argument('--output_file', type=str, help='Path of text file to be created')
 
-test = []
-for dir in glob.glob('/fastscratch/mridul/cub_190_split_resized/official/CUB_200_2011/test_256/*'):
-    test.append(glob.glob(str(dir)+'/*'))
-
-flat_list_test = [item for sublist in test for item in sublist]
-print('Test', len(flat_list_test))
-
-with open('/fastscratch/mridul/cub_190_split_resized/official/CUB_200_2011/test_256.txt', 'w') as f:
-    for line in flat_list_test:
-        f.write(f"{line}\n")
+    args = parser.parse_args()
+    create_text_file(args.image_dir, args.output_file)

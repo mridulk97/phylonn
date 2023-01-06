@@ -4,7 +4,7 @@
 #SBATCH --partition=dgx_normal_q
 #SBATCH --nodes=1 --ntasks-per-node=1 --cpus-per-task=8 # this requests 1 node, 1 core. 
 #SBATCH --time=2-00:00:00 # 10 minutes
-#SBATCH --gres=gpu:1
+#SBATCH --gres=gpu:2
 
 module reset
 
@@ -27,7 +27,7 @@ which python
 # python main.py --name CW-VQGAN-transformer --postfix testing_merge_code_transformers --base configs/cw_transformer_latest_tinker_model.yaml -t True --gpus 0,
 
 ## CUB
-python main.py --name CUB-VQGAN --postfix cub_model_train --base configs/cub_vqgan_256_test.yaml -t True --gpus 0,
+python main.py --name CUB-VQGAN --postfix cub_n_embed_8192_batch_20_center_crop_256 --base configs/cub_vqgan_256_test.yaml -t True --gpus 0,1,
 
 
 exit;

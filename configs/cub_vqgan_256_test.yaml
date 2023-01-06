@@ -4,7 +4,7 @@ model:
   project: CUB-VQGAN
   params:
     embed_dim: 256
-    n_embed: 1024
+    n_embed: 8192
     ddconfig:
       double_z: False
       z_channels: 256
@@ -29,18 +29,18 @@ model:
 data:
   target: main.DataModuleFromConfig
   params:
-    batch_size: 5
+    batch_size: 20
     num_workers: 8
     train:
       target: taming.data.cub_dataloader.CUBTrain
       params:
-        training_images_list_file: /fastscratch/mridul/cub_190_split_resized/official/CUB_200_2011/train_256.txt
+        training_images_list_file: /fastscratch/mridul/cub_190_split_resized/official/CUB_200_2011/original_images_train.txt
         size: 256
         add_labels: True
     validation:
       target: taming.data.cub_dataloader.CUBTest
       params:
-        test_images_list_file: /fastscratch/mridul/cub_190_split_resized/official/CUB_200_2011/test_256.txt
+        test_images_list_file: /fastscratch/mridul/cub_190_split_resized/official/CUB_200_2011/original_images_test.txt
         size: 256
         add_labels: True
 
