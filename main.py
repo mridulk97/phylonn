@@ -174,11 +174,11 @@ class DataModuleFromConfig(pl.LightningDataModule):
     def _val_dataloader(self):
         return DataLoader(self.datasets["validation"],
                           batch_size=self.batch_size,
-                          num_workers=self.num_workers, collate_fn=custom_collate) #TODO: shuffling validation in pytorch lightning does not work. workaround?
+                          num_workers=self.num_workers, shuffle=True, collate_fn=custom_collate) #TODO: shuffling validation in pytorch lightning does not work. workaround?
 
     def _test_dataloader(self):
         return DataLoader(self.datasets["test"], batch_size=self.batch_size,
-                          num_workers=self.num_workers, collate_fn=custom_collate)
+                          num_workers=self.num_workers, shuffle=True, collate_fn=custom_collate)
 
 
 class SetupCallback(Callback):
@@ -328,11 +328,7 @@ class ImageLogger(Callback):
 
     def on_validation_batch_end(self, trainer, pl_module, outputs, batch, batch_idx, dataloader_idx):
         self.log_img(pl_module, batch, batch_idx, split="val")
-    
-    def on_training_epoch_end(self, trainer, pl_module):    
-        x=0
         
-    #TODO: somehow when this is addedd. logging breaks.
     def on_validation_epoch_end(self, trainer, pl_module):    
         if isinstance(pl_module, PhyloVQVAE):
             is_train = pl_module.training

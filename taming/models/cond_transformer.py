@@ -91,7 +91,12 @@ class Net2NetTransformer(pl.LightningModule):
             if (self.non_phylo_only or self.phylo_to_nonphylo):
                 num_phylo_features = self.first_stage_model.phylo_disentangler.n_phylolevels * self.first_stage_model.phylo_disentangler.codebooks_per_phylolevel
                 z_indices = z_indices[:, num_phylo_features:]
-            elif not self.be_unconditional and self.cond_stage_model.partial_codes:
+            elif not self.be_unconditional and self.cond_stage_model.level_codes: # only predict exactly code of the level (e.g., 8 codes)
+                num_phylo_features = self.first_stage_model.phylo_disentangler.n_phylolevels * self.first_stage_model.phylo_disentangler.codebooks_per_phylolevel
+                z_indices_phylo = z_indices[:, :num_phylo_features]
+                z_indices_phylo_sub = self.first_stage_model.phylo_disentangler.embedding_converter.get_level(z_indices_phylo, self.cond_stage_model.level)
+                z_indices = z_indices_phylo_sub
+            elif not self.be_unconditional and self.cond_stage_model.partial_codes: # only predict partial code of the level till end (i.e. remove prefix)
                 num_phylo_features = self.first_stage_model.phylo_disentangler.n_phylolevels * self.first_stage_model.phylo_disentangler.codebooks_per_phylolevel
                 z_indices_phylo = z_indices[:, :num_phylo_features]
                 z_indices_phylo_sub = self.first_stage_model.phylo_disentangler.embedding_converter.get_post_level(z_indices_phylo, self.cond_stage_model.level)
@@ -159,7 +164,7 @@ class Net2NetTransformer(pl.LightningModule):
         else:
             for k in range(steps):
                 callback(k)
-                assert x.size(1) <= block_size # make sure model can see conditioning
+                assert x.size(1) <= block_size, "x.size(1) {0}, block_size {1}".format(x.size(1), block_size) # make sure model can see conditioning
                 x_cond = x if x.size(1) <= block_size else x[:, -block_size:]  # crop context if needed
                 logits, _ = self.transformer(x_cond)
                 # pluck the logits at the final step and scale by temperature
@@ -211,82 +216,86 @@ class Net2NetTransformer(pl.LightningModule):
     @torch.no_grad()
     def log_images(self, batch, temperature=None, top_k=None, callback=None, lr_interface=False, split="train", **kwargs):
         log = dict()
+        if not (self.non_phylo_only or 
+            self.phylo_to_nonphylo or 
+            self.cond_stage_model.level_codes or 
+            self.cond_stage_model.partial_codes):
 
-        N = 4
-        if lr_interface:
-            x, c = self.get_xc(batch, N, diffuse=False, upsample_factor=8)
-        else:
-            x, c = self.get_xc(batch, N)
-        x = x.to(device=self.device)
-        c = c.to(device=self.device)
+            N = 4
+            if lr_interface:
+                x, c = self.get_xc(batch, N, diffuse=False, upsample_factor=8)
+            else:
+                x, c = self.get_xc(batch, N)
+            x = x.to(device=self.device)
+            c = c.to(device=self.device)
 
-        quant_z, z_indices = self.encode_to_z(x)
-        quant_c, c_indices = self.encode_to_c(c)
+            quant_z, z_indices = self.encode_to_z(x)
+            quant_c, c_indices = self.encode_to_c(c)
 
-        # create a "half"" sample
-        z_start_indices = z_indices[:,:z_indices.shape[1]//2]
-        index_sample = self.sample(z_start_indices, c_indices,
-                                   steps=z_indices.shape[1]-z_start_indices.shape[1],
-                                   temperature=temperature if temperature is not None else 1.0,
-                                   sample=True,
-                                   top_k=top_k if top_k is not None else 100,
-                                   callback=callback if callback is not None else lambda k: None)
-        x_sample = self.decode_to_img(index_sample, quant_z.shape)
+            # create a "half"" sample
+            z_start_indices = z_indices[:,:z_indices.shape[1]//2]
+            index_sample = self.sample(z_start_indices, c_indices,
+                                    steps=z_indices.shape[1]-z_start_indices.shape[1],
+                                    temperature=temperature if temperature is not None else 1.0,
+                                    sample=True,
+                                    top_k=top_k if top_k is not None else 100,
+                                    callback=callback if callback is not None else lambda k: None)
+            x_sample = self.decode_to_img(index_sample, quant_z.shape)
 
-        # sample
-        z_start_indices = z_indices[:, :0]
-        index_sample = self.sample(z_start_indices, c_indices,
-                                   steps=z_indices.shape[1],
-                                   temperature=temperature if temperature is not None else 1.0,
-                                   sample=True,
-                                   top_k=top_k if top_k is not None else 100,
-                                   callback=callback if callback is not None else lambda k: None)
-        x_sample_nopix = self.decode_to_img(index_sample, quant_z.shape)
+            # sample
+            z_start_indices = z_indices[:, :0]
+            index_sample = self.sample(z_start_indices, c_indices,
+                                    steps=z_indices.shape[1],
+                                    temperature=temperature if temperature is not None else 1.0,
+                                    sample=True,
+                                    top_k=top_k if top_k is not None else 100,
+                                    callback=callback if callback is not None else lambda k: None)
+            x_sample_nopix = self.decode_to_img(index_sample, quant_z.shape)
 
-        # det sample
-        z_start_indices = z_indices[:, :0]
-        index_sample = self.sample(z_start_indices, c_indices,
-                                   steps=z_indices.shape[1],
-                                   sample=False,
-                                   callback=callback if callback is not None else lambda k: None)
-        x_sample_det = self.decode_to_img(index_sample, quant_z.shape)
+            # det sample
+            z_start_indices = z_indices[:, :0]
+            index_sample = self.sample(z_start_indices, c_indices,
+                                    steps=z_indices.shape[1],
+                                    sample=False,
+                                    callback=callback if callback is not None else lambda k: None)
+            x_sample_det = self.decode_to_img(index_sample, quant_z.shape)
 
-        # reconstruction
-        x_rec = self.decode_to_img(z_indices, quant_z.shape)
+            # reconstruction
+            x_rec = self.decode_to_img(z_indices, quant_z.shape)
 
-        log["inputs"] = x
-        log["reconstructions"] = x_rec
-        # print("inputs", x.shape)
-        # print("reconstructions", x_rec.shape)
+            log["inputs"] = x
+            log["reconstructions"] = x_rec
+            # print("inputs", x.shape)
+            # print("reconstructions", x_rec.shape)
 
-        if self.cond_stage_key in ["objects_bbox", "objects_center_points"]:
-            figure_size = (x_rec.shape[2], x_rec.shape[3])
-            dataset = kwargs["pl_module"].trainer.datamodule.datasets["validation"]
-            label_for_category_no = dataset.get_textual_label_for_category_no
-            plotter = dataset.conditional_builders[self.cond_stage_key].plot
-            log["conditioning"] = torch.zeros_like(log["reconstructions"])
-            for i in range(quant_c.shape[0]):
-                log["conditioning"][i] = plotter(quant_c[i], label_for_category_no, figure_size)
-            log["conditioning_rec"] = log["conditioning"]
-        elif self.cond_stage_key != "image":
-            cond_rec = self.cond_stage_model.decode(quant_c)
-            if self.cond_stage_key == "segmentation":
-                # get image from segmentation mask
-                num_classes = cond_rec.shape[1]
+            if self.cond_stage_key in ["objects_bbox", "objects_center_points"]:
+                figure_size = (x_rec.shape[2], x_rec.shape[3])
+                dataset = kwargs["pl_module"].trainer.datamodule.datasets["validation"]
+                label_for_category_no = dataset.get_textual_label_for_category_no
+                plotter = dataset.conditional_builders[self.cond_stage_key].plot
+                log["conditioning"] = torch.zeros_like(log["reconstructions"])
+                for i in range(quant_c.shape[0]):
+                    log["conditioning"][i] = plotter(quant_c[i], label_for_category_no, figure_size)
+                log["conditioning_rec"] = log["conditioning"]
+            elif self.cond_stage_key != "image":
+                cond_rec = self.cond_stage_model.decode(quant_c)
+                if self.cond_stage_key == "segmentation":
+                    # get image from segmentation mask
+                    num_classes = cond_rec.shape[1]
 
-                c = torch.argmax(c, dim=1, keepdim=True)
-                c = F.one_hot(c, num_classes=num_classes)
-                c = c.squeeze(1).permute(0, 3, 1, 2).float()
-                c = self.cond_stage_model.to_rgb(c)
+                    c = torch.argmax(c, dim=1, keepdim=True)
+                    c = F.one_hot(c, num_classes=num_classes)
+                    c = c.squeeze(1).permute(0, 3, 1, 2).float()
+                    c = self.cond_stage_model.to_rgb(c)
 
-                cond_rec = torch.argmax(cond_rec, dim=1, keepdim=True)
-                cond_rec = F.one_hot(cond_rec, num_classes=num_classes)
-                cond_rec = cond_rec.squeeze(1).permute(0, 3, 1, 2).float()
-                cond_rec = self.cond_stage_model.to_rgb(cond_rec)
-                
-        log["samples_half"] = x_sample
-        log["samples_nopix"] = x_sample_nopix
-        log["samples_det"] = x_sample_det
+                    cond_rec = torch.argmax(cond_rec, dim=1, keepdim=True)
+                    cond_rec = F.one_hot(cond_rec, num_classes=num_classes)
+                    cond_rec = cond_rec.squeeze(1).permute(0, 3, 1, 2).float()
+                    cond_rec = self.cond_stage_model.to_rgb(cond_rec)
+                    
+            log["samples_half"] = x_sample
+            log["samples_nopix"] = x_sample_nopix
+            log["samples_det"] = x_sample_det
         return log
 
     def get_input(self, key, batch):
@@ -303,10 +312,10 @@ class Net2NetTransformer(pl.LightningModule):
         x = self.get_input(self.first_stage_key, batch)
         c = self.get_input(self.cond_stage_key, batch)
         
-        if not self.be_unconditional and self.cond_stage_model.postfix_codes:
+        if not self.be_unconditional and self.cond_stage_model.postfix_codes and self.cond_stage_model.level>0: # append the level's prefix as condition.
             zq_phylo, _, _, _, _, _, _, _ = self.first_stage_model.encode(x.to(device=self.device))
-            zq_phylo = zq_phylo[:, :, :, :self.cond_stage_model.level+1]
-            zq_phylo_sub = self.first_stage_model.phylo_disentangler.embedding_converter.get_phylo_codes(zq_phylo, verify=False)
+            zq_phylo_sub = zq_phylo[:, :, :, :self.cond_stage_model.level]
+            zq_phylo_sub = self.first_stage_model.phylo_disentangler.embedding_converter.get_phylo_codes(zq_phylo_sub, verify=False)
             c =torch.cat((c.view(c.shape[0], 1).to(device=self.device), zq_phylo_sub), 1)
         elif isinstance(self, Phylo_Net2NetTransformer) and self.phylo_to_nonphylo:
             zq_phylo, _, _, _, _, _, _, _ = self.first_stage_model.encode(x.to(device=self.device))
@@ -440,19 +449,29 @@ class Phylo_Net2NetTransformer(Net2NetTransformer):
         indices = self.permuter(indices)
         return quant_z, indices
     
-    def decode_to_img(self, index, zshape):
-        assert (self.first_stage_model.phylo_disentangler.loss_anticlassification ), "This code only works with anticlassification for now."
-        index = self.permuter(index, reverse=True)
-        
+    def assert_can_decode_into_image(self, index, zshape, assert_=False):
         codebooks_per_phylolevel = self.first_stage_model.phylo_disentangler.codebooks_per_phylolevel
         n_phylolevels = self.first_stage_model.phylo_disentangler.n_phylolevels
         n_levels_non_attribute = self.first_stage_model.phylo_disentangler.n_levels_non_attribute
         attr_codes_range = codebooks_per_phylolevel*n_phylolevels
         nonattr_codes_range = codebooks_per_phylolevel*n_levels_non_attribute
         
-        assert index.shape[1] == attr_codes_range + nonattr_codes_range
-        assert zshape[3] == n_phylolevels + n_levels_non_attribute
+        if assert_:
+            assert index.shape[1] == attr_codes_range + nonattr_codes_range
+            assert zshape[3] == n_phylolevels + n_levels_non_attribute
+        return (index.shape[1] == attr_codes_range + nonattr_codes_range) and (zshape[3] == n_phylolevels + n_levels_non_attribute)
+    
+    def decode_to_img(self, index, zshape):
+        # assert (self.first_stage_model.phylo_disentangler.loss_anticlassification ), "This code only works with anticlassification for now."
+        self.assert_can_decode_into_image(index, zshape, assert_=True)
+
+        index = self.permuter(index, reverse=True)
         
+        codebooks_per_phylolevel = self.first_stage_model.phylo_disentangler.codebooks_per_phylolevel
+        n_phylolevels = self.first_stage_model.phylo_disentangler.n_phylolevels
+        n_levels_non_attribute = self.first_stage_model.phylo_disentangler.n_levels_non_attribute
+        attr_codes_range = codebooks_per_phylolevel*n_phylolevels
+
         index_attr = index[:, :attr_codes_range]
         index_nonattr = index[:, attr_codes_range:]
         bhwc = (zshape[0],zshape[2],n_phylolevels,zshape[1])
@@ -481,42 +500,44 @@ class Phylo_Net2NetTransformer(Net2NetTransformer):
                 c = c.to(device=self.device)
                 quant_z, z_indices = self.encode_to_z(x)
                 quant_c, c_indices = self.encode_to_c(c)
+                
+                if not (self.non_phylo_only or self.phylo_to_nonphylo or self.cond_stage_model.level_codes or self.cond_stage_model.partial_codes):
 
-                # create a "half"" sample
-                z_start_indices = z_indices[:,:z_indices.shape[1]//2]
-                index_sample = self.sample(z_start_indices, c_indices,
-                                        steps=z_indices.shape[1]-z_start_indices.shape[1],
-                                        temperature= 1.0,
-                                        sample=True,
-                                        top_k=self.top_k)
-                x_sample = self.decode_to_img(index_sample, quant_z.shape)
+                    # create a "half"" sample
+                    z_start_indices = z_indices[:,:z_indices.shape[1]//2]
+                    index_sample = self.sample(z_start_indices, c_indices,
+                                            steps=z_indices.shape[1]-z_start_indices.shape[1],
+                                            temperature= 1.0,
+                                            sample=True,
+                                            top_k=self.top_k)
+                    x_sample = self.decode_to_img(index_sample, quant_z.shape)
 
-                # sample
-                z_start_indices = z_indices[:, :0]
-                index_sample = self.sample(z_start_indices, c_indices,
-                                        steps=z_indices.shape[1],
-                                        temperature=1.0,
-                                        sample=True,
-                                        top_k=self.top_k)
-                x_sample_nopix = self.decode_to_img(index_sample, quant_z.shape)
+                    # sample
+                    z_start_indices = z_indices[:, :0]
+                    index_sample = self.sample(z_start_indices, c_indices,
+                                            steps=z_indices.shape[1],
+                                            temperature=1.0,
+                                            sample=True,
+                                            top_k=self.top_k)
+                    x_sample_nopix = self.decode_to_img(index_sample, quant_z.shape)
 
-                # det sample
-                z_start_indices = z_indices[:, :0]
-                index_sample = self.sample(z_start_indices, c_indices,
-                                        steps=z_indices.shape[1],
-                                        sample=False)
-                x_sample_det = self.decode_to_img(index_sample, quant_z.shape)
-                    
-                truth = quant_c
-                if not self.be_unconditional and self.cond_stage_model.phylo_mapper is not None:
-                    truth = self.cond_stage_model.phylo_mapper.get_mapped_truth(truth)
-                    
-                f1_samples_half = self.F1(self.first_stage_model(x_sample)[3][self.outputname], truth)
-                f1_samples_nopix = self.F1(self.first_stage_model(x_sample_nopix)[3][self.outputname], truth)
-                f1_x_sample_det = self.F1(self.first_stage_model(x_sample_det)[3][self.outputname], truth)
-                self.log(split+"/f1_samples_half", f1_samples_half, prog_bar=False, logger=True, on_step=False, on_epoch=True)
-                self.log(split+"/f1_samples_nopix", f1_samples_nopix, prog_bar=False, logger=True, on_step=False, on_epoch=True)
-                self.log(split+"/f1_x_sample_det", f1_x_sample_det, prog_bar=False, logger=True, on_step=False, on_epoch=True)
+                    # det sample
+                    z_start_indices = z_indices[:, :0]
+                    index_sample = self.sample(z_start_indices, c_indices,
+                                            steps=z_indices.shape[1],
+                                            sample=False)
+                    x_sample_det = self.decode_to_img(index_sample, quant_z.shape)
+                        
+                    truth = quant_c
+                    if not self.be_unconditional and self.cond_stage_model.phylo_mapper is not None:
+                        truth = self.cond_stage_model.phylo_mapper.get_mapped_truth(truth)
+                        
+                    f1_samples_half = self.F1(self.first_stage_model(x_sample)[3][self.outputname], truth)
+                    f1_samples_nopix = self.F1(self.first_stage_model(x_sample_nopix)[3][self.outputname], truth)
+                    f1_x_sample_det = self.F1(self.first_stage_model(x_sample_det)[3][self.outputname], truth)
+                    self.log(split+"/f1_samples_half", f1_samples_half, prog_bar=False, logger=True, on_step=False, on_epoch=True)
+                    self.log(split+"/f1_samples_nopix", f1_samples_nopix, prog_bar=False, logger=True, on_step=False, on_epoch=True)
+                    self.log(split+"/f1_x_sample_det", f1_x_sample_det, prog_bar=False, logger=True, on_step=False, on_epoch=True)
 
         return loss
 
@@ -530,3 +551,10 @@ class Phylo_Net2NetTransformer(Net2NetTransformer):
         loss = self.shared_step(batch, batch_idx, split='val')
         self.log("val/loss", loss, prog_bar=True, logger=True, on_step=True, on_epoch=True)
         return loss
+
+    #TODO: This is probably still not working...
+    @torch.no_grad()
+    def on_validation_start(self):
+        for v in self.trainer.val_dataloaders:
+            v.sampler.shuffle = True
+            v.sampler.set_epoch(self.current_epoch)

@@ -281,6 +281,12 @@ class Embedding_Code_converter():
         sub_code_reshaped_back = self.reshape_code(sub_code_reshaped)
         return sub_code_reshaped_back
     
+    def get_level(self, code, level):
+        code_reshaped = self.reshape_code(code, reverse = True)
+        sub_code_reshaped = code_reshaped[:,:,level].reshape(code_reshaped.shape[0], code_reshaped.shape[1], 1)
+        sub_code_reshaped_back = self.reshape_code(sub_code_reshaped)
+        return sub_code_reshaped_back
+    
     def get_post_level(self, code, level):
         code_reshaped = self.reshape_code(code, reverse = True)
         sub_code_reshaped = code_reshaped[:,:,level:]

@@ -21,10 +21,10 @@ class CustomBase(Dataset):
         return example
 
 class CustomTrain(CustomBase):
-    def __init__(self, size, training_images_list_file, add_labels=False, unique_skipped_labels=[]):
+    def __init__(self, size, training_images_list_file, horizontalflip=False, random_contrast=False, shiftrotate=False, add_labels=False, unique_skipped_labels=[]):
         super().__init__()
         with open(training_images_list_file, "r") as f:
-            paths = f.read().splitlines()
+            paths = sorted(f.read().splitlines())
 
         labels=None
         if add_labels:
@@ -38,11 +38,11 @@ class CustomTrain(CustomBase):
             
         self.indx_to_label = {v: k for k, v in self.labels_to_idx.items()}
 
-        self.data = ImagePaths(paths=paths, size=size, random_crop=False, labels=labels, unique_skipped_labels=unique_skipped_labels)
+        self.data = ImagePaths(paths=paths, size=size, random_crop=False, horizontalflip=horizontalflip, random_contrast=random_contrast, shiftrotate=shiftrotate, labels=labels, unique_skipped_labels=unique_skipped_labels)
 
 
 class CustomTest(CustomTrain):
     def __init__(self, size, test_images_list_file, add_labels=False, unique_skipped_labels=[]):
-        super().__init__(size, test_images_list_file, add_labels, unique_skipped_labels=unique_skipped_labels)
+        super().__init__(size, test_images_list_file, add_labels=add_labels, unique_skipped_labels=unique_skipped_labels)
 
 

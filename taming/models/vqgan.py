@@ -1,4 +1,5 @@
 from taming.import_utils import instantiate_from_config
+from taming.plotting_utils import dump_to_json
 import torch
 import torch.nn.functional as F
 import pytorch_lightning as pl
@@ -32,6 +33,10 @@ class VQModel(pl.LightningModule):
                  sane_index_shape=False,  # tell vector quantizer to return indices as bhw
                  ):
         super().__init__()
+        
+        # For wandb
+        self.save_hyperparameters()
+        
         self.cw_module_transformers = cw_module_transformers
         self.image_key = image_key
         self.encoder = Encoder(**ddconfig)
@@ -107,16 +112,18 @@ class VQModel(pl.LightningModule):
             aeloss, log_dict_ae = self.loss(qloss, x, xrec, optimizer_idx, self.global_step,
                                             last_layer=self.get_last_layer(), split="train")
 
-            self.log("train/aeloss", aeloss, prog_bar=True, logger=True, on_step=True, on_epoch=True)
-            self.log_dict(log_dict_ae, prog_bar=False, logger=True, on_step=True, on_epoch=True)
+            log_dict_ae["train/aeloss"] = aeloss
+            self.log_dict(log_dict_ae, prog_bar=False, logger=True, on_step=False, on_epoch=True)
+            
             return aeloss
 
         if optimizer_idx == 1 and self.loss.has_discriminator:
             # discriminator
             discloss, log_dict_disc = self.loss(qloss, x, xrec, optimizer_idx, self.global_step,
                                             last_layer=self.get_last_layer(), split="train")
-            self.log("train/discloss", discloss, prog_bar=True, logger=True, on_step=True, on_epoch=True)
-            self.log_dict(log_dict_disc, prog_bar=False, logger=True, on_step=True, on_epoch=True)
+            
+            log_dict_disc["train/discloss"] = discloss
+            self.log_dict(log_dict_disc, prog_bar=False, logger=True, on_step=False, on_epoch=True)
             return discloss
 
     def validation_step(self, batch, batch_idx):
@@ -125,20 +132,51 @@ class VQModel(pl.LightningModule):
         aeloss, log_dict_ae = self.loss(qloss, x, xrec, 0, self.global_step,
                                             last_layer=self.get_last_layer(), split="val")
 
-        rec_loss = log_dict_ae["val/rec_loss"]
-        self.log("val/rec_loss", rec_loss,
-                   prog_bar=True, logger=True, on_step=True, on_epoch=True, sync_dist=True)
-        self.log("val/aeloss", aeloss,
-                   prog_bar=True, logger=True, on_step=True, on_epoch=True, sync_dist=True)
-        self.log_dict(log_dict_ae)
-
         if self.loss.has_discriminator:
             discloss, log_dict_disc = self.loss(qloss, x, xrec, 1, self.global_step,
                                     last_layer=self.get_last_layer(), split="val")
-            self.log_dict(log_dict_disc)
+            log_dict_disc["val/aeloss"] = aeloss
+            log_dict_disc["val/rec_loss"] = log_dict_ae["val/rec_loss"]
+            self.log_dict(log_dict_disc, prog_bar=False, logger=True, on_step=False, on_epoch=True)
+        else:
+            log_dict_ae["val/aeloss"] = aeloss
+            self.log_dict(log_dict_ae, prog_bar=False, logger=True, on_step=False, on_epoch=True)
 
         return self.log_dict
 
+    @torch.no_grad()
+    def on_validation_start(self):
+        for v in self.trainer.val_dataloaders:
+            v.sampler.shuffle = True
+            v.sampler.set_epoch(self.current_epoch)
+    
+    # NOTE: This is kinda hacky. But ok for now for test purposes.
+    def set_test_chkpt_path(self, chkpt_path):
+        self.test_chkpt_path = chkpt_path
+    
+    @torch.no_grad()
+    def test_step(self, batch, batch_idx):
+        x = self.get_input(batch, self.image_key)
+        rec_x, _ = self(x)
+        
+        return {
+            'rec_loss': torch.abs(x.contiguous() - rec_x.contiguous())
+        }
+    
+    @torch.no_grad()
+    def test_epoch_end(self, in_out):
+        rec_loss =torch.cat([x['rec_loss'] for x in in_out], 0)
+        test_measures = {
+            'rec_loss': torch.mean(rec_loss).item()
+        }
+
+        dump_to_json(test_measures, self.test_chkpt_path)
+
+        return test_measures
+    #######################################
+
+    
+    
     def configure_optimizers(self):
         lr = self.learning_rate
         opt_ae = torch.optim.Adam(list(self.encoder.parameters())+

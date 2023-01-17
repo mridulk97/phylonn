@@ -1,4 +1,5 @@
 from taming.import_utils import instantiate_from_config
+from taming.labelsmoothing import LabelSmoothingLoss
 import torch.nn as nn
 import torch
 from torchmetrics import F1Score
@@ -46,7 +47,7 @@ class Species_sibling_finder():
 
 
 class PhyloLoss(nn.Module):
-    def __init__(self, phyloDistances_string, phylogenyconfig, phylo_weight, fc_layers, beta=1.0, verbose=False):
+    def __init__(self, phyloDistances_string, phylogenyconfig, phylo_weight, fc_layers, beta=1.0, label_smoothing=0.0, verbose=False):
         super().__init__()
         self.phylo_distances = parse_phyloDistances(phyloDistances_string) 
         self.phylogeny = instantiate_from_config(phylogenyconfig)
@@ -66,7 +67,11 @@ class PhyloLoss(nn.Module):
             species_groups_representatives = list(map(lambda x: self.phylogeny.getLabelList().index(x), species_groups_representatives))
             self.mlb[get_loss_name(self.phylo_distances, level)] = species_groups_representatives
                 
-        self.criterionCE = torch.nn.CrossEntropyLoss()
+        if label_smoothing > 0:
+            self.criterionCE = LabelSmoothingLoss(smoothing=label_smoothing)
+        else:
+            self.criterionCE = torch.nn.CrossEntropyLoss()
+        # 
         self.F1 = F1Score(num_classes=self.classifier_output_sizes[-1], multiclass=True)
     
     def get_classification_output_sizes(self):   

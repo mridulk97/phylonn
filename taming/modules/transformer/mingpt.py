@@ -15,6 +15,7 @@ import torch
 import torch.nn as nn
 from torch.nn import functional as F
 from transformers import top_k_top_p_filtering
+from torchinfo import summary
 
 logger = logging.getLogger(__name__)
 
@@ -67,7 +68,7 @@ class CausalSelfAttention(nn.Module):
         self.n_head = config.n_head
 
     def forward(self, x, layer_past=None):
-        B, T, C = x.size()
+        B, T, C = x.size() # B: batch size, T: sequence size, C: embedding size.
 
         # calculate query, key, values for all heads in batch and move head forward to be the batch dim
         k = self.key(x).view(B, T, self.n_head, C // self.n_head).transpose(1, 2) # (B, nh, T, hs)
@@ -144,6 +145,9 @@ class GPT(nn.Module):
         self.apply(self._init_weights)
         self.config = config
         logger.info("number of parameters: %e", sum(p.numel() for p in self.parameters()))
+        
+        print('transformer', self)
+        summary(self, (1, block_size), dtypes=[torch.long])
 
     def get_block_size(self):
         return self.block_size

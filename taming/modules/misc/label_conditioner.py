@@ -3,13 +3,14 @@ from taming.import_utils import instantiate_from_config
 import torch
 
 class LabelCond(object):
-    def __init__(self, postfix_codes=False, partial_codes=False, phylogenyconfig=None, phyloDistances_string=None, level=3):
+    def __init__(self, postfix_codes=False, partial_codes=False, level_codes=False, phylogenyconfig=None, phyloDistances_string=None, level=3):
         self.phylo_mapper = None
         if phylogenyconfig is not None:
             self.phylo_mapper = get_phylomapper_from_config(instantiate_from_config(phylogenyconfig), phyloDistances_string, level)
             
         self.postfix_codes = postfix_codes
         self.partial_codes = partial_codes
+        self.level_codes = level_codes
         self.level = level
 
     def eval(self):

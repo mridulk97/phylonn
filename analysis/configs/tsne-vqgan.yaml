@@ -5,10 +5,10 @@ batch_size: 200
 
 isOriginalVQGAN: true
 
-file_prefix: "vqgan"
+
+file_prefix: "vqgan-training"
 img_res: 256
-# file_list_path: "/home/elhamod/data/Fish/taming_transforms_fish_train_padded_256.txt"
-dataset_path: "/fastscratch/elhamod/data/Fish/taming_transforms_fish_test_padded_256.txt"
+dataset_path: "/home/elhamod/data/Fish/taming_transforms_fish_train_padded_256.txt"
 
 # original vqgan
 ckpt_path: /fastscratch/elhamod/projects/taming-transformers/logs/256pixels_256embedding/checkpoints/last.ckpt
@@ -20,5 +20,7 @@ phylogeny_path:
 # phyloDistances_string: "0.77,0.5,0.33"
 # phylogeny_path: /fastscratch/elhamod/data/Fish
 
-which_tsne_plots: [ 'standard', 'images'] #, 'incorrect' 
+phylogeny_knn: /fastscratch/elhamod/data/Fish
+
+which_tsne_plots: ['standard', 'images', 'knn'] #  
 legend_labels: ['class']
