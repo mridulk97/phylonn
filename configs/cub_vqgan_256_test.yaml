@@ -5,7 +5,7 @@ model:
   params:
     embed_dim: 256
     n_embed: 1024
-    # ckpt_path: ./logs/2023-01-09T12-07-20_CUB-VQGANcub_n_embed_1024_batch_10/checkpoints/last.ckpt
+    ckpt_path: ./logs/2023-01-16T15-37-02_CUB-VQGANcub_n_embed_1024_epoch_467_onwards/checkpoints/last.ckpt
     ddconfig:
       double_z: False
       z_channels: 256
@@ -33,13 +33,13 @@ data:
     batch_size: 10
     num_workers: 8
     train:
-      target: taming.data.cub_dataloader.CUBTrain
+      target: taming.data.custom.CustomTrain
       params:
         training_images_list_file: /fastscratch/mridul/cub_190_split_resized/official/CUB_200_2011/train_256.txt
         size: 256
         add_labels: True
     validation:
-      target: taming.data.cub_dataloader.CUBTest
+      target: taming.data.custom.CustomTest
       params:
         test_images_list_file: /fastscratch/mridul/cub_190_split_resized/official/CUB_200_2011/test_256.txt
         size: 256
