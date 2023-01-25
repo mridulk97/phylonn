@@ -38,6 +38,9 @@ data:
         training_images_list_file: /fastscratch/mridul/cub_190_split_resized/official/CUB_200_2011/train_bb_crop_256.txt
         size: 256
         add_labels: True
+        horizontalflip: True
+        random_contrast: True
+        shiftrotate: True
     validation:
       target: taming.data.custom.CustomTest
       params:
