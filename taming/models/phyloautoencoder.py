@@ -61,7 +61,6 @@ class ClassifierLayer(torch.nn.Module):
     def forward(self, input):
         return self.seq(input)
     
-    
 def make_MLP(input_dim, output_dim, num_of_layers = 1, normalize=False):        
         flattened_input_dim = math.prod(input_dim)
         flattened_output_dim = math.prod(output_dim)
@@ -86,7 +85,44 @@ def make_MLP(input_dim, output_dim, num_of_layers = 1, normalize=False):
         l.append(nn.Unflatten(1, torch.Size(output_dim)))
         
         return torch.nn.Sequential(*l)
+
+#TODO: probably won't need this in the official submission. can delete later.
+class AttnClassificationLayer(torch.nn.Module):
+    def __init__(self, attnconfig_copy): # bnorm=False,
+        super(AttnClassificationLayer, self).__init__()
+        self.num_of_inputs = attnconfig_copy['params']['block_size']
+        self.embd_d = attnconfig_copy['params']['n_embd']
         
+        print('moe', self.num_of_inputs, self.embd_d)
+        self.l = instantiate_from_config(attnconfig_copy)
+
+    def get_inputsize(self):
+        return self.num_of_inputs
+
+    
+    def forward(self, input):
+        input = input.reshape(input.shape[0], input.shape[1], -1).permute(0,2,1) #TODO: maybe a nicer way to do this?
+        print('input', input.shape)
+        return self.l(input)
+
+#TODO: probably won't need this in the official submission. can delete later.
+def create_phylo_classifier_attnlayers(len_features, output_sizes, attnconfig, n_phylolevels, embed_dim, phylo_distances):
+    attnconfig_copy = attnconfig.copy()
+    attnconfig_copy['params']['block_size'] = int(len_features/embed_dim)
+    attnconfig_copy['params']['n_classes'] = output_sizes[-1] 
+    classification_layers = {
+        CONSTANTS.DISENTANGLER_CLASS_OUTPUT: AttnClassificationLayer(attnconfig_copy),
+    }
+        
+    for indx, i in enumerate(phylo_distances):
+        level_name = get_loss_name(phylo_distances, indx)
+
+        attnconfig_copy = attnconfig.copy()
+        attnconfig_copy['params']['block_size'] = int((indx+1)*len_features/(n_phylolevels*embed_dim))
+        attnconfig_copy['params']['n_classes'] = output_sizes[indx]
+        classification_layers[level_name] = AttnClassificationLayer(attnconfig_copy)
+
+    return torch.nn.ModuleDict(classification_layers)
 
 # output_sizes are ordered such that we start with highest ancestor and move down.
 def create_phylo_classifier_layers(len_features, output_sizes, num_fc_layers, n_phylolevels, phylo_distances):
@@ -114,7 +150,7 @@ class PhyloDisentangler(torch.nn.Module):
                 n_phylo_channels, n_phylolevels, codebooks_per_phylolevel, # The dimensions for the phylo descriptors.
                 lossconfig, 
                 n_mlp_layers=1, n_levels_non_attribute=None, base_rec_loss_weight=0.0,
-                lossconfig_phylo=None, lossconfig_kernelorthogonality=None, lossconfig_anticlassification=None, verbose=False): 
+                lossconfig_phylo=None, lossconfig_kernelorthogonality=None, lossconfig_anticlassification=None, selfattentionclassifier_config=None, verbose=False): 
         super().__init__()
 
         self.ch = ch
@@ -186,12 +222,17 @@ class PhyloDisentangler(torch.nn.Module):
             # get loss and parse params
             lossconfig_phylo['params'] = {**lossconfig_phylo['params'], **{'verbose': verbose}}
             self.loss_phylo = instantiate_from_config(lossconfig_phylo)
-            num_fc_layers = self.loss_phylo.fc_layers
             len_features = n_phylolevels*codebooks_per_phylolevel*embed_dim
             assert n_phylolevels==len(self.loss_phylo.phylo_distances)+1, "Number of phylo distances should be consistent in the settings."
             
             # Create classification layers.
-            self.classification_layers = create_phylo_classifier_layers(len_features, self.loss_phylo.classifier_output_sizes, num_fc_layers, n_phylolevels, self.loss_phylo.phylo_distances)
+            self.selfattentionclassifier_config = selfattentionclassifier_config
+            if selfattentionclassifier_config is None:
+                num_fc_layers = self.loss_phylo.fc_layers
+                self.classification_layers = create_phylo_classifier_layers(len_features, self.loss_phylo.classifier_output_sizes, num_fc_layers, n_phylolevels, self.loss_phylo.phylo_distances)
+            else:
+                self.classification_layers = create_phylo_classifier_attnlayers(len_features, self.loss_phylo.classifier_output_sizes, selfattentionclassifier_config, n_phylolevels, embed_dim, self.loss_phylo.phylo_distances)
+                
             
    
         # Create anti-classification
@@ -287,11 +328,12 @@ class PhyloDisentangler(torch.nn.Module):
         if self.loss_phylo is not None:
             for name, layer in self.classification_layers.items():
                 num_of_levels_included = int(layer.get_inputsize()/(self.embed_dim * self.codebooks_per_phylolevel))
-                outputs[name] = layer(zq_phylo[:, :, :, :num_of_levels_included]) # 0 for level 1, 0:1 for level 2, etc.
+                o = zq_phylo[:, :, :, :num_of_levels_included]
+                outputs[name] = layer(o) # 0 for level 1, 0:1 for level 2, etc.
         
         if self.loss_anticlassification is not None:
-                outputs[CONSTANTS.DISENTANGLER_NON_ATTRIBUTE_CLASS_OUTPUT] = self.classification_layers[CONSTANTS.DISENTANGLER_CLASS_OUTPUT](self.codebook_mapping_layers(zq_nonphylo))
-                
+            o = self.codebook_mapping_layers(zq_nonphylo)
+            outputs[CONSTANTS.DISENTANGLER_NON_ATTRIBUTE_CLASS_OUTPUT] = self.classification_layers[CONSTANTS.DISENTANGLER_CLASS_OUTPUT](o)
         return outputs, loss_dic
 
 

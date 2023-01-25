@@ -198,12 +198,13 @@ def generate_images(species_arr, species_indx,
                     species_arr_nonattr, 
                     num_specimen_generated, 
                     model, converter, converter_nonattribute, indx_to_label,
-                    device, ckpt_path, prefix_text, save_individual_images=False,
-                    anticlassification=False):
+                    device, ckpt_path, prefix_text, save_individual_images=False):
     
     
     list_of_created_sequence = []
-    list_of_created_nonattribute_sequence = []     
+    list_of_created_nonattribute_sequence = []    
+    
+    anticlassification = model.phylo_disentangler.loss_anticlassification is not None 
             
     # for all images
     generated_imgs = []

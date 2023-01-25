@@ -1,8 +1,8 @@
 #!/bin/bash
 
-#SBATCH --account=mabrownlab   #ml4science
+#SBATCH --account=mabrownlab #mabrownlab   #ml4science
 #SBATCH --partition=dgx_normal_q
-#SBATCH --time=2-00:00:00 
+#SBATCH --time=1-00:00:00 
 #SBATCH --gres=gpu:3
 #SBATCH --nodes=1 --ntasks-per-node=1 --cpus-per-task=16
 #SBATCH -o /fastscratch/elhamod/projects/taming-transformers/SLURM/slurm-%j.out
@@ -93,6 +93,7 @@ which python
 
 # python main.py --prefix /fastscratch/elhamod --name Phylo-VQVAE-phase8 --postfix 256img-morecodeslevel --base /home/elhamod/projects/taming-transformers/configs/custom_vqgan-256emb-256img-phylo-vqvae-phase8-4phylo-4nonphylo-morecodeslevel.yaml -t True --gpus 0,1,2
 
+python main.py --prefix /fastscratch/elhamod --name Phylo-VQVAE-phase8 --postfix 256img-4phylo-4nonphylo-selfattention --base /home/elhamod/projects/taming-transformers/configs/custom_vqgan-256emb-256img-phylo-vqvae-phase8-4phylo-4nonphylo-selfattention.yaml -t True --gpus 0,1,2
 exit;
 
 

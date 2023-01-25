@@ -1,6 +1,8 @@
 import argparse, os, sys, glob, math, time
 from taming.analysis_utils import Embedding_Code_converter
 from taming.import_utils import instantiate_from_config
+# from taming.modules.transformer.mingpt import GPT
+# from taming.modules.transformer.transformer2 import Transformer2
 import torch
 import numpy as np
 from omegaconf import OmegaConf
@@ -8,6 +10,7 @@ from PIL import Image
 from torch.utils.data import DataLoader
 from torch.utils.data.dataloader import default_collate
 from tqdm import trange
+# import pandas as pd
 
 
 def save_image(x, path, img_name):
@@ -29,7 +32,9 @@ def run_conditional(model, dsets, outdir, top_k, temperature, batch_size=1):
     
     
     n_phylolevels = model.first_stage_model.phylo_disentangler.n_phylolevels
+    # n_cbperlevel = model.first_stage_model.phylo_disentangler.codebooks_per_phylolevel
 
+    dx_df = None
     for start_idx in trange(0,len(dset)-batch_size+1,batch_size):
         indices = list(range(start_idx, start_idx+batch_size))
         example = default_collate([dset[i] for i in indices])
@@ -47,6 +52,24 @@ def run_conditional(model, dsets, outdir, top_k, temperature, batch_size=1):
         
         quant_z, z_indices = model.encode_to_z(x)
         quant_c, c_indices = model.encode_to_c(c)
+        
+        # #TODO: remove me
+        # import torch.nn.functional as F
+        # # z_indices = z_indices[:, :3]
+        # patch = torch.cat((c_indices, z_indices), dim=1)
+        # patch = patch[:,:-1]
+        # logits,_ = model.transformer(patch)
+        # _, ix = torch.topk(logits, k=1, dim=-1)
+        # print(z_indices[0, :])
+        # print(patch[0, :], ix.view(patch.shape[0], -1)[0, :])
+        # print(patch[0, :].shape, ix.view(patch.shape[0], -1)[0, :].shape)
+        # print(logits.reshape(-1, logits.size(-1)).shape, z_indices.reshape(-1).shape)
+        # loss = F.cross_entropy(logits.reshape(-1, logits.size(-1)), z_indices.reshape(-1))
+        # print(loss)
+        # a = GPT(64, 65)
+        # b = Transformer2(64, 64, 65, d_model= 16)
+        # raise
+        
 
         cshape = quant_z.shape
         
@@ -60,7 +83,7 @@ def run_conditional(model, dsets, outdir, top_k, temperature, batch_size=1):
         for i in range(xrec.shape[0]):
             save_image(xrec[i], d,  "{:06}.png".format(indices[i]))
 
-        idx = z_indices
+        idx = z_indices.clone()
 
         idx[:,:] = 0
 
@@ -88,7 +111,7 @@ def run_conditional(model, dsets, outdir, top_k, temperature, batch_size=1):
                 ix = torch.multinomial(probs, num_samples=1)
             else:
                 _, ix = torch.topk(probs, k=1, dim=-1)
-            idx[:,i] = ix
+            idx[:,i] = ix.squeeze()
 
         xsample = model.decode_to_img(idx, cshape)
         
@@ -96,6 +119,21 @@ def run_conditional(model, dsets, outdir, top_k, temperature, batch_size=1):
         os.makedirs(d, exist_ok=True)
         for i in range(xsample.shape[0]):
             save_image(xsample[i], d, "{:06}.png".format(indices[i]))
+
+        #TODO: remove me
+        # z_indices_np = z_indices.cpu().numpy()
+        # # print(z_indices_np)
+        # idx_np = idx.cpu().numpy()
+        # # print(idx_np)
+        # # print('----')
+        # # z_indices_np = z_indices_np[:, :n_cbperlevel*n_phylolevels]
+        # # idx_np = idx_np[:, :n_cbperlevel*n_phylolevels]
+        # # c = model.get_input(cond_key, example).to(model.device)
+        # # idx_np = np.concatenate((idx_np, c.view(-1, 1).cpu().numpy()*np.ones((idx_np.shape[0], 1))), axis=1)
+        # dx_df = pd.DataFrame(idx_np)
+        # dx_df2 = pd.DataFrame(z_indices_np)
+        # dx_df.to_csv(os.path.join(outdir, 'phylo_generated.{}.csv'.format(start_idx)))
+        # dx_df2.to_csv(os.path.join(outdir, 'phylo_original.{}.csv'.format(start_idx)))
 
 
 def get_parser():
@@ -265,4 +303,4 @@ if __name__ == "__main__":
     print("Writing samples to ", outdir)
     for k in ["originals", "reconstructions", "samples"]:
         os.makedirs(os.path.join(outdir, k), exist_ok=True)
-    run_conditional(model, dsets, outdir, opt.top_k, opt.temperature)
+    run_conditional(model, dsets, outdir, opt.top_k, opt.temperature, batch_size=1)

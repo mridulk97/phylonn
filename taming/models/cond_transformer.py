@@ -138,7 +138,7 @@ class Net2NetTransformer(pl.LightningModule):
         if self.pkeep <= 0.0:
             # one pass suffices since input is pure noise anyway
             assert len(x.shape)==2
-            noise_shape = (x.shape[0], steps-1)
+            # noise_shape = (x.shape[0], steps-1)
             #noise = torch.randint(self.transformer.config.vocab_size, noise_shape).to(x)
             noise = c.clone()[:,x.shape[1]-c.shape[1]:-1]
             x = torch.cat((x,noise),dim=1)
@@ -216,7 +216,7 @@ class Net2NetTransformer(pl.LightningModule):
     @torch.no_grad()
     def log_images(self, batch, temperature=None, top_k=None, callback=None, lr_interface=False, split="train", **kwargs):
         log = dict()
-        if not (self.non_phylo_only or 
+        if  not isinstance(self, Phylo_Net2NetTransformer) or not (self.non_phylo_only or 
             self.phylo_to_nonphylo or 
             self.cond_stage_model.level_codes or 
             self.cond_stage_model.partial_codes):
@@ -353,43 +353,49 @@ class Net2NetTransformer(pl.LightningModule):
         weight decay for regularization and those that won't (biases, and layernorm/embedding weights).
         We are then returning the PyTorch optimizer object.
         """
-        # separate out all parameters to those that will and won't experience regularizing weight decay
-        decay = set()
-        no_decay = set()
-        whitelist_weight_modules = (torch.nn.Linear, )
-        blacklist_weight_modules = (torch.nn.LayerNorm, torch.nn.Embedding)
-        for mn, m in self.transformer.named_modules():
-            for pn, p in m.named_parameters():
-                fpn = '%s.%s' % (mn, pn) if mn else pn # full param name
-
-                if pn.endswith('bias'):
-                    # all biases will not be decayed
-                    no_decay.add(fpn)
-                elif pn.endswith('weight') and isinstance(m, whitelist_weight_modules):
-                    # weights of whitelist modules will be weight decayed
-                    decay.add(fpn)
-                elif pn.endswith('weight') and isinstance(m, blacklist_weight_modules):
-                    # weights of blacklist modules will NOT be weight decayed
-                    no_decay.add(fpn)
-
-        # special case the position embedding parameter in the root GPT module as not decayed
-        no_decay.add('pos_emb')
-
-        # validate that we considered every parameter
-        param_dict = {pn: p for pn, p in self.transformer.named_parameters()}
-        inter_params = decay & no_decay
-        union_params = decay | no_decay
-        assert len(inter_params) == 0, "parameters %s made it into both decay/no_decay sets!" % (str(inter_params), )
-        assert len(param_dict.keys() - union_params) == 0, "parameters %s were not separated into either decay/no_decay set!" \
-                                                    % (str(param_dict.keys() - union_params), )
-
-        # create the pytorch optimizer object
-        optim_groups = [
-            {"params": [param_dict[pn] for pn in sorted(list(decay))], "weight_decay": 0.01},
-            {"params": [param_dict[pn] for pn in sorted(list(no_decay))], "weight_decay": 0.0},
-        ]
-        optimizer = torch.optim.AdamW(optim_groups, lr=self.learning_rate, betas=(0.9, 0.95))
         
+        #TODO: probably won't need this in the official submission. can delete later.
+        if self.transformer.type_ == "gpt":
+            # separate out all parameters to those that will and won't experience regularizing weight decay
+            decay = set()
+            no_decay = set()
+            whitelist_weight_modules = (torch.nn.Linear, )
+            blacklist_weight_modules = (torch.nn.LayerNorm, torch.nn.Embedding)
+            for mn, m in self.transformer.named_modules():
+                for pn, p in m.named_parameters():
+                    fpn = '%s.%s' % (mn, pn) if mn else pn # full param name
+
+                    if pn.endswith('bias'):
+                        # all biases will not be decayed
+                        no_decay.add(fpn)
+                    elif pn.endswith('weight') and isinstance(m, whitelist_weight_modules):
+                        # weights of whitelist modules will be weight decayed
+                        decay.add(fpn)
+                    elif pn.endswith('weight') and isinstance(m, blacklist_weight_modules):
+                        # weights of blacklist modules will NOT be weight decayed
+                        no_decay.add(fpn)
+
+            # special case the position embedding parameter in the root GPT module as not decayed
+            no_decay.add('pos_emb')
+
+            # validate that we considered every parameter
+            param_dict = {pn: p for pn, p in self.transformer.named_parameters()}
+            inter_params = decay & no_decay
+            union_params = decay | no_decay
+            assert len(inter_params) == 0, "parameters %s made it into both decay/no_decay sets!" % (str(inter_params), )
+            assert len(param_dict.keys() - union_params) == 0, "parameters %s were not separated into either decay/no_decay set!" \
+                                                        % (str(param_dict.keys() - union_params), )
+
+            # create the pytorch optimizer object
+            optim_groups = [
+                {"params": [param_dict[pn] for pn in sorted(list(decay))], "weight_decay": 0.01},
+                {"params": [param_dict[pn] for pn in sorted(list(no_decay))], "weight_decay": 0.0}
+            ]
+            optimizer = torch.optim.AdamW(optim_groups, lr=self.learning_rate, betas=(0.9, 0.95))
+        else:
+             optimizer = torch.optim.AdamW(self.transformer.parameters(), lr=self.learning_rate, betas=(0.9, 0.95))
+            
+            
         
         # lr_scheduler = {
         #     "scheduler": torch.optim.lr_scheduler.CosineAnnealingWarmRestarts(optimizer, 30, eta_min=self.learning_rate*0.01),

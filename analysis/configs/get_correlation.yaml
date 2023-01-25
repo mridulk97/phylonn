@@ -1,7 +1,7 @@
 # path: /fastscratch/elhamod/logs/2022-10-31T12-46-01_Phylo-VQVAE256img-phase4-multiclass-lowerlr-8cblevel-stronganti/figs/results_summary
 # path: /fastscratch/elhamod/logs/2022-11-04T15-27-23_Phylo-VQVAE256img-phase4-nophylo/figs/results_summary
 
-path: /fastscratch/elhamod/logs/2022-10-31T12-46-01_Phylo-VQVAE256img-phase4-multiclass-lowerlr-8cblevel-stronganti/figs/results_summary_species #***
+# path: /fastscratch/elhamod/logs/2022-10-31T12-46-01_Phylo-VQVAE256img-phase4-multiclass-lowerlr-8cblevel-stronganti/figs/results_summary_species #***
 # path: /fastscratch/elhamod/logs/2022-10-31T12-46-01_Phylo-VQVAE256img-phase4-multiclass-lowerlr-8cblevel-stronganti/figs/results_summary_level0
 # path: /fastscratch/elhamod/logs/2022-10-31T12-46-01_Phylo-VQVAE256img-phase4-multiclass-lowerlr-8cblevel-stronganti/figs/results_summary_level1
 # path: /fastscratch/elhamod/logs/2022-10-31T12-46-01_Phylo-VQVAE256img-phase4-multiclass-lowerlr-8cblevel-stronganti/figs/results_summary_level2
@@ -9,7 +9,7 @@ path: /fastscratch/elhamod/logs/2022-10-31T12-46-01_Phylo-VQVAE256img-phase4-mul
 
 # path: /fastscratch/elhamod/projects/taming-transformers/logs/256pixels_256embedding/figs/results_summary
 
-
+path: /fastscratch/elhamod/logs/2023-01-15T00-45-57_Phylo-VQVAE-phase8256img-4phylo-4nonphylo/figs/results_summary
 
 
 file_name: "trimmed js-divergence to phylo"
@@ -95,4 +95,4 @@ arrays2: [
 #   /home/elhamod/projects/taming-transformers/analysis/ancestor analysis/trimmed_ancestor_distance_level3 heat_map.csv,
 # ]
 
-permute_array1: true
+permute_array1: false

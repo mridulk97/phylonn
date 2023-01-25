@@ -144,6 +144,7 @@ class GPT(nn.Module):
         self.block_size = config.block_size
         self.apply(self._init_weights)
         self.config = config
+        self.type_ = "gpt"
         logger.info("number of parameters: %e", sum(p.numel() for p in self.parameters()))
         
         print('transformer', self)
@@ -214,7 +215,8 @@ class GPT(nn.Module):
         loss = None
         if targets is not None:
             loss = F.cross_entropy(logits.view(-1, logits.size(-1)), targets.view(-1))
-
+            
+        
         return logits, loss, torch.stack(presents)  # _, _, n_layer, 2, b, nh, 1, dim_head
 
 

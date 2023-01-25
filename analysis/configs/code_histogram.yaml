@@ -1,5 +1,6 @@
 size: 256
-file_list_path: /fastscratch/elhamod/logs/2022-11-10T02-23-40_Phylo-VQVAE-transformer256img-phase4-transformer-species-finalstronger/figs/transformer_generated_dataset/list.txt
+file_list_path:  /fastscratch/elhamod/data/Fish/taming_transforms_fish_test_padded_256_imagenetmeancolor.txt
+# file_list_path: /fastscratch/elhamod/logs/2022-11-10T02-23-40_Phylo-VQVAE-transformer256img-phase4-transformer-species-finalstronger/figs/transformer_generated_dataset/list.txt
 # file_list_path: /fastscratch/elhamod/logs/2022-11-10T02-23-47_Phylo-VQVAE-transformer256img-phase4-level0-finalstronger/figs/transformer_generated_dataset/list.txt
 # file_list_path: /fastscratch/elhamod/logs/2022-11-10T02-23-52_Phylo-VQVAE-transformer256img-phase4-level1-finalstronger/figs/transformer_generated_dataset/list.txt
 # file_list_path: /fastscratch/elhamod/logs/2022-11-10T02-23-56_Phylo-VQVAE-transformer256img-phase4-level2-finalstronger/figs/transformer_generated_dataset/list.txt
@@ -27,10 +28,10 @@ batch_size: 1 # DO NOT CHANGE!
 
 per_phylo_level: True
 
-create_histograms: False
+create_histograms: True
 
-generate_specifmen: False
-save_individual_images: True
+generate_specifmen: True
+save_individual_images: False
 num_specimen_generated: 16
 
 ##############################
@@ -80,9 +81,9 @@ num_specimen_generated: 16
 # yaml_path: "/fastscratch/elhamod/logs/2022-10-30T20-13-25_Phylo-VQVAE256img-phase4-swapconvin-nolastrelu-multiclass-lowerlr/configs/2022-10-30T20-13-25-project.yaml"
 # ckpt_path: "/fastscratch/elhamod/logs/2022-10-30T20-13-25_Phylo-VQVAE256img-phase4-swapconvin-nolastrelu-multiclass-lowerlr/checkpoints/last.ckpt"
 
-# # slower lr stronganti
-ckpt_path: /fastscratch/elhamod/logs/2022-10-31T12-46-01_Phylo-VQVAE256img-phase4-multiclass-lowerlr-8cblevel-stronganti/checkpoints/last.ckpt
-yaml_path: /fastscratch/elhamod/logs/2022-10-31T12-46-01_Phylo-VQVAE256img-phase4-multiclass-lowerlr-8cblevel-stronganti/configs/2022-10-31T12-46-01-project.yaml
+# # *******slower lr stronganti
+# ckpt_path: /fastscratch/elhamod/logs/2022-10-31T12-46-01_Phylo-VQVAE256img-phase4-multiclass-lowerlr-8cblevel-stronganti/checkpoints/last.ckpt
+# yaml_path: /fastscratch/elhamod/logs/2022-10-31T12-46-01_Phylo-VQVAE256img-phase4-multiclass-lowerlr-8cblevel-stronganti/configs/2022-10-31T12-46-01-project.yaml
 
 # no phylo phase4
 # ckpt_path: /fastscratch/elhamod/logs/2022-11-04T15-27-23_Phylo-VQVAE256img-phase4-nophylo/checkpoints/last.ckpt
@@ -113,3 +114,10 @@ yaml_path: /fastscratch/elhamod/logs/2022-10-31T12-46-01_Phylo-VQVAE256img-phase
 # nolastrelumlp
 # ckpt_path: /fastscratch/elhamod/logs/2022-11-07T15-02-16_Phylo-VQVAE256img-phase5-nolastrelumlp/checkpoints/last.ckpt #epoch=000068.ckpt
 # yaml_path: /fastscratch/elhamod/logs/2022-11-07T15-02-16_Phylo-VQVAE256img-phase5-nolastrelumlp/configs/2022-11-07T15-02-16-project.yaml
+
+
+
+
+ckpt_path: /fastscratch/elhamod/logs/2023-01-15T00-45-57_Phylo-VQVAE-phase8256img-4phylo-4nonphylo/checkpoints/last.ckpt
+yaml_path: /fastscratch/elhamod/logs/2023-01-15T00-45-57_Phylo-VQVAE-phase8256img-4phylo-4nonphylo/configs/2023-01-15T00-45-57-project.yaml
+
