@@ -34,7 +34,7 @@ data:
     train:
       target: taming.data.custom.CustomTrain
       params:
-        training_images_list_file: /fastscratch/mridul/cub_190_split_resized/official/CUB_200_2011/train_bb_crop_imagenet_256.txt
+        training_images_list_file: /fastscratch/mridul/cub_190_split_resized/official/CUB_200_2011/train_segmented_imagenet_background_bb_crop_256.txt
         size: 256
         add_labels: True
         horizontalflip: True
@@ -43,7 +43,7 @@ data:
     validation:
       target: taming.data.custom.CustomTest
       params:
-        test_images_list_file: /fastscratch/mridul/cub_190_split_resized/official/CUB_200_2011/test_bb_crop_imagenet_256.txt
+        test_images_list_file: /fastscratch/mridul/cub_190_split_resized/official/CUB_200_2011/test_segmented_imagenet_background_bb_crop_256.txt
         size: 256
         add_labels: True
 
