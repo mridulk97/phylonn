@@ -15,6 +15,8 @@ import torchvision.utils as vutils
 from tqdm import tqdm
 from taming.data.utils import custom_collate
 
+from taming.data.custom import CustomTest
+
 import wandb
 
 # from analysis.test_resnet_translation import classification_all_levels
@@ -411,12 +413,16 @@ if __name__ == "__main__":
     # model
     model = instantiate_from_config(config.model)
 
-    data = instantiate_from_config(config.data)
-    data.prepare_data()
-    data.setup()
+    # data = instantiate_from_config(config.data)
+    # data.prepare_data()
+    # data.setup()
 
-    val_data = data.val_dataloader()
-    train_data = data.train_dataloader()
+    # val_data = data.val_dataloader()
+    # train_data = data.train_dataloader()
+
+    # breakpoint()
+    train_data = CustomTest(256, config.data.params.train.params.training_images_list_file, add_labels=True)
+    test_data = CustomTest(256, config.data.params.validation.params.test_images_list_file, add_labels=True)
 
     current_label = 15
     target_label = 13
@@ -470,41 +476,90 @@ if __name__ == "__main__":
         return all_imgs
 
 
-    def pic_morphing(output_dir, base_img_path, target_img_path, test_data, step=5):
+    # def pic_morphing(output_dir, base_img_path, target_img_path, test_data, step=5):
 
-        base_img_path = os.path.splitext(base_img_path)[0]
-        target_img_path = os.path.splitext(target_img_path)[0]
+    #     base_img_path = os.path.splitext(base_img_path)[0]
+    #     target_img_path = os.path.splitext(target_img_path)[0]
 
-        for d in test_data:
-            path = os.path.splitext(d['file_path_'][0])[0]
-            if (path == target_img_path):
-                target_img = d['image'].permute(0, 3, 1, 2)
-            elif (path == base_img_path):
-                base_img = d['image'].permute(0, 3, 1, 2)      
+    #     for d in test_data:
+    #         path = os.path.splitext(d['file_path_'][0])[0]
+    #         if (path == target_img_path):
+    #             target_img = d['image'].permute(0, 3, 1, 2)
+    #         elif (path == base_img_path):
+    #             base_img = d['image'].permute(0, 3, 1, 2)      
+
+    #     if not os.path.isdir(f'{output_dir}/Morphing_Pics/'):
+    #         os.makedirs(f'{output_dir}/Morphing_Pics/')
+    #     imgs = []
+    #     with torch.no_grad():
+    #         data1 = base_img#.to("cuda:0")
+    #         imgs.append(data1.add(1.0).div(2.0).squeeze())
+    #         data2 = target_img#.to("cuda:0")
+    #         z1,_, _ = model.image2encoding(data1)
+    #         z2,_, _ = model.image2encoding(data2)
+    #         for s in range(1, step-1):
+    #             z = (z1*(step-1-s)+z2*s)/(step-1)
+    #             prod = model.encoding2image(z)
+    #             prod.add_(1.0).div_(2.0)
+    #             imgs.append(prod.squeeze())
+    #         vutils.save_image(data1.add(1.0).div(2.0), f'{output_dir}/Morphing_Pics/{ntpath.basename(base_img_path)}.jpg',padding=0)
+    #         vutils.save_image(data2.add(1.0).div(2.0), f'{output_dir}/Morphing_Pics/{ntpath.basename(target_img_path)}.jpg',padding=0)
+    #     imgs.append(data2.add(1.0).div(2.0).squeeze())
+    #     img = torch.stack(imgs)
+    #     vutils.save_image(img, f'{output_dir}/Morphing_Pics/Morphing_Pics.jpg', nrow=step, padding=4)
+
+    #     return imgs
+
+    def pic_morphing2(output_dir, image_index1_, image_index2_, offset, test_data, step=5):
+
+        # base_img_path = os.path.splitext(base_img_path)[0]
+        # target_img_path = os.path.splitext(target_img_path)[0]
+
+        base_img = test_data.data[image_index1_+offset]['image']
+        target_img = test_data.data[image_index2_+offset]['image']
+
+        # for d in test_data:
+        #     path = os.path.splitext(d['file_path_'][0])[0]
+        #     if (path == target_img_path):
+        #         target_img = d['image'].permute(0, 3, 1, 2)
+        #     elif (path == base_img_path):
+        #         base_img = d['image'].permute(0, 3, 1, 2)      
 
         if not os.path.isdir(f'{output_dir}/Morphing_Pics/'):
             os.makedirs(f'{output_dir}/Morphing_Pics/')
         imgs = []
         with torch.no_grad():
             data1 = base_img#.to("cuda:0")
-            imgs.append(data1.add(1.0).div(2.0).squeeze())
+            data1 = torch.tensor(data1).unsqueeze(0).permute(0, 3, 1, 2)
+            imgs.append(data1.add(1.0).div(2.0).squeeze().rot90(3, [1, 2]))
             data2 = target_img#.to("cuda:0")
+            data2 = torch.tensor(data2).unsqueeze(0).permute(0, 3, 1, 2)
             z1,_, _ = model.image2encoding(data1)
             z2,_, _ = model.image2encoding(data2)
-            for s in range(1, step-1):
+            for s in range(0, step):
                 z = (z1*(step-1-s)+z2*s)/(step-1)
                 prod = model.encoding2image(z)
                 prod.add_(1.0).div_(2.0)
-                imgs.append(prod.squeeze())
-            vutils.save_image(data1.add(1.0).div(2.0), f'{output_dir}/Morphing_Pics/{ntpath.basename(base_img_path)}.jpg',padding=0)
-            vutils.save_image(data2.add(1.0).div(2.0), f'{output_dir}/Morphing_Pics/{ntpath.basename(target_img_path)}.jpg',padding=0)
-        imgs.append(data2.add(1.0).div(2.0).squeeze())
+                imgs.append(prod.squeeze().rot90(3, [1, 2]))
+            # vutils.save_image(data1.add(1.0).div(2.0), f'{output_dir}/Morphing_Pics/{image_index1_+offset}.jpg',padding=0)
+            # vutils.save_image(data2.add(1.0).div(2.0), f'{output_dir}/Morphing_Pics/{image_index2_+offset}.jpg',padding=0)
+        imgs.append(data2.add(1.0).div(2.0).squeeze().rot90(3, [1, 2]))
         img = torch.stack(imgs)
-        vutils.save_image(img, f'{output_dir}/Morphing_Pics/Morphing_Pics.jpg', nrow=step, padding=4)
+        vutils.save_image(img, f'{output_dir}/Morphing_Pics/Morphing_Pics_{image_index1_+offset}_{image_index2_+offset}.jpg', nrow=step+2, padding=4)
 
         return imgs
 
-    output_dir = '/home/harishbabu/projects/taming-transformers/translations18'
-    base_img_path = '/home/harishbabu/data/Fish/phylo-VQVAE/train_padded_256/Lepomis humilis/INHS_FISH_13404.jpg'
-    target_img_path='/home/harishbabu/data/Fish/phylo-VQVAE/train_padded_256/Gambusia affinis/INHS_FISH_32786.JPG'
-    imgs = pic_morphing(output_dir, base_img_path, target_img_path, test_data=train_data, step=7)
+    # breakpoint()
+    # output_dir = '/home/harishbabu/projects/taming-transformers/translations19'
+    # base_img_path = '/fastscratch/elhamod/data/Fish/train_padded_256_imagenetmeancolor/Lepomis humilis/INHS_FISH_13404.jpg'
+    # target_img_path='/fastscratch/elhamod/data/Fish/train_padded_256_imagenetmeancolor/Gambusia affinis/INHS_FISH_32786.JPG'
+    # imgs = pic_morphing(output_dir, base_img_path, target_img_path, test_data=train_data, step=7)
+
+    output_dir = '/home/harishbabu/projects/taming-transformers/translations23'
+    # base_img_path = '/fastscratch/elhamod/data/Fish/train_padded_256_imagenetmeancolor/Lepomis humilis/INHS_FISH_13404.jpg'
+    # target_img_path='/fastscratch/elhamod/data/Fish/train_padded_256_imagenetmeancolor/Gambusia affinis/INHS_FISH_32786.JPG'
+    image_index1_= 40
+    image_index2_= 734
+    count= 15
+    for i in range(count):
+        imgs = pic_morphing2(output_dir, image_index1_, image_index2_, offset=i, test_data=train_data, step=6)

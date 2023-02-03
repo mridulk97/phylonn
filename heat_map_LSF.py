@@ -15,6 +15,9 @@ import torchvision.utils as vutils
 from tqdm import tqdm
 from taming.data.utils import custom_collate
 
+from config_plots import global_settings
+global_settings()
+
 import wandb
 
 # import gc
@@ -520,14 +523,16 @@ if __name__ == "__main__":
 
         z_cosine_distances = get_CosineDistance_matrix(sorted_encodings)
 
-        os.makedirs('heat_map_cosine_LSF', exist_ok=True)
+        plot_save_dir = 'heat_map_cosine_LSF'
 
-        plot_heatmap(z_cosine_distances.cpu(), postfix='heat_map_cosine_LSF',
+        os.makedirs(plot_save_dir, exist_ok=True)
+
+        plot_heatmap(z_cosine_distances.cpu(), postfix=plot_save_dir,
                         title='z cosine distances')
         sorted_class_names_according_to_class_indx = [idx_to_label[x] for x in sorted_classes]
         embedding_dist = aggregate_metric_from_specimen_to_species(sorted_class_names_according_to_class_indx,
                                                                     z_cosine_distances)        
-        plot_heatmap(embedding_dist.cpu(), postfix='heat_map_cosine_LSF',
+        plot_heatmap(embedding_dist.cpu(), postfix=plot_save_dir,
                         title='z cosine species distances')  
         
     distance_matrix(dataset=val_data)

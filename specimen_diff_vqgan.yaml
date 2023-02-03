@@ -1,0 +1,30 @@
+ckpt_path: /fastscratch/elhamod/logs/2023-01-09T18-13-38_Phylo-VQVAE-phase7256img-originalvqgan-imagenetbg-aug/checkpoints/last.ckpt
+yaml_path: /fastscratch/elhamod/logs/2023-01-09T18-13-38_Phylo-VQVAE-phase7256img-originalvqgan-imagenetbg-aug/configs/2023-01-09T18-13-38-project.yaml
+
+DEVICE: 0
+
+# image_index1: 40
+# image_index2: 734
+# count: 15
+
+# image_index1: 3763
+# image_index2: 962
+# count: 10
+
+image_index1: 3390
+image_index2: 3407
+count: 15
+
+# image_index1: 656  #/fastscratch/elhamod/data/Fish/train_padded_256_imagenetmeancolor/Lepomis auritus/INHS_FISH_51429.jpg
+# image_index2: 3781 #/fastscratch/elhamod/data/Fish/train_padded_256_imagenetmeancolor/Noturus miurus/INHS_FISH_11669.jpg
+
+size: 256
+file_list_path: "/fastscratch/elhamod/data/Fish/taming_transforms_fish_train_padded_256_imagenetmeancolor.txt"
+
+keyimgrate: 50
+
+# phylogeny_path: "/home/elhamod/data/Fish"
+# phyloDistances_string: "0.77,0.5,0.33"
+
+bb_model_paths: /home/elhamod/projects/taming-transformers/analysis/BBmodels/classification_model_3.path
+

@@ -1,0 +1,1 @@
+# python heat_map_LSF.py --name LSF2-VQVAE --postfix 1024emb-256img_imagenetmean_noaug-base_noaug_withimagenet-heatmap --base configs/custom_vqgan-1024emb-256img_imagenetmean_noaug-batch5-LSF2-vqvae-base_noaug_withimgnet-inference.yaml -t True --gpus 0
