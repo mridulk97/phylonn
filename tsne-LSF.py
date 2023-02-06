@@ -38,6 +38,12 @@ def get_output(model, image):
         return quant
     elif type(model) == LSFVQVAE:
         z, _, _= model.image2encoding(image)
+        # z = in_out_disentangler[DISENTANGLER_EMBEDDING]
+        # U = model.LSF_disentangler.get_U()
+        # y_cap = z @ U.t()[:,:n_labels]
+        # s_cap = z @ U.t()[:,n_labels:]
+
+        z = (z @ model.LSF_disentangler.M.t())[:, :38]
         return z
     else:
         raise "Model type unknown"
@@ -106,12 +112,6 @@ def get_tsne(dataloader, model, path,
 
     show(block=False)
     print('--------')
-    
-
-
-
-
-
 
 
 
