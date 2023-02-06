@@ -7,7 +7,7 @@ from taming.import_utils import instantiate_from_config
 from taming.models.phyloautoencoder import PhyloVQVAE
 import torch
 import torchvision
-from torch.utils.data import random_split, DataLoader, Dataset
+from torch.utils.data import DataLoader, Dataset
 import pytorch_lightning as pl
 from pytorch_lightning import seed_everything
 from pytorch_lightning.trainer import Trainer
@@ -21,8 +21,8 @@ import wandb
 
 def get_monitor(target):
     if target == phylomodel_class:
-        return "val"+CONSTANTS.DISENTANGLER_PHYLO_LOSS
-    elif target in transformer_classes:
+        return "val"+CONSTANTS.BASERECLOSS
+    if target in transformer_classes:
         return "val"+CONSTANTS.TRANSFORMER_LOSS
     return "val" +CONSTANTS.RECLOSS
 

@@ -1,0 +1,25 @@
+size: 256
+file_list_path:  /fastscratch/elhamod/data/Fish/taming_transforms_fish_test_padded_256_imagenetmeancolor.txt
+unique_skipped_labels:
+- 13
+- 26
+- 35
+
+DEVICE: 0
+num_workers: 8
+batch_size: 1 # DO NOT CHANGE! 
+
+per_phylo_level: True
+
+create_histograms: True
+
+generate_specifmen: False
+save_individual_images: False
+num_specimen_generated: 16
+
+##############################
+
+#speciesout
+ckpt_path: /fastscratch/elhamod/logs/2023-01-31T22-56-46_Phylo-VQVAE-phase8256img-4phylo-4nonphylo-fewernonphylodim-speciesout/checkpoints/last.ckpt
+yaml_path: /fastscratch/elhamod/logs/2023-01-31T22-56-46_Phylo-VQVAE-phase8256img-4phylo-4nonphylo-fewernonphylodim-speciesout/configs/2023-01-31T22-56-46-project.yaml
+

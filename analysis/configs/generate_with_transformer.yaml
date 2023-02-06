@@ -10,7 +10,7 @@ top_k: 5
 num_specimen_generated: 40
 save_individual_images: True
 
-outputdatasetdir: species_generated
+outputdatasetdir: species_transfromer_generated
 ##############################
 
 # class weights
@@ -30,5 +30,12 @@ outputdatasetdir: species_generated
 # ckpt_path: /fastscratch/elhamod/logs/2022-12-14T16-50-57_Phylo-VQVAE-transformer-phase7256img-phase7-level3/checkpoints/epoch=000848.ckpt
 # yaml_path: /fastscratch/elhamod/logs/2022-12-14T16-50-57_Phylo-VQVAE-transformer-phase7256img-phase7-level3/configs/2022-12-14T16-50-57-project.yaml
 
-ckpt_path: /fastscratch/elhamod/logs/2023-01-20T22-52-10_Phylo-VQVAE-transformer-phase8256img-phase8-level3-550epochs-4phylo-4nonphylo-idea1-newtransformer-test/checkpoints/last.ckpt
-yaml_path: /fastscratch/elhamod/logs/2023-01-20T22-52-10_Phylo-VQVAE-transformer-phase8256img-phase8-level3-550epochs-4phylo-4nonphylo-idea1-newtransformer-test/configs/2023-01-20T22-52-10-project.yaml
+# ckpt_path: /fastscratch/elhamod/logs/2023-01-20T22-52-10_Phylo-VQVAE-transformer-phase8256img-phase8-level3-550epochs-4phylo-4nonphylo-idea1-newtransformer-test/checkpoints/last.ckpt
+# yaml_path: /fastscratch/elhamod/logs/2023-01-20T22-52-10_Phylo-VQVAE-transformer-phase8256img-phase8-level3-550epochs-4phylo-4nonphylo-idea1-newtransformer-test/configs/2023-01-20T22-52-10-project.yaml
+
+
+# ckpt_path: /fastscratch/elhamod/logs/2023-01-15T22-38-30_Phylo-VQVAE-transformer-phase8256img-phase8-level3-550epochs-4phylo-4nonphylo-idea1/checkpoints/last.ckpt
+# yaml_path: /fastscratch/elhamod/logs/2023-01-15T22-38-30_Phylo-VQVAE-transformer-phase8256img-phase8-level3-550epochs-4phylo-4nonphylo-idea1/configs/2023-01-15T22-38-30-project.yaml
+
+ckpt_path: /fastscratch/elhamod/logs/2023-01-28T17-44-33_Phylo-VQVAE-transformer-phase8256img-phase8-4phylo-4nonphylo-idea1-lvl3/checkpoints/epoch=000653.ckpt
+yaml_path: /fastscratch/elhamod/logs/2023-01-28T17-44-33_Phylo-VQVAE-transformer-phase8256img-phase8-4phylo-4nonphylo-idea1-lvl3/configs/2023-01-28T17-44-33-project.yaml

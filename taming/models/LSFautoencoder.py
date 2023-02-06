@@ -1,3 +1,4 @@
+from taming.constants import BASERECLOSS
 import torch
 from torch import nn
 import torch.nn.functional as F
@@ -97,7 +98,7 @@ class LSFVQVAE(VQModel):
         
         # base losses
         true_rec_loss = torch.mean(torch.abs(x.contiguous() - xrec.contiguous()))
-        self.log(prefix+"/base_true_rec_loss", true_rec_loss, prog_bar=False, logger=True, on_step=False, on_epoch=True)
+        self.log(prefix+  BASERECLOSS, true_rec_loss, prog_bar=False, logger=True, on_step=False, on_epoch=True)
         self.log(prefix+"/base_quantizer_loss", base_loss_dic['quantizer_loss'], prog_bar=False, logger=True, on_step=False, on_epoch=True)
 
         total_loss, LSF_losses_dict = self.LSF_disentangler.loss(in_out_disentangler[DISENTANGLER_DECODER_OUTPUT], in_out_disentangler[DISENTANGLER_ENCODER_INPUT], 

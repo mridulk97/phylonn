@@ -75,5 +75,8 @@ DEVICE: 0
 ckpt_path: /fastscratch/elhamod/logs/2023-01-15T00-45-57_Phylo-VQVAE-phase8256img-4phylo-4nonphylo/checkpoints/last.ckpt
 yaml_path: /fastscratch/elhamod/logs/2023-01-15T00-45-57_Phylo-VQVAE-phase8256img-4phylo-4nonphylo/configs/2023-01-15T00-45-57-project.yaml
 
+# ckpt_path: /fastscratch/elhamod/logs/2023-01-31T15-12-29_Phylo-VQVAE-phase8256img-4phylo-4nonphylo-fewernonphylodim/checkpoints/last.ckpt
+# yaml_path: /fastscratch/elhamod/logs/2023-01-31T15-12-29_Phylo-VQVAE-phase8256img-4phylo-4nonphylo-fewernonphylodim/configs/2023-01-31T15-12-29-project.yaml
+
 
 

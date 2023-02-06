@@ -10,10 +10,12 @@ load_model: Phylo
 
 size: 256
 # file_list_path: "/home/elhamod/data/Fish/taming_transforms_fish_train_padded_256.txt"
-file_list_path: "/fastscratch/elhamod/data/Fish/taming_transforms_fish_test_padded_256.txt"
+# file_list_path: "/fastscratch/elhamod/data/Fish/taming_transforms_fish_test_padded_256.txt"
 # size= 512
 # file_list_path = "/home/elhamod/data/Fish/taming_transforms_fish_train_padded_512.txt"
 # file_list_path: "/home/elhamod/data/Fish/taming_transforms_fish_test_small.txt" # Just for test
+
+file_list_path:  /fastscratch/elhamod/data/Fish/taming_transforms_fish_test_padded_256_imagenetmeancolor.txt
 
 ##############
 
@@ -91,6 +93,9 @@ file_list_path: "/fastscratch/elhamod/data/Fish/taming_transforms_fish_test_padd
 # # species out
 # ckpt_path: /fastscratch/elhamod/logs/2022-11-07T11-27-56_Phylo-VQVAE256img-phase5-speciesout/checkpoints/last.ckpt
 # yaml_path: /fastscratch/elhamod/logs/2022-11-07T11-27-56_Phylo-VQVAE256img-phase5-speciesout/configs/2022-11-07T11-27-56-project.yaml
-ckpt_path: /fastscratch/elhamod/logs/2022-11-11T02-12-49_Phylo-VQVAE256img-phase5-speciesout-final/checkpoints/last.ckpt
-yaml_path: /fastscratch/elhamod/logs/2022-11-11T02-12-49_Phylo-VQVAE256img-phase5-speciesout-final/configs/2022-11-11T02-12-49-project.yaml
+# ckpt_path: /fastscratch/elhamod/logs/2022-11-11T02-12-49_Phylo-VQVAE256img-phase5-speciesout-final/checkpoints/last.ckpt
+# yaml_path: /fastscratch/elhamod/logs/2022-11-11T02-12-49_Phylo-VQVAE256img-phase5-speciesout-final/configs/2022-11-11T02-12-49-project.yaml
+
+ckpt_path: /fastscratch/elhamod/logs/2023-01-15T00-45-57_Phylo-VQVAE-phase8256img-4phylo-4nonphylo/checkpoints/last.ckpt
+yaml_path: /fastscratch/elhamod/logs/2023-01-15T00-45-57_Phylo-VQVAE-phase8256img-4phylo-4nonphylo/configs/2023-01-15T00-45-57-project.yaml
 

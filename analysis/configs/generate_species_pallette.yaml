@@ -1,5 +1,5 @@
 size: 256
-file_list_path: "/home/elhamod/data/Fish/taming_transforms_fish_train_padded_256.txt"
+file_list_path: "/fastscratch/elhamod/data/Fish/taming_transforms_fish_train_padded_256_imagenetmeancolor.txt"
 # size= 512
 # file_list_path = "/home/elhamod/data/Fish/taming_transforms_fish_train_padded_512.txt"
 

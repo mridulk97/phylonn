@@ -1,5 +1,7 @@
 size: 256
 file_list_path:  /fastscratch/elhamod/data/Fish/taming_transforms_fish_test_padded_256_imagenetmeancolor.txt
+unique_skipped_labels: []
+
 # file_list_path: /fastscratch/elhamod/logs/2022-11-10T02-23-40_Phylo-VQVAE-transformer256img-phase4-transformer-species-finalstronger/figs/transformer_generated_dataset/list.txt
 # file_list_path: /fastscratch/elhamod/logs/2022-11-10T02-23-47_Phylo-VQVAE-transformer256img-phase4-level0-finalstronger/figs/transformer_generated_dataset/list.txt
 # file_list_path: /fastscratch/elhamod/logs/2022-11-10T02-23-52_Phylo-VQVAE-transformer256img-phase4-level1-finalstronger/figs/transformer_generated_dataset/list.txt
@@ -30,7 +32,7 @@ per_phylo_level: True
 
 create_histograms: True
 
-generate_specifmen: True
+generate_specifmen: False
 save_individual_images: False
 num_specimen_generated: 16
 
@@ -118,6 +120,10 @@ num_specimen_generated: 16
 
 
 
-ckpt_path: /fastscratch/elhamod/logs/2023-01-15T00-45-57_Phylo-VQVAE-phase8256img-4phylo-4nonphylo/checkpoints/last.ckpt
-yaml_path: /fastscratch/elhamod/logs/2023-01-15T00-45-57_Phylo-VQVAE-phase8256img-4phylo-4nonphylo/configs/2023-01-15T00-45-57-project.yaml
+# ckpt_path: /fastscratch/elhamod/logs/2023-01-15T00-45-57_Phylo-VQVAE-phase8256img-4phylo-4nonphylo/checkpoints/last.ckpt
+# yaml_path: /fastscratch/elhamod/logs/2023-01-15T00-45-57_Phylo-VQVAE-phase8256img-4phylo-4nonphylo/configs/2023-01-15T00-45-57-project.yaml
+
+ckpt_path: /fastscratch/elhamod/logs/2023-01-31T15-12-29_Phylo-VQVAE-phase8256img-4phylo-4nonphylo-fewernonphylodim/checkpoints/last.ckpt
+yaml_path: /fastscratch/elhamod/logs/2023-01-31T15-12-29_Phylo-VQVAE-phase8256img-4phylo-4nonphylo-fewernonphylodim/configs/2023-01-31T15-12-29-project.yaml
+
 

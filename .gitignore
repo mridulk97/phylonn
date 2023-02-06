@@ -10,3 +10,4 @@ plot/**
 *.log
 **events.out.tfevents.*
 lightning_logs/**
+analysis/figs/**

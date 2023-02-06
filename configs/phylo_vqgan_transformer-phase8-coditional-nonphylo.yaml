@@ -13,7 +13,7 @@ model:
       target: taming.modules.transformer.mingpt.GPT
       params:
         vocab_size: 64 # size of codebook (number of possible codes)
-        block_size: 65 # 32 attr+32 nonattr+1 cond# codes predicted at once.
+        block_size: 33 # 32 attr+32 nonattr+1 cond# codes predicted at once.
         n_layer: 5
         n_head: 4 # relationships to learn
         n_embd: 16 #embedding dimensions for transformer. Does not have to be same as codebook but Ill pick same
