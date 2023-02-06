@@ -1,3 +1,0 @@
-size: 256
-file_list_path_train: "/home/elhamod/data/Fish/taming_transforms_fish_train_padded_256.txt"
-file_list_path_test: "/home/elhamod/data/Fish/taming_transforms_fish_test_padded_256.txt"

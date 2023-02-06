@@ -1,15 +1,8 @@
-# fileNames: [
-#     '/home/elhamod/projects/taming-transformers/analysis/transformer analysis/level0.csv',
-#     '/home/elhamod/projects/taming-transformers/analysis/transformer analysis/level1.csv',
-#     '/home/elhamod/projects/taming-transformers/analysis/transformer analysis/level2.csv',
-#     '/home/elhamod/projects/taming-transformers/analysis/transformer analysis/level3.csv'
-# ]
-
 fileNames: [
-    '/home/elhamod/projects/taming-transformers/analysis/transformer analysis paca/level0.csv',
-    '/home/elhamod/projects/taming-transformers/analysis/transformer analysis paca/level1.csv',
-    '/home/elhamod/projects/taming-transformers/analysis/transformer analysis paca/level2.csv',
-    '/home/elhamod/projects/taming-transformers/analysis/transformer analysis paca/level3.csv'
+    '/home/elhamod/projects/taming-transformers/analysis/paca analysis/level0.csv',
+    '/home/elhamod/projects/taming-transformers/analysis/paca analysis/level1.csv',
+    '/home/elhamod/projects/taming-transformers/analysis/paca analysis/level2.csv',
+    '/home/elhamod/projects/taming-transformers/analysis/paca analysis/level3.csv'
 ]
 
 size: 256
