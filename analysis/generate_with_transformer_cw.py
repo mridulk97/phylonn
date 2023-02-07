@@ -83,7 +83,7 @@ def generate_images_cw(index, species_true_indx,
     # decodeing the image from the sequence
     x_sample = model.decode_to_img(code_sampled, z_shape)
 
-    for j in tqdm(range(num_specimen_generated)): 
+    for j in range(num_specimen_generated): 
         if save_individual_images:
             save_image(x_sample[j, :, :, :], str(j), ckpt_path, subfolder= os.path.join(GENERATED_DATASET,prefix_text,"{}".format(indx_to_label[species_true_indx])))
 

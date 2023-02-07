@@ -5,6 +5,7 @@ model:
   params:
     embed_dim: 256
     n_embed: 1024
+    # ckpt_path: ./logs/2023-01-25T12-09-00_CUB-VQGANcub_bb_crop_augmentations_imagenet_padding_segmented/checkpoints/last.ckpt
     ddconfig:
       double_z: False
       z_channels: 256

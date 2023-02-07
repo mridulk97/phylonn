@@ -3,6 +3,7 @@ import PIL
 from PIL import Image
 import glob
 import argparse
+import numpy as np
 from tqdm import tqdm
 
 
@@ -14,7 +15,6 @@ if __name__ == "__main__":
     parser.add_argument('--segmentation_base_dir', type=str, help='Path of segmentation images')
 
     args = parser.parse_args()
-    output_dir = '/fastscratch/mridul/cub_190_split_resized/official/CUB_200_2011/test_seg'
 
 
     for folder in tqdm(sorted(glob.glob(os.path.join(args.image_dir, '*')))):
@@ -31,12 +31,20 @@ if __name__ == "__main__":
                 image = PIL.Image.open(image_path)
                 segmentation_mask = PIL.Image.open(segmentation_path)
                 blank = image.point(lambda _: 0)
-                masked_image = PIL.Image.composite(image, blank, segmentation_mask)
+                # masked_image = PIL.Image.composite(image, blank, segmentation_mask)
 
-                # white background
-                white_background = Image.new("RGB", image.size, (255, 255, 255))
-                white_background.paste(image, (0,0), segmentation_mask)
-                masked_image = white_background
+                # # white background
+                # white_background = Image.new("RGB", image.size, (255, 255, 255))
+                # white_background.paste(image, (0,0), segmentation_mask)
+                # masked_image = white_background
+
+                #imagenet background
+                mean = np.asarray([ 0.485, 0.456, 0.406 ])
+                fill = tuple([int(round(mean[0]*255)), int(round(mean[1]*255)), int(round(mean[2]*255))])
+                imagenet_background = Image.new("RGB", image.size, fill)
+                imagenet_background.paste(image, (0,0), segmentation_mask)
+                masked_image = imagenet_background
+
 
                 new_image_path = os.path.join(new_folder, image_file)
                 masked_image.save(new_image_path)

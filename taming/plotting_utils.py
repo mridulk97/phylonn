@@ -100,7 +100,7 @@ def plot_heatmap(heatmap, ckpt_path=None, title='default', postfix=None):
     cbar = ax.collections[0].colorbar
     cbar.ax.tick_params(labelsize=15)
     plt.show()
-    fig.savefig(os.path.join(path, title+ " heat_map.png"))
+    fig.savefig(os.path.join(path, title+ " heat_map.png"), bbox_inches='tight',dpi=300)
     pd.DataFrame(heatmap.numpy()).to_csv(os.path.join(path, title+ " heat_map.csv"))
     
     
