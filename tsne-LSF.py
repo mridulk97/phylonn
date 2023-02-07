@@ -4,7 +4,7 @@ from sklearn.manifold import TSNE
 from sklearn.decomposition import PCA
 from taming.analysis_utils import get_phylomapper_from_config
 from taming.data.phylogeny import Phylogeny
-from taming.loading_utils import load_config, load_phylovqvae
+from taming.loading_utils import load_config, load_phylovqvae, load_LSFvqvae
 from taming.models.phyloautoencoder import PhyloVQVAE
 from taming.models.LSFautoencoder import LSFVQVAE
 from taming.models.vqgan import VQModel
@@ -342,22 +342,16 @@ def main(configs_yaml):
     dataset = CustomDataset(img_res, dataset_path, add_labels=True)
     dataloader = DataLoader(dataset.data, batch_size=batch_size, num_workers=num_workers, collate_fn=custom_collate)
 
-    
-    
     # Load model
-    # if isOriginalVQGAN:
-    #     model_type=VQModel
-    # else:
-    #     model_type=PhyloVQVAE
     if configs_yaml.model_type == 'lsf':
         model_type = LSFVQVAE
     elif configs_yaml.model_type == 'VQGAN':
         model_type = VQModel
     else:
-        model_type=PhyloVQVAE
+        model_type = PhyloVQVAE
 
     config = load_config(yaml_path, display=False)
-    model = load_phylovqvae(config, ckpt_path=ckpt_path, cuda=(DEVICE is not None), model_type=model_type)
+    model = load_LSFvqvae(config, ckpt_path=ckpt_path, cuda=(DEVICE is not None), model_type=model_type)
     # model.set_test_chkpt_path(ckpt_path)
     
     with torch.no_grad():

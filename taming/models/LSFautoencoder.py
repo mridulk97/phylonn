@@ -42,7 +42,7 @@ class LSFVQVAE(VQModel):
         self.freeze()
 
         ckpt_path = LSF_args.get('ckpt_path', None)
-        if ckpt_path is not None:
+        if 'ckpt_path' in LSF_args:
             del LSF_args['ckpt_path']
 
         self.LSF_disentangler = LSFDisentangler(**LSF_args)
@@ -114,6 +114,9 @@ class LSFVQVAE(VQModel):
             self.log(prefix+"/disentangler_LSF_"+i, LSF_losses_dict[i], prog_bar=True, logger=True, on_step=True, on_epoch=True)
 
         self.log(prefix+"/disentangler_learning_rate", self.LSF_disentangler.learning_rate, prog_bar=False, logger=True, on_step=False, on_epoch=True)
+
+        # monitor for checkpoint saving is set on this
+        self.log(prefix+"/rec_loss", LSF_losses_dict['L_rec'], prog_bar=True, logger=True, on_step=True, on_epoch=True)
 
         return total_loss
     

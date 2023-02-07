@@ -38,3 +38,29 @@ The data can be found on `lambdapgml` at `/raid/elhamod/Fish/phylo-VQVAE`.
  - `in_ch`: input image number of channels.
  - `ch`: number of channels in first hidden layers.
  - `ch_mult`: multiplyer for num_channels in hidden layers wrt `ch` (not cascaded) (resolution just gestsdivided by 2 each layer, except for last layer).
+
+# Baselines
+
+## Latent Space Factorization (LSF)
+LSF is a method for disentangling latent space, described in the paper [Latent Space Factorisation and Manipulation via Matrix Subspace Projection](https://arxiv.org/abs/1907.12385)
+
+### To train the model
+
+`python main.py --name LSF2-VQVAE --postfix 1024emb-256img_imagenetmean_noaug --base configs/custom_vqgan-1024emb-256img_imagenetmean_noaug-batch5-LSF2-vqvae-base_noaug_withimgnet.yaml -t True --gpus 0`
+
+### To perform image translation
+
+`python translateLSF.py --config analysis/configs/translateLSF.yaml`
+
+### For analysis
+
+To generate tsne plots of the latent space,
+
+`python tsne-LSF.py --config analysis/configs/tsne.yaml`
+
+To plot heatmap of the cosine distance between the latent vectors of species and specimens,
+
+`python heatmapLSF.py --name LSF2-VQVAE --postfix 1024emb-256img_imagenetmean_noaug-base_noaug_withimagenet-heatmap --base configs/custom_vqgan-1024emb-256img_imagenetmean_noaug-batch5-LSF2-vqvae-base_noaug_withimgnet-inference.yaml -t True --gpus 0`
+
+
+
