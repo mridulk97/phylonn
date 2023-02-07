@@ -1,5 +1,5 @@
 size: 256
-file_list_path: "/fastscratch/elhamod/data/Fish/taming_transforms_fish_train_padded_256.txt"
+file_list_path: "/fastscratch/elhamod/data/Fish/taming_transforms_fish_test_padded_256_imagenetmeancolor.txt"
 # size= 512
 # file_list_path = "/home/elhamod/data/Fish/taming_transforms_fish_train_padded_512.txt"
 
@@ -10,15 +10,37 @@ top_k: 5
 num_specimen_generated: 40
 save_individual_images: True
 
-outputdatasetdir: level0
+outputdatasetdir: lvl0_transformer_generated
 ##############################
 
 # class weights
-# ckpt_path: /fastscratch/elhamod/logs/2022-11-08T22-01-06_Phylo-VQVAE-transformer256img-phase4-level0/checkpoints/epoch=000611.ckpt
-# yaml_path: /fastscratch/elhamod/logs/2022-11-08T22-01-06_Phylo-VQVAE-transformer256img-phase4-level0/configs/2022-11-08T22-01-06-project.yaml
+# ckpt_path: /fastscratch/elhamod/logs/2022-11-05T15-32-30_Phylo-VQVAE-transformer/checkpoints/last.ckpt
+# yaml_path: /fastscratch/elhamod/logs/2022-11-05T15-32-30_Phylo-VQVAE-transformer/configs/2022-11-05T15-32-30-project.yaml
 
-# ckpt_path: /fastscratch/elhamod/logs/2022-11-10T02-23-47_Phylo-VQVAE-transformer256img-phase4-level0-finalstronger/checkpoints/last.ckpt
-# yaml_path: /fastscratch/elhamod/logs/2022-11-10T02-23-47_Phylo-VQVAE-transformer256img-phase4-level0-finalstronger/configs/2022-11-10T02-23-47-project.yaml
 
-ckpt_path: /fastscratch/elhamod/logs/2022-12-14T16-39-42_Phylo-VQVAE-transformer-phase7256img-phase7-level0/checkpoints/epoch=000848.ckpt
-yaml_path: /fastscratch/elhamod/logs/2022-12-14T16-39-42_Phylo-VQVAE-transformer-phase7256img-phase7-level0/configs/2022-12-14T16-39-42-project.yaml
+# strongeranti
+# ckpt_path: /fastscratch/elhamod/logs/2022-11-10T02-23-40_Phylo-VQVAE-transformer256img-phase4-transformer-species-finalstronger/checkpoints/last.ckpt
+# yaml_path: /fastscratch/elhamod/logs/2022-11-10T02-23-40_Phylo-VQVAE-transformer256img-phase4-transformer-species-finalstronger/configs/2022-11-10T02-23-40-project.yaml
+
+
+# ckpt_path: /fastscratch/elhamod/logs/2022-12-17T16-37-17_Phylo-VQVAE-transformer-phase7256img-phase7-uncoditional/checkpoints/epoch=000914.ckpt
+# yaml_path: /fastscratch/elhamod/logs/2022-12-17T16-37-17_Phylo-VQVAE-transformer-phase7256img-phase7-uncoditional/configs/2022-12-17T16-37-17-project.yaml
+
+
+# ckpt_path: /fastscratch/elhamod/logs/2022-12-14T16-50-57_Phylo-VQVAE-transformer-phase7256img-phase7-level3/checkpoints/epoch=000848.ckpt
+# yaml_path: /fastscratch/elhamod/logs/2022-12-14T16-50-57_Phylo-VQVAE-transformer-phase7256img-phase7-level3/configs/2022-12-14T16-50-57-project.yaml
+
+# ckpt_path: /fastscratch/elhamod/logs/2023-01-20T22-52-10_Phylo-VQVAE-transformer-phase8256img-phase8-level3-550epochs-4phylo-4nonphylo-idea1-newtransformer-test/checkpoints/last.ckpt
+# yaml_path: /fastscratch/elhamod/logs/2023-01-20T22-52-10_Phylo-VQVAE-transformer-phase8256img-phase8-level3-550epochs-4phylo-4nonphylo-idea1-newtransformer-test/configs/2023-01-20T22-52-10-project.yaml
+
+
+# ckpt_path: /fastscratch/elhamod/logs/2023-01-27T10-24-54_Phylo-VQVAE-transformer-phase8256img-phase8-4phylo-4nonphylo-idea1-lvl0/checkpoints/epoch=000677.ckpt
+# yaml_path: /fastscratch/elhamod/logs/2023-01-27T10-24-54_Phylo-VQVAE-transformer-phase8256img-phase8-4phylo-4nonphylo-idea1-lvl0/configs/2023-01-27T10-24-54-project.yaml
+
+
+
+# ckpt_path: /fastscratch/elhamod/logs/2023-01-28T17-44-33_Phylo-VQVAE-transformer-phase8256img-phase8-4phylo-4nonphylo-idea1-lvl0/checkpoints/epoch=000653.ckpt
+# yaml_path: /fastscratch/elhamod/logs/2023-01-28T17-44-33_Phylo-VQVAE-transformer-phase8256img-phase8-4phylo-4nonphylo-idea1-lvl0/configs/2023-01-28T17-44-33-project.yaml
+
+ckpt_path: /fastscratch/elhamod/logs/2023-01-29T13-45-10_Phylo-VQVAE-transformer-phase8256img-phase8-4phylo-4nonphylo-idea1-lvl0/checkpoints/epoch=000674.ckpt  
+yaml_path: /fastscratch/elhamod/logs/2023-01-29T13-45-10_Phylo-VQVAE-transformer-phase8256img-phase8-4phylo-4nonphylo-idea1-lvl0/configs/2023-01-29T13-45-10-project.yaml

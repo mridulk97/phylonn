@@ -111,7 +111,7 @@ def main(configs_yaml):
     step_size = configs_yaml.step_size
     lr = configs_yaml.lr
     num_epochs = configs_yaml.num_epochs
-    pretrained_model = configs_yaml.pretrained_model
+    phyloDistances_string = configs_yaml.phyloDistances_string
     
     
     dataset_train = CustomTrain(size, file_list_path_train, add_labels=True)
@@ -129,19 +129,17 @@ def main(configs_yaml):
     model_ft = models.resnet18(pretrained=True)
 
     
-    phylogeny = None
-    if pretrained_model is not None:
-        phyloDistances_string = configs_yaml.phyloDistances_string
+    if phyloDistances_string is not None:
         level = configs_yaml.level
         phylogeny_path = configs_yaml.phylogeny_path
         
         phylomapper = get_phylomapper_from_config(Phylogeny(phylogeny_path), phyloDistances_string, level)
 
-        model_ft = torch.load(pretrained_model)
         outputsize = phylomapper.get_len()
     else:
         level = 3
         outputsize = len(dataset_train.indx_to_label.keys())
+        phylomapper = None
 
     num_ftrs = model_ft.fc.in_features
     model_ft.fc = nn.Linear(num_ftrs, outputsize)

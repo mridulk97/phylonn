@@ -14,6 +14,7 @@ def load_config(config_path, display=False):
     return config
 
 
+#TODO: This should become one function for all models.
 def load_phylovqvae(config, ckpt_path=None, cuda=False, model_type=PhyloVQVAE):
     model = model_type(**config.model.params)
     if ckpt_path is not None:

@@ -7,7 +7,7 @@ from taming.import_utils import instantiate_from_config
 from taming.models.phyloautoencoder import PhyloVQVAE
 import torch
 import torchvision
-from torch.utils.data import random_split, DataLoader, Dataset
+from torch.utils.data import DataLoader, Dataset
 import pytorch_lightning as pl
 from pytorch_lightning import seed_everything
 from pytorch_lightning.trainer import Trainer
@@ -21,8 +21,8 @@ import wandb
 
 def get_monitor(target):
     if target == phylomodel_class:
-        return "val"+CONSTANTS.DISENTANGLER_PHYLO_LOSS
-    elif target in transformer_classes:
+        return "val"+CONSTANTS.BASERECLOSS
+    if target in transformer_classes:
         return "val"+CONSTANTS.TRANSFORMER_LOSS
     return "val" +CONSTANTS.RECLOSS
 
@@ -174,11 +174,11 @@ class DataModuleFromConfig(pl.LightningDataModule):
     def _val_dataloader(self):
         return DataLoader(self.datasets["validation"],
                           batch_size=self.batch_size,
-                          num_workers=self.num_workers, collate_fn=custom_collate) #TODO: shuffling validation in pytorch lightning does not work. workaround?
+                          num_workers=self.num_workers, shuffle=True, collate_fn=custom_collate) #TODO: shuffling validation in pytorch lightning does not work. workaround?
 
     def _test_dataloader(self):
         return DataLoader(self.datasets["test"], batch_size=self.batch_size,
-                          num_workers=self.num_workers, collate_fn=custom_collate)
+                          num_workers=self.num_workers, shuffle=True, collate_fn=custom_collate)
 
 
 class SetupCallback(Callback):
@@ -328,11 +328,7 @@ class ImageLogger(Callback):
 
     def on_validation_batch_end(self, trainer, pl_module, outputs, batch, batch_idx, dataloader_idx):
         self.log_img(pl_module, batch, batch_idx, split="val")
-    
-    def on_training_epoch_end(self, trainer, pl_module):    
-        x=0
         
-    #TODO: somehow when this is addedd. logging breaks.
     def on_validation_epoch_end(self, trainer, pl_module):    
         if isinstance(pl_module, PhyloVQVAE):
             is_train = pl_module.training

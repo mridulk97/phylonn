@@ -35,7 +35,7 @@ def run_conditional(model, dsets, outdir, top_k, temperature, batch_size=1):
 
         x = model.get_input("image", example).to(model.device)
         
-        d = os.path.join(outdir, "originals", str(c.item()))
+        d = os.path.join(outdir, "originals", str(dset.indx_to_label[c.item()]))
         os.makedirs(d, exist_ok=True)
         for i in range(x.shape[0]):
             save_image(x[i], d, "{:06}.png".format(indices[i]))
@@ -50,7 +50,7 @@ def run_conditional(model, dsets, outdir, top_k, temperature, batch_size=1):
 
         xrec = model.first_stage_model.decode(quant_z)
         
-        d = os.path.join(outdir, "reconstructions", str(c.item()))
+        d = os.path.join(outdir, "reconstructions", str(dset.indx_to_label[c.item()]))
         os.makedirs(d, exist_ok=True)
         for i in range(xrec.shape[0]):
             save_image(xrec[i], d,  "{:06}.png".format(indices[i]))
@@ -125,7 +125,7 @@ def run_conditional(model, dsets, outdir, top_k, temperature, batch_size=1):
 
         xsample = model.decode_to_img(idx[:,:cshape[2],:cshape[3]], cshape)
         
-        d = os.path.join(outdir, "samples", str(c.item()))
+        d = os.path.join(outdir, "samples", str(dset.indx_to_label[c.item()]))
         os.makedirs(d, exist_ok=True)
         for i in range(xsample.shape[0]):
             save_image(xsample[i], d, "{:06}.png".format(indices[i]))

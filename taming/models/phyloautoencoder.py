@@ -2,8 +2,6 @@ from taming.import_utils import instantiate_from_config
 from taming.modules.losses.phyloloss import get_loss_name
 import torch
 from torch import nn
-import torch.nn.functional as F
-import pytorch_lightning as pl
 import numpy
 
 from taming.modules.vqvae.quantize import VectorQuantizer2 as VectorQuantizer
@@ -34,7 +32,7 @@ def get_hidden_layer_sizes(num_of_inputs, num_of_outputs, num_of_layers):
 
 
 class ClassifierLayer(torch.nn.Module):
-    def __init__(self, num_of_inputs, num_of_outputs, num_of_layers = 1): # bnorm=False,
+    def __init__(self, num_of_inputs, num_of_outputs, num_of_layers = 1, normalize=False): # bnorm=False,
         super(ClassifierLayer, self).__init__()
         
         self.num_of_inputs = num_of_inputs
@@ -42,6 +40,9 @@ class ClassifierLayer(torch.nn.Module):
         out_sizes = get_hidden_layer_sizes(num_of_inputs, num_of_outputs, num_of_layers)
 
         l = [torch.nn.Flatten()] 
+        
+        if normalize:
+            l.append(nn.LayerNorm(num_of_inputs))
     
         for i in range(num_of_layers):            
             n_out = out_sizes[i]
@@ -59,7 +60,6 @@ class ClassifierLayer(torch.nn.Module):
     
     def forward(self, input):
         return self.seq(input)
-    
     
 def make_MLP(input_dim, output_dim, num_of_layers = 1, normalize=False):        
         flattened_input_dim = math.prod(input_dim)
@@ -85,7 +85,44 @@ def make_MLP(input_dim, output_dim, num_of_layers = 1, normalize=False):
         l.append(nn.Unflatten(1, torch.Size(output_dim)))
         
         return torch.nn.Sequential(*l)
+
+#TODO: probably won't need this in the official submission. can delete later.
+class AttnClassificationLayer(torch.nn.Module):
+    def __init__(self, attnconfig_copy): # bnorm=False,
+        super(AttnClassificationLayer, self).__init__()
+        self.num_of_inputs = attnconfig_copy['params']['block_size']
+        self.embd_d = attnconfig_copy['params']['n_embd']
         
+        print('moe', self.num_of_inputs, self.embd_d)
+        self.l = instantiate_from_config(attnconfig_copy)
+
+    def get_inputsize(self):
+        return self.num_of_inputs
+
+    
+    def forward(self, input):
+        input = input.reshape(input.shape[0], input.shape[1], -1).permute(0,2,1) #TODO: maybe a nicer way to do this?
+        print('input', input.shape)
+        return self.l(input)
+
+#TODO: probably won't need this in the official submission. can delete later.
+def create_phylo_classifier_attnlayers(len_features, output_sizes, attnconfig, n_phylolevels, embed_dim, phylo_distances):
+    attnconfig_copy = attnconfig.copy()
+    attnconfig_copy['params']['block_size'] = int(len_features/embed_dim)
+    attnconfig_copy['params']['n_classes'] = output_sizes[-1] 
+    classification_layers = {
+        CONSTANTS.DISENTANGLER_CLASS_OUTPUT: AttnClassificationLayer(attnconfig_copy),
+    }
+        
+    for indx, i in enumerate(phylo_distances):
+        level_name = get_loss_name(phylo_distances, indx)
+
+        attnconfig_copy = attnconfig.copy()
+        attnconfig_copy['params']['block_size'] = int((indx+1)*len_features/(n_phylolevels*embed_dim))
+        attnconfig_copy['params']['n_classes'] = output_sizes[indx]
+        classification_layers[level_name] = AttnClassificationLayer(attnconfig_copy)
+
+    return torch.nn.ModuleDict(classification_layers)
 
 # output_sizes are ordered such that we start with highest ancestor and move down.
 def create_phylo_classifier_layers(len_features, output_sizes, num_fc_layers, n_phylolevels, phylo_distances):
@@ -112,8 +149,8 @@ class PhyloDisentangler(torch.nn.Module):
                 embed_dim, n_embed, # same as codebook configs
                 n_phylo_channels, n_phylolevels, codebooks_per_phylolevel, # The dimensions for the phylo descriptors.
                 lossconfig, 
-                n_mlp_layers=1, n_levels_non_attribute=None,
-                lossconfig_phylo=None, lossconfig_kernelorthogonality=None, lossconfig_anticlassification=None, verbose=False): 
+                n_mlp_layers=1, n_levels_non_attribute=None, base_rec_loss_weight=0.0,
+                lossconfig_phylo=None, lossconfig_kernelorthogonality=None, lossconfig_anticlassification=None, selfattentionclassifier_config=None, verbose=False): 
         super().__init__()
 
         self.ch = ch
@@ -185,12 +222,17 @@ class PhyloDisentangler(torch.nn.Module):
             # get loss and parse params
             lossconfig_phylo['params'] = {**lossconfig_phylo['params'], **{'verbose': verbose}}
             self.loss_phylo = instantiate_from_config(lossconfig_phylo)
-            num_fc_layers = self.loss_phylo.fc_layers
             len_features = n_phylolevels*codebooks_per_phylolevel*embed_dim
             assert n_phylolevels==len(self.loss_phylo.phylo_distances)+1, "Number of phylo distances should be consistent in the settings."
             
             # Create classification layers.
-            self.classification_layers = create_phylo_classifier_layers(len_features, self.loss_phylo.classifier_output_sizes, num_fc_layers, n_phylolevels, self.loss_phylo.phylo_distances)
+            self.selfattentionclassifier_config = selfattentionclassifier_config
+            if selfattentionclassifier_config is None:
+                num_fc_layers = self.loss_phylo.fc_layers
+                self.classification_layers = create_phylo_classifier_layers(len_features, self.loss_phylo.classifier_output_sizes, num_fc_layers, n_phylolevels, self.loss_phylo.phylo_distances)
+            else:
+                self.classification_layers = create_phylo_classifier_attnlayers(len_features, self.loss_phylo.classifier_output_sizes, selfattentionclassifier_config, n_phylolevels, embed_dim, self.loss_phylo.phylo_distances)
+                
             
    
         # Create anti-classification
@@ -200,6 +242,7 @@ class PhyloDisentangler(torch.nn.Module):
             self.loss_anticlassification= instantiate_from_config(lossconfig_anticlassification)
             self.codebook_mapping_layers = make_MLP([embed_dim, codebooks_per_phylolevel, n_levels_non_attribute], [embed_dim, codebooks_per_phylolevel, n_phylolevels], n_mlp_layers, normalize=False)    
 
+        self.base_rec_loss_weight = base_rec_loss_weight
 
         # print model
         print('phylovqgan', self)
@@ -251,17 +294,29 @@ class PhyloDisentangler(torch.nn.Module):
                             
         return zq_phylo, zq_nonphylo, loss_dic, outputs, h_img, info_attr, info_nonattr
     
-    def decode(self, zq_phylo, zq_nonphylo, loss_dic={}, outputs={}, h_img=None):
+    def decode(self, zq_phylo, zq_nonphylo, loss_dic={}, outputs={}, labels=None, h_img=None):
         hout_phylo = self.mlp_out(zq_phylo)
             
         hout_non_phylo = self.mlp_out_non_attribute(zq_nonphylo)
         h_ = torch.cat((hout_phylo, hout_non_phylo), 1)
         
-        if self.loss_anticlassification is not None:
-            mapping_loss, learning_loss = self.loss_anticlassification(self.codebook_mapping_layers, zq_nonphylo, zq_phylo)
+        # if self.loss_anticlassification is not None:
+        #     if isinstance(self.loss_anticlassification, AntiClassificationLoss2):
+        #         if self.loss_phylo is None or labels is None:
+        #             raise "Can't have AntiClassificationLoss2 without a classification layer and labels."
+        #         mapping_loss, learning_loss = self.loss_anticlassification(self.codebook_mapping_layers, self.classification_layers, zq_nonphylo, zq_phylo)
+        #     else:
+        #         mapping_loss, learning_loss = self.loss_anticlassification(self.codebook_mapping_layers, labels, zq_nonphylo)
         
-            loss_dic['anti_classification_mapping_loss'] = mapping_loss
-            loss_dic['anti_classification_learning_loss'] = learning_loss            
+        #     loss_dic['anti_classification_mapping_loss'] = mapping_loss
+        #     loss_dic['anti_classification_learning_loss'] = learning_loss      
+        
+                
+        if self.loss_anticlassification is not None:
+            mapping_output, learning_output = self.loss_anticlassification(self.codebook_mapping_layers, zq_nonphylo)#, zq_phylo)
+        
+            outputs[CONSTANTS.DISENTANGLER_ANTI_MAPPING_OUTPUT] = mapping_output
+            outputs[CONSTANTS.DISENTANGLER_ANTI_LEARNING_OUTPUT] = learning_output            
 
         output = self.conv_out(h_)
         
@@ -273,11 +328,12 @@ class PhyloDisentangler(torch.nn.Module):
         if self.loss_phylo is not None:
             for name, layer in self.classification_layers.items():
                 num_of_levels_included = int(layer.get_inputsize()/(self.embed_dim * self.codebooks_per_phylolevel))
-                outputs[name] = layer(zq_phylo[:, :, :, :num_of_levels_included]) # 0 for level 1, 0:1 for level 2, etc.
+                o = zq_phylo[:, :, :, :num_of_levels_included]
+                outputs[name] = layer(o) # 0 for level 1, 0:1 for level 2, etc.
         
         if self.loss_anticlassification is not None:
-                outputs[CONSTANTS.DISENTANGLER_NON_ATTRIBUTE_CLASS_OUTPUT] = self.classification_layers[CONSTANTS.DISENTANGLER_CLASS_OUTPUT](self.codebook_mapping_layers(zq_nonphylo))
-                
+            o = self.codebook_mapping_layers(zq_nonphylo)
+            outputs[CONSTANTS.DISENTANGLER_NON_ATTRIBUTE_CLASS_OUTPUT] = self.classification_layers[CONSTANTS.DISENTANGLER_CLASS_OUTPUT](o)
         return outputs, loss_dic
 
 
@@ -301,8 +357,22 @@ class PhyloVQVAE(VQModel):
 
         phylo_args = args[CONSTANTS.PHYLOCONFIG_KEY]
         del args[CONSTANTS.PHYLOCONFIG_KEY]
-        if CONSTANTS.DISENTANGLERTYPE_KEY in args:
-            del args[CONSTANTS.DISENTANGLERTYPE_KEY]
+            
+        self.lr_factor = args[CONSTANTS.LRFACTOR_KEY] if CONSTANTS.LRFACTOR_KEY in args.keys() else 0.01
+        if CONSTANTS.LRFACTOR_KEY in args:
+            del args[CONSTANTS.LRFACTOR_KEY]
+            
+        self.lr_cycle = args[CONSTANTS.LRCYCLE] if CONSTANTS.LRCYCLE in args.keys() else 150
+        if CONSTANTS.LRCYCLE in args:
+            del args[CONSTANTS.LRCYCLE]
+            
+        self.scheduler_type = args[CONSTANTS.SCHEDULER] if CONSTANTS.SCHEDULER in args.keys() else None
+        if CONSTANTS.SCHEDULER in args:
+            del args[CONSTANTS.SCHEDULER]
+            
+        self.optim_type = args[CONSTANTS.OPTIM] if CONSTANTS.OPTIM in args.keys() else None
+        if CONSTANTS.OPTIM in args:
+            del args[CONSTANTS.OPTIM]
 
         super().__init__(**args)
 
@@ -368,7 +438,7 @@ class PhyloVQVAE(VQModel):
             losses = {}
             # base losses
             true_rec_loss = torch.mean(torch.abs(x.contiguous() - xrec.contiguous()))
-            losses[prefix+"/base_true_rec_loss"] = true_rec_loss
+            losses[prefix+ CONSTANTS.BASERECLOSS] = true_rec_loss
             losses[prefix+"/base_quantizer_loss"] = base_loss_dic['quantizer_loss']
             
             # autoencode
@@ -376,7 +446,10 @@ class PhyloVQVAE(VQModel):
             total_loss, log_dict_ae = self.phylo_disentangler.loss(quantizer_disentangler_loss, in_out_disentangler[CONSTANTS.DISENTANGLER_ENCODER_INPUT], in_out_disentangler[CONSTANTS.DISENTANGLER_DECODER_OUTPUT], 0, self.global_step, split=prefix)
 
 
-                        
+            if self.phylo_disentangler.base_rec_loss_weight > 0:      
+                total_loss = total_loss + self.phylo_disentangler.base_rec_loss_weight*true_rec_loss      
+            
+            
             if self.phylo_disentangler.loss_kernelorthogonality is not None:
                 kernelorthogonality_disentangler_loss = disentangler_loss_dic['kernel_orthogonality_loss']
                 total_loss = total_loss + kernelorthogonality_disentangler_loss*self.phylo_disentangler.loss_kernelorthogonality.weight
@@ -405,13 +478,23 @@ class PhyloVQVAE(VQModel):
             
             
             if self.phylo_disentangler.loss_anticlassification is not None:
-                learning_loss = disentangler_loss_dic['anti_classification_learning_loss']
+                o = in_out_disentangler[CONSTANTS.DISENTANGLER_ANTI_LEARNING_OUTPUT]
+                if self.phylo_disentangler.loss_anticlassification.v2==True:
+                    class_learning = self.phylo_disentangler.classification_layers[CONSTANTS.DISENTANGLER_CLASS_OUTPUT](o)
+                    learning_loss = -torch.nn.CrossEntropyLoss()(class_learning, batch[CONSTANTS.DISENTANGLER_CLASS_OUTPUT])
+                elif self.phylo_disentangler.loss_anticlassification.v3==True:
+                    class_learning = self.phylo_disentangler.classification_layers[CONSTANTS.DISENTANGLER_CLASS_OUTPUT](o)
+                    class_learning = torch.nn.functional.softmax(class_learning, dim=1)
+                    learning_loss = torch.mean(torch.sum(class_learning*class_learning.add(1e-9).log(), dim=1), dim=0) + numpy.log(class_learning.shape[1])
+                else:
+                    learning_loss = -torch.mean(torch.abs(in_out_disentangler[CONSTANTS.QUANTIZED_PHYLO_OUTPUT].detach().contiguous() - o.contiguous()))
+                
                 total_loss = total_loss + learning_loss*self.phylo_disentangler.loss_anticlassification.weight
                 
-                if self.phylo_disentangler.loss_phylo:
-                    anti_classification_classifier_output = in_out_disentangler[CONSTANTS.DISENTANGLER_NON_ATTRIBUTE_CLASS_OUTPUT]
-                    anti_classification_f1_score = self.phylo_disentangler.loss_phylo.F1(anti_classification_classifier_output, batch[CONSTANTS.DISENTANGLER_CLASS_OUTPUT])
-                    losses[prefix+"/anti_classification_classifier_output"] = anti_classification_f1_score
+                # if self.phylo_disentangler.loss_phylo:
+                anti_classification_classifier_output = in_out_disentangler[CONSTANTS.DISENTANGLER_NON_ATTRIBUTE_CLASS_OUTPUT]
+                anti_classification_f1_score = self.phylo_disentangler.loss_phylo.F1(anti_classification_classifier_output, batch[CONSTANTS.DISENTANGLER_CLASS_OUTPUT])
+                losses[prefix+"/anti_classification_classifier_output"] = anti_classification_f1_score
 
 
 
@@ -453,7 +536,17 @@ class PhyloVQVAE(VQModel):
             return outputs
         
         if optimizer_idx==1 and (self.phylo_disentangler.loss_anticlassification is not None):
-            mapping_loss = disentangler_loss_dic['anti_classification_mapping_loss']
+            o = in_out_disentangler[CONSTANTS.DISENTANGLER_ANTI_MAPPING_OUTPUT]
+            if self.phylo_disentangler.loss_anticlassification.v2==True:
+                class_mapping = self.phylo_disentangler.classification_layers[CONSTANTS.DISENTANGLER_CLASS_OUTPUT](o)
+                mapping_loss = torch.nn.CrossEntropyLoss()(class_mapping, batch[CONSTANTS.DISENTANGLER_CLASS_OUTPUT])
+            elif self.phylo_disentangler.loss_anticlassification.v3==True:
+                class_mapping = self.phylo_disentangler.classification_layers[CONSTANTS.DISENTANGLER_CLASS_OUTPUT](o)
+                class_mapping = torch.nn.functional.softmax(class_mapping, dim=1)
+                mapping_loss = -torch.mean(torch.sum(class_mapping*class_mapping.add(1e-9).log(), dim=1), dim=0)
+            else:
+                mapping_loss = torch.mean(torch.abs(in_out_disentangler[CONSTANTS.QUANTIZED_PHYLO_OUTPUT].detach().contiguous() - o.contiguous()))
+            
             total_loss = mapping_loss*self.phylo_disentangler.loss_anticlassification.beta*self.phylo_disentangler.loss_anticlassification.weight
             losses = {prefix+"/disentangler_anti_classification_loss": mapping_loss}
             
@@ -483,6 +576,11 @@ class PhyloVQVAE(VQModel):
             self.validation_epoch_end_classes = torch.cat([x[CONSTANTS.DISENTANGLER_CLASS_OUTPUT] for x in outputs], 0)
             self.validation_epoch_end_classnames = list(itertools.chain.from_iterable([x[CONSTANTS.DATASET_CLASSNAME] for x in outputs]))
         
+    @torch.no_grad()
+    def on_validation_start(self):
+        for v in self.trainer.val_dataloaders:
+            v.sampler.shuffle = True
+            v.sampler.set_epoch(self.current_epoch)
 
     ##################### test ###########
         
@@ -499,6 +597,7 @@ class PhyloVQVAE(VQModel):
         class_ = batch[CONSTANTS.DISENTANGLER_CLASS_OUTPUT]
         classname_ = batch[CONSTANTS.DATASET_CLASSNAME]
         zq_phylo_features = in_out_disentangler[CONSTANTS.QUANTIZED_PHYLO_OUTPUT]
+        zq_non_phylo_features = in_out_disentangler[CONSTANTS.QUANTIZED_PHYLO_NONATTRIBUTE_OUTPUT]
         
         _, _, _, in_out_disentangler_rec = self(rec_x)
         class_recreated = in_out_disentangler_rec[CONSTANTS.DISENTANGLER_CLASS_OUTPUT]
@@ -508,7 +607,8 @@ class PhyloVQVAE(VQModel):
             'pred_rec': class_recreated,
             CONSTANTS.DISENTANGLER_CLASS_OUTPUT: class_, #.unsqueeze(-1)
             CONSTANTS.DATASET_CLASSNAME: classname_,
-            'zq_phylo': zq_phylo_features
+            'zq_phylo': zq_phylo_features,
+            'zq_nonphylo': zq_non_phylo_features
         }
     
     @torch.no_grad()
@@ -569,29 +669,86 @@ class PhyloVQVAE(VQModel):
             embedding_dist = aggregate_metric_from_specimen_to_species(sorted_class_names_according_to_class_indx, zq_hamming_distances)
             plot_heatmap(embedding_dist.cpu(), self.test_chkpt_path, title='zq hamming species distances for level {}'.format(level), postfix=CONSTANTS.TEST_DIR)
             
-
+        #plots per specimen
+        print("Calculating embedding distances for nonphylo")
+        
+        zq_nonphylo = torch.cat([x['zq_nonphylo'] for x in in_out], 0)
+        sorting_indices = numpy.argsort(classes.cpu())
+        sorted_zq_nonphylo = zq_nonphylo[sorting_indices, :]
+        sorted_zq_nonphylo_codes = self.phylo_disentangler.embedding_converter.get_phylo_codes(zq_nonphylo)
+        zq_hamming_distances = get_HammingDistance_matrix(sorted_zq_nonphylo_codes)
+        
+        plot_heatmap(zq_hamming_distances.cpu(), self.test_chkpt_path, title='zq hamming distances for nonphylo', postfix=CONSTANTS.TEST_DIR)
+        
+        #********************
+        print("Calculating phylo distances for level {}".format(level))
+        
+        species_distances = get_species_phylo_distance(sorted_class_names_according_to_class_indx, self.phylo_disentangler.loss_phylo.phylogeny.get_distance_between_parents, relative_distance=1.0)
+        plot_heatmap(species_distances, self.test_chkpt_path, title='phylo distances for nonphylo', postfix=CONSTANTS.TEST_DIR)
+            
+        #******************
+        print("Calculating aggregated distances for level {}".format(level))
+        
+        embedding_dist = aggregate_metric_from_specimen_to_species(sorted_class_names_according_to_class_indx, zq_hamming_distances)
+        plot_heatmap(embedding_dist.cpu(), self.test_chkpt_path, title='zq hamming species distances for nonphylo'.format(level), postfix=CONSTANTS.TEST_DIR)
+            
         return test_measures
     #######################################
 
     
     def configure_optimizers(self):
         lr = self.learning_rate
-        opt_ae = torch.optim.Adam(self.phylo_disentangler.parameters(), lr=lr, betas=(0.5, 0.9))
+        if self.optim_type is None:
+            opt_ae = torch.optim.Adam(self.phylo_disentangler.parameters(), lr=lr, betas=(0.5, 0.9))
+        else:
+            opt_ae = torch.optim.AdamW(self.phylo_disentangler.parameters(), lr=lr, betas=(0.5, 0.9))
         opts = [opt_ae]
         if self.phylo_disentangler.loss_anticlassification is not None:
-            opt_mapping = torch.optim.Adam(self.phylo_disentangler.codebook_mapping_layers.parameters(), lr=lr, betas=(0.5, 0.9))
+            if self.optim_type is None:
+                opt_mapping = torch.optim.Adam(self.phylo_disentangler.codebook_mapping_layers.parameters(), lr=lr, betas=(0.5, 0.9))
+            else:
+                opt_mapping = torch.optim.AdamW(self.phylo_disentangler.codebook_mapping_layers.parameters(), lr=lr, betas=(0.5, 0.9))
             opts.append(opt_mapping)
         else:
             opts.append(opt_ae)
             
         
-        lr_schedulers = [{
-            "scheduler": torch.optim.lr_scheduler.CosineAnnealingWarmRestarts(opt_ae, 150, eta_min=lr*0.01),
-            "monitor": "val"+CONSTANTS.DISENTANGLER_PHYLO_LOSS
-            },{
-            "scheduler": torch.optim.lr_scheduler.CosineAnnealingWarmRestarts(opt_ae, 150, eta_min=lr*0.01),
-            "monitor": "val"+CONSTANTS.DISENTANGLER_PHYLO_LOSS
-            },
-        ]
+        if self.scheduler_type is None:
+            lr_schedulers = [{
+                "scheduler": torch.optim.lr_scheduler.CosineAnnealingWarmRestarts(opt_ae, self.lr_cycle, eta_min=lr*self.lr_factor),
+                },{
+                "scheduler": torch.optim.lr_scheduler.CosineAnnealingWarmRestarts(opt_ae, self.lr_cycle, eta_min=lr*self.lr_factor),
+                },
+            ]
+        elif self.scheduler_type == "warmup":
+            warm_up_step = 40
+            def lr_foo(epoch):
+                if epoch < warm_up_step:
+                    # warm up lr
+                    lr_scale = 0.1 ** ((warm_up_step - epoch)*0.01)
+                else:
+                    lr_scale = 0.97 ** epoch
+                    if lr_scale < self.lr_factor:
+                       lr_scale = self.lr_factor
+
+                return lr_scale
+
+            scheduler = torch.optim.lr_scheduler.LambdaLR(
+                opt_ae,
+                lr_lambda=lr_foo
+            )
         
+            lr_schedulers = [{
+                "scheduler": scheduler,
+                },{
+                "scheduler": scheduler,
+                },
+            ]
+        elif self.scheduler_type == "const":
+            lr_schedulers = [
+            ]
+        else:
+            raise "Undefined scheduler"
+            
+            
         return opts, lr_schedulers 

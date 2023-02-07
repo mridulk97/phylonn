@@ -1,6 +1,7 @@
 from taming.loading_utils import load_config, load_phylovqvae, load_CWVQGAN
 from taming.data.custom import CustomTest as CustomDataset
 from taming.data.utils import custom_collate
+from taming.models.vqgan import VQModel
 
 from torch.utils.data import DataLoader
 from pytorch_lightning.trainer import Trainer
@@ -32,6 +33,9 @@ def main(configs_yaml):
     if load_model=='CW':
         print('loading CW model')
         model = load_CWVQGAN(config, ckpt_path=ckpt_path, data=dataset.data, cuda=(DEVICE is not None))
+    elif load_model=='VQMODEL':
+        print('loading VQMODEL model')
+        model = load_phylovqvae(config, ckpt_path=ckpt_path, cuda=(DEVICE is not None), model_type=VQModel) 
     else:
         print('loading Phlyo-NN')
         model = load_phylovqvae(config, ckpt_path=ckpt_path, cuda=(DEVICE is not None))

@@ -1,10 +1,16 @@
 size: 256
-file_list_path: "/home/elhamod/data/Fish/taming_transforms_fish_train_padded_256.txt"
+# file_list_path: "/home/elhamod/data/Fish/taming_transforms_fish_train_padded_256.txt"
+file_list_path:  /fastscratch/elhamod/data/Fish/taming_transforms_fish_test_padded_256_imagenetmeancolor.txt
 # size= 512
 # file_list_path = "/home/elhamod/data/Fish/taming_transforms_fish_train_padded_512.txt"
 
-species1: 'Morone chrysops'
-species2: 'Morone mississippiensis'
+# species1: 'Lepomis megalotis'
+species1: 'Noturus miurus'
+# species1: 'Notropis percobromus'
+
+# species2: 'Lepomis macrochirus'
+species2: 'Notropis nubilus'
+# species2: 'Noturus flavus'
 
 distance_used: "js_divergence" #"chi2" 
 
@@ -57,10 +63,18 @@ DEVICE: 0
 # yaml_path: "/fastscratch/elhamod/logs/2022-10-30T20-13-25_Phylo-VQVAE256img-phase4-swapconvin-nolastrelu-multiclass-lowerlr/configs/2022-10-30T20-13-25-project.yaml"
 # ckpt_path: "/fastscratch/elhamod/logs/2022-10-30T20-13-25_Phylo-VQVAE256img-phase4-swapconvin-nolastrelu-multiclass-lowerlr/checkpoints/last.ckpt"
 
-# slower lr stronganti
-ckpt_path: /home/elhamod/projects/taming-transformers/logs/imported/2022-10-31T12-46-01_Phylo-VQVAE256img-phase4-multiclass-lowerlr-8cblevel-stronganti/checkpoints/last.ckpt
-yaml_path: /home/elhamod/projects/taming-transformers/logs/imported/2022-10-31T12-46-01_Phylo-VQVAE256img-phase4-multiclass-lowerlr-8cblevel-stronganti/configs/2022-10-31T12-46-01-project.yaml
+# ******slower lr stronganti
+# ckpt_path: /home/elhamod/projects/taming-transformers/logs/imported/2022-10-31T12-46-01_Phylo-VQVAE256img-phase4-multiclass-lowerlr-8cblevel-stronganti/checkpoints/last.ckpt
+# yaml_path: /home/elhamod/projects/taming-transformers/logs/imported/2022-10-31T12-46-01_Phylo-VQVAE256img-phase4-multiclass-lowerlr-8cblevel-stronganti/configs/2022-10-31T12-46-01-project.yaml
 
 #without phylo
 # ckpt_path: /home/elhamod/projects/taming-transformers/logs/2022-10-12T10-08-53_Phylo-VQVAE256img-afterhyperp-withoutphylo-round2/checkpoints/last.ckpt
 # yaml_path: /home/elhamod/projects/taming-transformers/logs/2022-10-12T10-08-53_Phylo-VQVAE256img-afterhyperp-withoutphylo-round2/configs/2022-10-12T10-08-53-project.yaml
+
+
+# ckpt_path: /fastscratch/elhamod/logs/2023-01-15T00-45-57_Phylo-VQVAE-phase8256img-4phylo-4nonphylo/checkpoints/last.ckpt
+# yaml_path: /fastscratch/elhamod/logs/2023-01-15T00-45-57_Phylo-VQVAE-phase8256img-4phylo-4nonphylo/configs/2023-01-15T00-45-57-project.yaml
+
+#speciesout
+ckpt_path: /fastscratch/elhamod/logs/2023-01-31T22-56-46_Phylo-VQVAE-phase8256img-4phylo-4nonphylo-fewernonphylodim-speciesout/checkpoints/last.ckpt
+yaml_path: /fastscratch/elhamod/logs/2023-01-31T22-56-46_Phylo-VQVAE-phase8256img-4phylo-4nonphylo-fewernonphylodim-speciesout/configs/2023-01-31T22-56-46-project.yaml

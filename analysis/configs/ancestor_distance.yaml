@@ -1,9 +1,16 @@
+# fileNames: [
+#     '/home/elhamod/projects/taming-transformers/analysis/transformer analysis/level0.csv',
+#     '/home/elhamod/projects/taming-transformers/analysis/transformer analysis/level1.csv',
+#     '/home/elhamod/projects/taming-transformers/analysis/transformer analysis/level2.csv',
+#     '/home/elhamod/projects/taming-transformers/analysis/transformer analysis/level3.csv'
+# ]
+
 fileNames: [
-    '/home/elhamod/projects/taming-transformers/analysis/level0.csv',
-    '/home/elhamod/projects/taming-transformers/analysis/level1.csv',
-    '/home/elhamod/projects/taming-transformers/analysis/level2.csv',
-    '/home/elhamod/projects/taming-transformers/analysis/level3.csv',
+    '/home/elhamod/projects/taming-transformers/analysis/transformer analysis paca/level0.csv',
+    '/home/elhamod/projects/taming-transformers/analysis/transformer analysis paca/level1.csv',
+    '/home/elhamod/projects/taming-transformers/analysis/transformer analysis paca/level2.csv',
+    '/home/elhamod/projects/taming-transformers/analysis/transformer analysis paca/level3.csv'
 ]
 
 size: 256
-file_list_path: "/home/elhamod/data/Fish/taming_transforms_fish_train_padded_256.txt"
+file_list_path: "/fastscratch/elhamod/data/Fish/taming_transforms_fish_test_padded_256_imagenetmeancolor.txt"

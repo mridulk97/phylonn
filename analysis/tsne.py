@@ -122,7 +122,6 @@ def avg_distances(fine_label, indexes, phylogeny, dataset):
     for i in indexes:
         lbl = dataset[i]['class']
         dist = dist + phylogeny.get_distance(label_list[fine_label], label_list[lbl])
-        # print(fine_label, i, lbl, dist)
     result = dist/len(indexes)
     return result
 
@@ -157,7 +156,7 @@ def plot_phylo_KNN(dataloader, tx, ty, path, file_prefix, phylogeny_knn, n_neigh
         hue='KNN_phylo_dist',
         palette="Oranges",
         data=df,
-        legend="full"
+        legend=False #legend="full"
     )
 
     norm = plt.Normalize(df['KNN_phylo_dist'].min(), df['KNN_phylo_dist'].max())
@@ -165,13 +164,12 @@ def plot_phylo_KNN(dataloader, tx, ty, path, file_prefix, phylogeny_knn, n_neigh
     sm.set_array([])
 
     # Remove the legend and add a colorbar
-    sns_plot.get_legend().remove()
     sns_plot.figure.colorbar(sm)
 
     fig = sns_plot.get_figure()
     save_path = os.path.join(path, file_prefix+"_tsne_KNN_phylo.png")
     print(save_path)
-    fig.savefig(save_path, bbox_inches='tight',dpi=300)  
+    fig.savefig(save_path,bbox_inches='tight',dpi=300)  
 
 
 def plot_correct_incorrect(dataloader, tx, ty, path, file_prefix, model=None, phylomapper=None, cuda=None):
@@ -207,10 +205,10 @@ def plot_correct_incorrect(dataloader, tx, ty, path, file_prefix, model=None, ph
         hue='isCorrect',
         palette=sns.color_palette("hls", len(set(fine_labels))),
         data=df,
-        legend="full"
+        legend=False #"full"
     )
     fig = sns_plot.get_figure()
-    fig.savefig(os.path.join(path, file_prefix+"_tsne_correctPrediction.png"))
+    fig.savefig(os.path.join(path, file_prefix+"_tsne_correctPrediction.png"),bbox_inches='tight',dpi=300)
 
 
 def plot_tsne_dots(dataloader, tx, ty, path, file_prefix, legend_labels=[CONSTANTS.DISENTANGLER_CLASS_OUTPUT], phylomapper=None):
@@ -244,13 +242,13 @@ def plot_tsne_dots(dataloader, tx, ty, path, file_prefix, legend_labels=[CONSTAN
             hue=j,
             palette=sns.color_palette("hls", len(set(labels[j]))),
             data=df,
-            legend=False
+            legend=False# legend="full"
         )
         # tooltip_label = [str(j) for i in range(len(labels))] #TODO: is this i a j?
         # tooltip = mpld3.plugins.PointLabelTooltip(sns_plot, labels=tooltip_label)
         fig = sns_plot.get_figure()
         # mpld3.plugins.connect(fig, tooltip)
-        fig.savefig(os.path.join(path, file_prefix+"_legend_" + j +"_tsne_dots.png"), bbox_inches='tight',dpi=300)
+        fig.savefig(os.path.join(path, file_prefix+"_legend_" + j +"_tsne_dots.png"),bbox_inches='tight',dpi=300)
 
 
 

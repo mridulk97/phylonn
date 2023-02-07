@@ -91,12 +91,13 @@ class VectorQuantizer(nn.Module):
 
     def get_codebook_entry(self, indices, shape):
         # shape specifying (batch, height, width, channel)
-        # TODO: check for more easy handling with nn.Embedding
-        min_encodings = torch.zeros(indices.shape[0], self.n_e).to(indices)
-        min_encodings.scatter_(1, indices[:,None], 1)
+        if self.remap is not None:
+            indices = indices.reshape(shape[0],-1) # add batch axis
+            indices = self.unmap_to_all(indices)
+            indices = indices.reshape(-1) # flatten again
 
         # get quantized latent vectors
-        z_q = torch.matmul(min_encodings.float(), self.embedding.weight)
+        z_q = self.embedding(indices)
 
         if shape is not None:
             z_q = z_q.view(shape)

@@ -63,7 +63,7 @@ def generate_images(index, lbl,
                     model,
                     device, ckpt_path, prefix_text, save_individual_images=False):
     
-    sequence_length = model.transformer.block_size-1
+    sequence_length = model.transformer.get_block_size()-1
     
     
     list_of_created_sequence = []

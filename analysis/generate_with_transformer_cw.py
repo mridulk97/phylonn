@@ -1,11 +1,9 @@
-from taming.loading_utils import load_config, load_phylovqvae, load_CWVQGAN
+from taming.loading_utils import load_config, load_CWVQGAN
 from taming.modules.losses.phyloloss import get_loss_name
 from taming.plotting_utils import save_image, save_image_grid, save_to_cvs
 from taming.models.cond_transformer import Net2NetTransformer
 from taming.data.custom import CustomTest as CustomDataset
-from taming.analysis_utils import Embedding_Code_converter
 from main import instantiate_from_config
-from taming.models.cond_transformer import Phylo_Net2NetTransformer
 
 import torch
 from tqdm import tqdm

@@ -28,10 +28,11 @@ source activate taming3
 
 which python
 
-python analysis/tsne.py 
-python analysis/tsne.py --config analysis/configs/tsne_level0.yaml
-python analysis/tsne.py --config analysis/configs/tsne_level1.yaml
+# python analysis/tsne.py 
+# python analysis/tsne.py --config analysis/configs/tsne_level0.yaml
+# python analysis/tsne.py --config analysis/configs/tsne_level1.yaml
 python analysis/tsne.py --config analysis/configs/tsne_level2.yaml
+# python analysis/tsne.py --config analysis/configs/tsne-vqgan.yaml
 
 
 exit;

@@ -1,0 +1,37 @@
+ckpt_path: /fastscratch/elhamod/logs/2023-01-15T00-45-57_Phylo-VQVAE-phase8256img-4phylo-4nonphylo/checkpoints/last.ckpt
+yaml_path: /fastscratch/elhamod/logs/2023-01-15T00-45-57_Phylo-VQVAE-phase8256img-4phylo-4nonphylo/configs/2023-01-15T00-45-57-project.yaml
+
+# ckpt_path: /fastscratch/elhamod/logs/2023-01-31T15-12-29_Phylo-VQVAE-phase8256img-4phylo-4nonphylo-fewernonphylodim/checkpoints/last.ckpt
+# yaml_path: /fastscratch/elhamod/logs/2023-01-31T15-12-29_Phylo-VQVAE-phase8256img-4phylo-4nonphylo-fewernonphylodim/configs/2023-01-31T15-12-29-project.yaml
+
+DEVICE: 0
+
+# image_index1: 3763
+# image_index2: 962
+# count: 10
+
+# image_index1: 3390
+# image_index2: 3407
+# count: 15
+
+image_index1: 40
+image_index2: 734
+count: 15
+
+size: 256
+file_list_path: "/fastscratch/elhamod/data/Fish/taming_transforms_fish_train_padded_256_imagenetmeancolor.txt"
+
+order: "entropy" #"entropy" #"reverse" # None, 
+show_only_key_imgs: True #False #True
+according_to_target: True
+
+# phylogeny_path: "/home/elhamod/data/Fish"
+# phyloDistances_string: "0.77,0.5,0.33"
+
+bb_model_paths: [
+  /home/elhamod/projects/taming-transformers/analysis/BBmodels/classification_model_0.path,
+  /home/elhamod/projects/taming-transformers/analysis/BBmodels/classification_model_1.path,
+  /home/elhamod/projects/taming-transformers/analysis/BBmodels/classification_model_2.path,
+  /home/elhamod/projects/taming-transformers/analysis/BBmodels/classification_model_3.path
+]
+

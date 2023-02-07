@@ -1,0 +1,27 @@
+
+DEVICE: 0
+
+num_workers: 8
+batch_size: 100
+
+# num_of_layers: 2
+
+encoding_model_config: /fastscratch/elhamod/logs/2022-12-21T16-52-48_Phylo-VQVAE-phase7256img-lowerbeta/configs/2022-12-21T16-52-48-project.yaml
+encoding_model_path: /fastscratch/elhamod/logs/2022-12-21T16-52-48_Phylo-VQVAE-phase7256img-lowerbeta/checkpoints/epoch=000302.ckpt
+
+model_path: /fastscratch/elhamod/logs/2022-12-21T16-52-48_Phylo-VQVAE-phase7256img-lowerbeta/checkpoints/codenet_model_3.path
+
+# Just set phylogeny_path to None for training species level
+phylogeny_path:
+    
+
+
+size: 256
+# file_list_path_train: "/fastscratch/elhamod/data/Fish/taming_transforms_fish_train_padded_256.txt"
+# file_list_path_test: "/fastscratch/elhamod/data/Fish/taming_transforms_fish_test_padded_256.txt"
+file_list_path_test: "/fastscratch/elhamod/data/Fish/taming_transforms_fish_test_padded_256.txt"
+# size= 512
+# file_list_path = "/fastscratch/elhamod/data/Fish/taming_transforms_fish_train_padded_512.txt"
+# file_list_path: "/fastscratch/elhamod/data/Fish/taming_transforms_fish_test_small.txt" # Just for test
+
+##############

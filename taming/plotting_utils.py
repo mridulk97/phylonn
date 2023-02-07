@@ -27,7 +27,12 @@ def dump_to_json(dict, ckpt_path, name='results', get_fig_path=True):
         
 
 def save_to_cvs(ckpt_path, postfix, file_name, list_of_created_sequence):
-    file = open(os.path.join(get_fig_pth(ckpt_path, postfix=postfix), file_name), 'w')
+    if ckpt_path is not None:
+        root = get_fig_pth(ckpt_path, postfix=postfix)
+    else:
+        root = postfix
+        
+    file = open(os.path.join(root, file_name), 'w')
     with file:  
         write = csv.writer(file)
         write.writerows(list_of_created_sequence)
@@ -55,7 +60,7 @@ def save_image_grid(torch_images, ckpt_path=None, subfolder=None, postfix="", nr
     filename = "code_changes_"+postfix+".png"
     path = os.path.join(root, filename)
     os.makedirs(os.path.split(path)[0], exist_ok=True)
-    Image.fromarray(grid).save(path)
+    Image.fromarray(grid).save(path, bbox_inches='tight')
 
 
 def unprocess_image(torch_image):
@@ -67,15 +72,20 @@ def unprocess_image(torch_image):
     torch_image = (torch_image*255).astype(np.uint8)
     return torch_image
 
-def save_image(torch_image, image_name, ckpt_path, subfolder=None):
-    root = get_fig_pth(ckpt_path, postfix=subfolder)
+def save_image(torch_image, image_name, ckpt_path=None, subfolder=None):
+    if ckpt_path is not None:
+        root = get_fig_pth(ckpt_path, postfix=subfolder)
+    else:
+        root = subfolder
 
     torch_image = unprocess_image(torch_image)
     
     filename = image_name+".png"
     path = os.path.join(root, filename)
     os.makedirs(os.path.split(path)[0], exist_ok=True)
-    Image.fromarray(torch_image).save(path)
+    fig = plt.figure()
+    plt.imshow(torch_image[0].numpy().squeeze())
+    fig.savefig(path,bbox_inches='tight',dpi=300)
     
     
 
@@ -100,7 +110,7 @@ def plot_heatmap(heatmap, ckpt_path=None, title='default', postfix=None):
     cbar = ax.collections[0].colorbar
     cbar.ax.tick_params(labelsize=15)
     plt.show()
-    fig.savefig(os.path.join(path, title+ " heat_map.png"), bbox_inches='tight',dpi=300)
+    fig.savefig(os.path.join(path, title+ " heat_map.png"),bbox_inches='tight',dpi=300)
     pd.DataFrame(heatmap.numpy()).to_csv(os.path.join(path, title+ " heat_map.csv"))
     
     
@@ -152,5 +162,5 @@ class Histogram_plotter:
         
         plt.show()
         sub_dir = 'attribute' if not is_nonattribute else 'non_attribute'
-        fig.savefig(os.path.join(get_fig_pth(self.ckpt_path, postfix=self.directory+'/'+sub_dir), "{}_{}_{}_hostogram.png".format(prefix, species_indx, self.indx_to_label[species_indx])))
+        fig.savefig(os.path.join(get_fig_pth(self.ckpt_path, postfix=self.directory+'/'+sub_dir), "{}_{}_{}_hostogram.png".format(prefix, species_indx, self.indx_to_label[species_indx])),bbox_inches='tight',dpi=300)
         plt.close(fig)
