@@ -1,4 +1,4 @@
-path: /home/elhamod/projects/phylonn/analysis/baseline results
+path: /home/elhamod/projects/phylonn/analysis/baseline results # where to fine files in arrays1
 file_name: "trimmed baseline phylo"
 
 output_names: [
