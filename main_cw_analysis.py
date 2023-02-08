@@ -10,10 +10,10 @@ from pytorch_lightning import seed_everything
 from pytorch_lightning.trainer import Trainer
 from pytorch_lightning.callbacks import ModelCheckpoint, Callback, LearningRateMonitor
 from pytorch_lightning.utilities.distributed import rank_zero_only
-from taming.models.iterative_normalization import IterNormRotation as cw_layer
+from scripts.models.iterative_normalization import IterNormRotation as cw_layer
 
-from taming.data.utils import custom_collate
-from taming.data.cw_analysis import plot_concept_top50
+from scripts.data.utils import custom_collate
+from scripts.data.cw_analysis import plot_concept_top50
 
 import wandb
 

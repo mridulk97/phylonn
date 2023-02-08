@@ -5,9 +5,9 @@
 # path: /fastscratch/elhamod/logs/2022-10-31T12-46-01_Phylo-VQVAE256img-phase4-multiclass-lowerlr-8cblevel-stronganti/figs/results_summary_level0
 # path: /fastscratch/elhamod/logs/2022-10-31T12-46-01_Phylo-VQVAE256img-phase4-multiclass-lowerlr-8cblevel-stronganti/figs/results_summary_level1
 # path: /fastscratch/elhamod/logs/2022-10-31T12-46-01_Phylo-VQVAE256img-phase4-multiclass-lowerlr-8cblevel-stronganti/figs/results_summary_level2
-# path: /home/elhamod/projects/taming-transformers/analysis/baseline results
+# path: /home/elhamod/projects/phylonn/analysis/baseline results
 
-# path: /fastscratch/elhamod/projects/taming-transformers/logs/256pixels_256embedding/figs/results_summary
+# path: /fastscratch/elhamod/projects/phylonn/logs/256pixels_256embedding/figs/results_summary
 
 # path: /fastscratch/elhamod/logs/2023-01-15T00-45-57_Phylo-VQVAE-phase8256img-4phylo-4nonphylo/figs/results_summary
 
@@ -73,27 +73,25 @@ arrays1: [
 #   /fastscratch/elhamod/logs/2022-11-04T15-27-23_Phylo-VQVAE256img-phase4-nophylo/figs/results_summary/phylo species distances for level 3 heat_map.csv,]
 
 # arrays2: [
-#   /home/elhamod/projects/taming-transformers/analysis/ancestor_distance_level3 heat_map.csv,
-#   /home/elhamod/projects/taming-transformers/analysis/ancestor_distance_level0 heat_map.csv,
-#   /home/elhamod/projects/taming-transformers/analysis/ancestor_distance_level1 heat_map.csv,
-#   /home/elhamod/projects/taming-transformers/analysis/ancestor_distance_level2 heat_map.csv,
-#   /home/elhamod/projects/taming-transformers/analysis/ancestor_distance_level3 heat_map.csv,
+#   /home/elhamod/projects/phylonn/analysis/ancestor_distance_level3 heat_map.csv,
+#   /home/elhamod/projects/phylonn/analysis/ancestor_distance_level0 heat_map.csv,
+#   /home/elhamod/projects/phylonn/analysis/ancestor_distance_level1 heat_map.csv,
+#   /home/elhamod/projects/phylonn/analysis/ancestor_distance_level2 heat_map.csv,
+#   /home/elhamod/projects/phylonn/analysis/ancestor_distance_level3 heat_map.csv,
 # ]
 
 
 # arrays2: [
-#   # /home/elhamod/projects/taming-transformers/analysis/phylo analysis/trimmed phylo species distances for level 3 heat_map.csv,
-#   # /home/elhamod/projects/taming-transformers/analysis/phylo analysis/trimmed phylo species distances for level 0 heat_map.csv,
-#   # /home/elhamod/projects/taming-transformers/analysis/phylo analysis/trimmed phylo species distances for level 1 heat_map.csv,
-#   # /home/elhamod/projects/taming-transformers/analysis/phylo analysis/trimmed phylo species distances for level 2 heat_map.csv,
-#   /home/elhamod/projects/taming-transformers/analysis/phylo analysis/trimmed phylo species distances for level 3 heat_map.csv,
+#   # /home/elhamod/projects/phylonn/analysis/phylo analysis/trimmed phylo species distances for level 3 heat_map.csv,
+#   # /home/elhamod/projects/phylonn/analysis/phylo analysis/trimmed phylo species distances for level 0 heat_map.csv,
+#   # /home/elhamod/projects/phylonn/analysis/phylo analysis/trimmed phylo species distances for level 1 heat_map.csv,
+#   # /home/elhamod/projects/phylonn/analysis/phylo analysis/trimmed phylo species distances for level 2 heat_map.csv,
+#   /home/elhamod/projects/phylonn/analysis/phylo analysis/trimmed phylo species distances for level 3 heat_map.csv,
 # ]
 arrays2: [
-  # /home/elhamod/projects/taming-transformers/analysis/ancestor analysis/trimmed_ancestor_distance_level3 heat_map.csv,
-  # /home/elhamod/projects/taming-transformers/analysis/ancestor analysis/trimmed_ancestor_distance_level0 heat_map.csv,
-  # /home/elhamod/projects/taming-transformers/analysis/ancestor analysis/trimmed_ancestor_distance_level1 heat_map.csv,
-  # /home/elhamod/projects/taming-transformers/analysis/ancestor analysis/trimmed_ancestor_distance_level2 heat_map.csv,
-  /home/elhamod/projects/taming-transformers/analysis/ancestor analysis/trimmed_ancestor_distance_level3 heat_map.csv,
+  # /home/elhamod/projects/phylonn/analysis/ancestor analysis/trimmed_ancestor_distance_level3 heat_map.csv,
+  # /home/elhamod/projects/phylonn/analysis/ancestor analysis/trimmed_ancestor_distance_level0 heat_map.csv,
+  # /home/elhamod/projects/phylonn/analysis/ancestor analysis/trimmed_ancestor_distance_level1 heat_map.csv,
+  # /home/elhamod/projects/phylonn/analysis/ancestor analysis/trimmed_ancestor_distance_level2 heat_map.csv,
+  /home/elhamod/projects/phylonn/analysis/ancestor analysis/trimmed_ancestor_distance_level3 heat_map.csv,
 ]
-
-permute_array1: false

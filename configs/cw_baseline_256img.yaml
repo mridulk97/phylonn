@@ -1,7 +1,7 @@
 model:
   base_learning_rate: 4.5e-6 #we tried 4.5e-3 #4.5e-6
-  target: taming.models.cwautoencoder.CWmodelVQGAN_baseline
-  # target: taming.models.vqgan.VQModel
+  target: scripts.models.cwautoencoder.CWmodelVQGAN_baseline
+  # target: scripts.models.vqgan.VQModel
   project: CW-VQVAE
   params:
     ckpt_path: ./logs/256pixels_256embedding/checkpoints/last.ckpt
@@ -19,7 +19,7 @@ model:
       attn_resolutions: [16]
       dropout: 0.0
     lossconfig:
-      target: taming.modules.losses.vqperceptual.VQLPIPSWithDiscriminator
+      target: scripts.modules.losses.vqperceptual.VQLPIPSWithDiscriminator
       params:
         disc_conditional: False
         disc_in_channels: 3
@@ -33,13 +33,13 @@ model:
         batch_size: 100
         num_workers: 8
         train:
-          target: taming.data.custom.CustomTrain
+          target: scripts.data.custom.CustomTrain
           params:
             training_images_list_file: /home/mridul/data/phylo-VQVAE/taming_transforms_fish_train_padded_256.txt
             size: 256
             add_labels: True
         validation:
-          target: taming.data.custom.CustomTest
+          target: scripts.data.custom.CustomTest
           params:
             test_images_list_file: /home/mridul/data/phylo-VQVAE/taming_transforms_fish_test_padded_256.txt
             size: 256
@@ -52,12 +52,12 @@ data:
     batch_size: 5
     num_workers: 8
     train:
-      target: taming.data.custom.CustomTrain
+      target: scripts.data.custom.CustomTrain
       params:
         training_images_list_file: /home/mridul/data/phylo-VQVAE/taming_transforms_fish_train_padded_256.txt
         size: 256
     validation:
-      target: taming.data.custom.CustomTest
+      target: scripts.data.custom.CustomTest
       params:
         test_images_list_file: /home/mridul/data/phylo-VQVAE/taming_transforms_fish_test_padded_256.txt
         size: 256

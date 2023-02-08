@@ -1,23 +1,20 @@
-from taming.loading_utils import load_config, load_phylovqvae
-from taming.data.custom import CustomTest as CustomDataset
-from taming.data.utils import custom_collate
-from taming.analysis_utils import Embedding_Code_converter, HistogramFrequency
-from taming.models.vqgan import VQModel
-from taming.plotting_utils import get_fig_pth
+from scripts.loading_utils import load_config, load_phylovqvae
+from scripts.data.custom import CustomTest as CustomDataset
+from scripts.data.utils import custom_collate
+from scripts.analysis_utils import Embedding_Code_converter, HistogramFrequency
+from scripts.models.vqgan import VQModel
+from scripts.plotting_utils import get_fig_pth
 
 from torch.utils.data import DataLoader
 import torch
 from tqdm import tqdm
 
-import taming.constants as CONSTANTS
+import scripts.constants as CONSTANTS
 
 import os
 
 from omegaconf import OmegaConf
 import argparse
-
-GENERATED_FOLDER = "most_likely_generations"
-GENERATED_DATASET = "generated_dataset"
 
 ##########
 
@@ -84,7 +81,6 @@ if __name__ == "__main__":
     )
     
     cfg, _ = parser.parse_known_args()
-    # cfg = parser.config
     configs = OmegaConf.load(cfg.config)
     cli = OmegaConf.from_cli()
     config = OmegaConf.merge(configs, cli)

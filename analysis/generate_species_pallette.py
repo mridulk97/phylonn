@@ -1,15 +1,14 @@
 from omegaconf import OmegaConf
 import argparse
-from taming.analysis_utils import get_phylomapper_from_config
-from taming.data.custom import CustomTest as CustomDataset
+from scripts.analysis_utils import get_phylomapper_from_config
+from scripts.data.custom import CustomTest as CustomDataset
 from PIL import Image
 import torch
 import os
-from PIL import ImageFont
 from PIL import ImageDraw 
 
-from taming.modules.losses.phyloloss import parse_phyloDistances, get_relative_distance_for_level
-from taming.data.phylogeny import Phylogeny
+from scripts.modules.losses.phyloloss import parse_phyloDistances
+from scripts.data.phylogeny import Phylogeny
 
 @torch.no_grad()
 def main(configs_yaml):
@@ -43,12 +42,6 @@ def main(configs_yaml):
     
     
     grid = Image.new('RGB', size=(cols*size, rows*size))
-    
-    
-    # print(indices)
-    # print(paths)
-    # print(labels)
-    # print(grid)
     
     for j in range(max(labels)+1):
         species_name = dataset.indx_to_label[j]
@@ -84,7 +77,6 @@ if __name__ == "__main__":
     )
     
     cfg, _ = parser.parse_known_args()
-    # cfg = parser.config
     configs = OmegaConf.load(cfg.config)
     cli = OmegaConf.from_cli()
     config = OmegaConf.merge(configs, cli)

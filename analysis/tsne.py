@@ -2,12 +2,12 @@ import argparse
 import numpy as np
 from sklearn.manifold import TSNE
 from sklearn.decomposition import PCA
-from taming.analysis_utils import get_phylomapper_from_config
-from taming.data.phylogeny import Phylogeny
-from taming.loading_utils import load_config, load_phylovqvae
-from taming.models.phyloautoencoder import PhyloVQVAE
-from taming.models.vqgan import VQModel
-from taming.plotting_utils import get_fig_pth
+from scripts.analysis_utils import get_phylomapper_from_config
+from scripts.data.phylogeny import Phylogeny
+from scripts.loading_utils import load_config, load_phylovqvae
+from scripts.models.phyloautoencoder import PhyloVQVAE
+from scripts.models.vqgan import VQModel
+from scripts.plotting_utils import get_fig_pth
 from torchvision import transforms
 from tqdm import tqdm
 import torch
@@ -17,14 +17,13 @@ from matplotlib.pyplot import imshow, show
 import os
 import pandas as pd
 import seaborn as sns
-import mpld3
 import matplotlib.pyplot as plt
 from omegaconf import OmegaConf
-from taming.data.utils import custom_collate
-from taming.data.custom import CustomTest as CustomDataset
+from scripts.data.utils import custom_collate
+from scripts.data.custom import CustomTest as CustomDataset
 from torch.utils.data import DataLoader
 from sklearn.neighbors import NearestNeighbors
-import taming.constants as CONSTANTS
+import scripts.constants as CONSTANTS
 
 MAX_DIMS_PCA=100
 
@@ -151,7 +150,7 @@ def plot_phylo_KNN(dataloader, tx, ty, path, file_prefix, phylogeny_knn, n_neigh
         hue='KNN_phylo_dist',
         palette="Oranges",
         data=df,
-        legend=False #legend="full"
+        legend=False
     )
 
     norm = plt.Normalize(df['KNN_phylo_dist'].min(), df['KNN_phylo_dist'].max())
@@ -200,7 +199,7 @@ def plot_correct_incorrect(dataloader, tx, ty, path, file_prefix, model=None, ph
         hue='isCorrect',
         palette=sns.color_palette("hls", len(set(fine_labels))),
         data=df,
-        legend=False #"full"
+        legend=False
     )
     fig = sns_plot.get_figure()
     fig.savefig(os.path.join(path, file_prefix+"_tsne_correctPrediction.png"),bbox_inches='tight',dpi=300)
@@ -237,12 +236,9 @@ def plot_tsne_dots(dataloader, tx, ty, path, file_prefix, legend_labels=[CONSTAN
             hue=j,
             palette=sns.color_palette("hls", len(set(labels[j]))),
             data=df,
-            legend=False# legend="full"
+            legend=False
         )
-        # tooltip_label = [str(j) for i in range(len(labels))] #TODO: is this i a j?
-        # tooltip = mpld3.plugins.PointLabelTooltip(sns_plot, labels=tooltip_label)
         fig = sns_plot.get_figure()
-        # mpld3.plugins.connect(fig, tooltip)
         fig.savefig(os.path.join(path, file_prefix+"_legend_" + j +"_tsne_dots.png"),bbox_inches='tight',dpi=300)
 
 
@@ -278,25 +274,18 @@ def visualize_tsne_images(dataloader, tx, ty, img_res, path, file_prefix, phylom
     
     for img, x, y, file_name, fine_label in tqdm(zip(images, tx, ty, file_names, fine_labels), total=tx.shape[0]):
         tile = transforms.ToPILImage()(img).convert("RGB")
-        # print(img.shape)
-        # print(tile.size, tile.mode)
         
         draw = ImageDraw.Draw(tile)
-        # draw.text((0, int(img_res*0.8)), "true: " + str(fine_label.item())+"\npredicted: "+str(pred.item()), (255,0,0), font=font)
         draw.text((0, int(img_res*0.8)), str(fine_label.item()), (255,0,0), font=font)
         
         rs = max(1, tile.width/max_dim, tile.height/max_dim)
-        # print(rs, tile.width, tile.height, max_dim)
         tile = tile.resize((int(tile.width/rs), int(tile.height/rs)), Image.Resampling.LANCZOS)
-        # print(tile.size, tile.mode)
-        full_image.paste(tile, (int((width-max_dim)*x), height - int((height-max_dim)*y)))#, mask=tile.convert('RGBA'))
-        # raise
+        full_image.paste(tile, (int((width-max_dim)*x), height - int((height-max_dim)*y)))
 
     if phylomapper is not None:
         file_prefix = file_prefix+"_level"+str(phylomapper.level)
     
     matplotlib.pyplot.figure(figsize = (16,12))
-    # full_image = full_image.transpose(Image.FLIP_TOP_BOTTOM)
     imshow(full_image)
     full_image.save(os.path.join(path, file_prefix+"_tsne_images.png")) 
     
@@ -344,12 +333,11 @@ def main(configs_yaml):
         
     config = load_config(yaml_path, display=False)
     model = load_phylovqvae(config, ckpt_path=ckpt_path, cuda=(DEVICE is not None), model_type=model_type)
-    # model.set_test_chkpt_path(ckpt_path)
     
     with torch.no_grad():
         get_tsne(dataloader, model, get_fig_pth(ckpt_path, postfix=CONSTANTS.TSNE_FOLDER), 
-            legend_labels=legend_labels, #['fine'], 
-            which_tsne_plots = which_tsne_plots #['standard', 'images', 'incorrect']
+            legend_labels=legend_labels,
+            which_tsne_plots = which_tsne_plots
             , file_prefix=file_prefix
             , img_res=img_res,
             phylomapper=phylomapper,
@@ -369,7 +357,6 @@ if __name__ == "__main__":
     )
     
     cfg, _ = parser.parse_known_args()
-    # cfg = parser.config
     configs = OmegaConf.load(cfg.config)
     cli = OmegaConf.from_cli()
     config = OmegaConf.merge(configs, cli)

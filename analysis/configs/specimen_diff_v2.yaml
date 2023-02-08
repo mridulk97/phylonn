@@ -29,9 +29,9 @@ according_to_target: True
 # phyloDistances_string: "0.77,0.5,0.33"
 
 bb_model_paths: [
-  /home/elhamod/projects/taming-transformers/analysis/BBmodels/classification_model_0.path,
-  /home/elhamod/projects/taming-transformers/analysis/BBmodels/classification_model_1.path,
-  /home/elhamod/projects/taming-transformers/analysis/BBmodels/classification_model_2.path,
-  /home/elhamod/projects/taming-transformers/analysis/BBmodels/classification_model_3.path
+  /home/elhamod/projects/phylonn/analysis/BBmodels/classification_model_0.path,
+  /home/elhamod/projects/phylonn/analysis/BBmodels/classification_model_1.path,
+  /home/elhamod/projects/phylonn/analysis/BBmodels/classification_model_2.path,
+  /home/elhamod/projects/phylonn/analysis/BBmodels/classification_model_3.path
 ]
 

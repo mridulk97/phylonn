@@ -5,7 +5,7 @@
 #SBATCH --time=2-00:00:00 
 #SBATCH --gres=gpu:1
 #SBATCH --nodes=1 --ntasks-per-node=1 --cpus-per-task=8
-#SBATCH -o /fastscratch/elhamod/projects/taming-transformers/SLURM/slurm-%j.out
+#SBATCH -o /fastscratch/elhamod/projects/phylonn/SLURM/slurm-%j.out
 ##########SBATCH -o ./SLURM/slurm-%j.out
 
 # TODO: there is a bug. for some reason I need to reset again here.
@@ -33,16 +33,16 @@ which python
 # cp -avr /home/elhamod/data/Fish/taming_transforms_fish_train_padded_256_out.txt /projects/ml4science/phylonn/elhamod/data/Fish/taming_transforms_fish_train_padded_256_out.txt
 
 
-# mkdir -p /projects/ml4science/phylonn/elhamod/projects/taming-transformers/logs/512pixels_512embedding
-# mkdir -p /projects/ml4science/phylonn/elhamod/projects/taming-transformers/logs/512pixels_256embedding
-# mkdir -p /projects/ml4science/phylonn/elhamod/projects/taming-transformers/logs/256pixels_256embedding
-# mkdir -p  /projects/ml4science/phylonn/elhamod/projects/taming-transformers/SLURM
-# cp -avr /home/elhamod/projects/taming-transformers/logs/256pixels_256embedding/checkpoints /projects/ml4science/phylonn/elhamod/projects/taming-transformers/logs/256pixels_256embedding/checkpoints
-# cp -avr /home/elhamod/projects/taming-transformers/logs/512pixels_256embedding/checkpoints /projects/ml4science/phylonn/elhamod/projects/taming-transformers/logs/512pixels_256embedding/checkpoints
-# cp -avr /home/elhamod/projects/taming-transformers/logs/512pixels_512embedding/checkpoints /projects/ml4science/phylonn/elhamod/projects/taming-transformers/logs/512pixels_512embedding/checkpoints
-# cp -avr /home/elhamod/projects/taming-transformers/logs/256pixels_256embedding/configs /projects/ml4science/phylonn/elhamod/projects/taming-transformers/logs/256pixels_256embedding/configs
-# cp -avr /home/elhamod/projects/taming-transformers/logs/512pixels_256embedding/configs /projects/ml4science/phylonn/elhamod/projects/taming-transformers/logs/512pixels_256embedding/configs
-# cp -avr /home/elhamod/projects/taming-transformers/logs/512pixels_512embedding/configs /projects/ml4science/phylonn/elhamod/projects/taming-transformers/logs/512pixels_512embedding/configs
+# mkdir -p /projects/ml4science/phylonn/elhamod/projects/phylonn/logs/512pixels_512embedding
+# mkdir -p /projects/ml4science/phylonn/elhamod/projects/phylonn/logs/512pixels_256embedding
+# mkdir -p /projects/ml4science/phylonn/elhamod/projects/phylonn/logs/256pixels_256embedding
+# mkdir -p  /projects/ml4science/phylonn/elhamod/projects/phylonn/SLURM
+# cp -avr /home/elhamod/projects/phylonn/logs/256pixels_256embedding/checkpoints /projects/ml4science/phylonn/elhamod/projects/phylonn/logs/256pixels_256embedding/checkpoints
+# cp -avr /home/elhamod/projects/phylonn/logs/512pixels_256embedding/checkpoints /projects/ml4science/phylonn/elhamod/projects/phylonn/logs/512pixels_256embedding/checkpoints
+# cp -avr /home/elhamod/projects/phylonn/logs/512pixels_512embedding/checkpoints /projects/ml4science/phylonn/elhamod/projects/phylonn/logs/512pixels_512embedding/checkpoints
+# cp -avr /home/elhamod/projects/phylonn/logs/256pixels_256embedding/configs /projects/ml4science/phylonn/elhamod/projects/phylonn/logs/256pixels_256embedding/configs
+# cp -avr /home/elhamod/projects/phylonn/logs/512pixels_256embedding/configs /projects/ml4science/phylonn/elhamod/projects/phylonn/logs/512pixels_256embedding/configs
+# cp -avr /home/elhamod/projects/phylonn/logs/512pixels_512embedding/configs /projects/ml4science/phylonn/elhamod/projects/phylonn/logs/512pixels_512embedding/configs
 
 
 cp -avr /fastscratch/elhamod /projects/ml4science/phylonn

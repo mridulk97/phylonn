@@ -1,16 +1,14 @@
 import argparse
 import os
 import pandas as pd
-from taming.data.custom import CustomTest as CustomDataset
+from scripts.data.custom import CustomTest as CustomDataset
 
 from omegaconf import OmegaConf
-from taming.plotting_utils import plot_heatmap
+from scripts.plotting_utils import plot_heatmap
 import torch
 import numpy as np
 
 replace_nan = -1
-
-## This script is to calculate the morphological distances given Josef's csv file.
 
 def main(configs_yaml):
     fileNames = configs_yaml.fileNames

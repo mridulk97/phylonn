@@ -2,7 +2,7 @@
 ##### CVPR 2021 (Oral)
 ![teaser](assets/mountain.jpeg)
 
-[**Taming Transformers for High-Resolution Image Synthesis**](https://compvis.github.io/taming-transformers/)<br/>
+[**Taming Transformers for High-Resolution Image Synthesis**](https://compvis.github.io/phylonn/)<br/>
 [Patrick Esser](https://github.com/pesser)\*,
 [Robin Rombach](https://github.com/rromb)\*,
 [Björn Ommer](https://hci.iwr.uni-heidelberg.de/Staff/bommer)<br/>
@@ -11,7 +11,7 @@
 **tl;dr** We combine the efficiancy of convolutional approaches with the expressivity of transformers by introducing a convolutional VQGAN, which learns a codebook of context-rich visual parts, whose composition is modeled with an autoregressive transformer.
 
 ![teaser](assets/teaser.png)
-[arXiv](https://arxiv.org/abs/2012.09841) | [BibTeX](#bibtex) | [Project Page](https://compvis.github.io/taming-transformers/)
+[arXiv](https://arxiv.org/abs/2012.09841) | [BibTeX](#bibtex) | [Project Page](https://compvis.github.io/phylonn/)
 
 
 ### News
@@ -29,28 +29,28 @@
 - Added pretrained, unconditional models on [FFHQ](https://k00.fr/yndvfu95) and [CelebA-HQ](https://k00.fr/2xkmielf).
 - Added accelerated sampling via caching of keys/values in the self-attention operation, used in `scripts/sample_fast.py`.
 - Added a checkpoint of a [VQGAN](https://heibox.uni-heidelberg.de/d/2e5662443a6b4307b470/) trained with f8 compression and Gumbel-Quantization. 
-  See also our updated [reconstruction notebook](https://colab.research.google.com/github/CompVis/taming-transformers/blob/master/scripts/reconstruction_usage.ipynb). 
-- We added a [colab notebook](https://colab.research.google.com/github/CompVis/taming-transformers/blob/master/scripts/reconstruction_usage.ipynb) which compares two VQGANs and OpenAI's [DALL-E](https://github.com/openai/DALL-E). See also [this section](#more-resources).
+  See also our updated [reconstruction notebook](https://colab.research.google.com/github/CompVis/phylonn/blob/master/scripts/reconstruction_usage.ipynb). 
+- We added a [colab notebook](https://colab.research.google.com/github/CompVis/phylonn/blob/master/scripts/reconstruction_usage.ipynb) which compares two VQGANs and OpenAI's [DALL-E](https://github.com/openai/DALL-E). See also [this section](#more-resources).
 - We now include an overview of pretrained models in [Tab.1](#overview-of-pretrained-models). We added models for [COCO](#coco) and [ADE20k](#ade20k).
 - The streamlit demo now supports image completions.
 - We now include a couple of examples from the D-RIN dataset so you can run the
   [D-RIN demo](#d-rin) without preparing the dataset first.
-- You can now jump right into sampling with our [Colab quickstart notebook](https://colab.research.google.com/github/CompVis/taming-transformers/blob/master/scripts/taming-transformers.ipynb).
+- You can now jump right into sampling with our [Colab quickstart notebook](https://colab.research.google.com/github/CompVis/phylonn/blob/master/scripts/phylonn.ipynb).
 
 ## Requirements
-A suitable [conda](https://conda.io/) environment named `taming` can be created
+A suitable [conda](https://conda.io/) environment named `scripts` can be created
 and activated with:
 
 ```
 conda env create -f environment.yaml
-conda activate taming
+conda activate scripts
 ```
 ## Overview of pretrained models
 The following table provides an overview of all models that are currently available. 
 FID scores were evaluated using [torch-fidelity](https://github.com/toshas/torch-fidelity).
 For reference, we also include a link to the recently released autoencoder of the [DALL-E](https://github.com/openai/DALL-E) model. 
 See the corresponding [colab
-notebook](https://colab.research.google.com/github/CompVis/taming-transformers/blob/master/scripts/reconstruction_usage.ipynb)
+notebook](https://colab.research.google.com/github/CompVis/phylonn/blob/master/scripts/reconstruction_usage.ipynb)
 for a comparison and discussion of reconstruction capabilities.
 
 | Dataset  | FID vs train | FID vs val | Link |  Samples (256x256) | Comments
@@ -91,7 +91,7 @@ respectively.
 ![teaser](assets/sunset_and_ocean.jpg)
 
 You can also [run this model in a Colab
-notebook](https://colab.research.google.com/github/CompVis/taming-transformers/blob/master/scripts/taming-transformers.ipynb),
+notebook](https://colab.research.google.com/github/CompVis/phylonn/blob/master/scripts/phylonn.ipynb),
 which includes all necessary steps to start sampling.
 
 Download the
@@ -160,7 +160,7 @@ place it into `logs`. To run the demo on a couple of example depth maps
 included in the repository, run
 
 ```
-streamlit run scripts/sample_conditional.py -- -r logs/2020-11-20T12-54-32_drin_transformer/ --ignore_base_data data="{target: main.DataModuleFromConfig, params: {batch_size: 1, validation: {target: taming.data.imagenet.DRINExamples}}}"
+streamlit run scripts/sample_conditional.py -- -r logs/2020-11-20T12-54-32_drin_transformer/ --ignore_base_data data="{target: main.DataModuleFromConfig, params: {batch_size: 1, validation: {target: scripts.data.imagenet.DRINExamples}}}"
 ```
 
 To run the demo on the complete validation set, first follow the data preparation steps for
@@ -175,7 +175,7 @@ place it into `logs`. To run the demo on a couple of example segmentation maps
 included in the repository, run
 
 ```
-streamlit run scripts/sample_conditional.py -- -r logs/2021-01-20T16-04-20_coco_transformer/ --ignore_base_data data="{target: main.DataModuleFromConfig, params: {batch_size: 1, validation: {target: taming.data.coco.Examples}}}"
+streamlit run scripts/sample_conditional.py -- -r logs/2021-01-20T16-04-20_coco_transformer/ --ignore_base_data data="{target: main.DataModuleFromConfig, params: {batch_size: 1, validation: {target: scripts.data.coco.Examples}}}"
 ```
 
 ### ADE20k
@@ -184,7 +184,7 @@ place it into `logs`. To run the demo on a couple of example segmentation maps
 included in the repository, run
 
 ```
-streamlit run scripts/sample_conditional.py -- -r logs/2020-11-20T21-45-44_ade20k_transformer/ --ignore_base_data data="{target: main.DataModuleFromConfig, params: {batch_size: 1, validation: {target: taming.data.ade20k.Examples}}}"
+streamlit run scripts/sample_conditional.py -- -r logs/2020-11-20T21-45-44_ade20k_transformer/ --ignore_base_data data="{target: main.DataModuleFromConfig, params: {batch_size: 1, validation: {target: scripts.data.ade20k.Examples}}}"
 ```
 
 ## Scene Image Synthesis
@@ -218,7 +218,7 @@ Scene image generation can be run with
 
 Training on your own dataset can be beneficial to get better tokens and hence better images for your domain.
 Those are the steps to follow to make this work:
-1. install the repo with `conda env create -f environment.yaml`, `conda activate taming` and `pip install -e .`
+1. install the repo with `conda env create -f environment.yaml`, `conda activate scripts` and `pip install -e .`
 1. put your .jpg files in a folder `your_folder`
 2. create 2 text files a `xx_train.txt` and `xx_test.txt` that point to the files in your training and test set respectively (for example `find $(pwd)/your_folder -name "*.jpg" > train.txt`)
 3. adapt `configs/custom_vqgan.yaml` to point to these 2 files
@@ -362,7 +362,7 @@ python main.py --base configs/drin_transformer.yaml -t True --gpus 0,
 
 ## More Resources
 ### Comparing Different First Stage Models
-The reconstruction and compression capabilities of different fist stage models can be analyzed in this [colab notebook](https://colab.research.google.com/github/CompVis/taming-transformers/blob/master/scripts/reconstruction_usage.ipynb). 
+The reconstruction and compression capabilities of different fist stage models can be analyzed in this [colab notebook](https://colab.research.google.com/github/CompVis/phylonn/blob/master/scripts/reconstruction_usage.ipynb). 
 In particular, the notebook compares two VQGANs with a downsampling factor of f=16 for each and codebook dimensionality of 1024 and 16384, 
 a VQGAN with f=8 and 8192 codebook entries and the discrete autoencoder of OpenAI's [DALL-E](https://github.com/openai/DALL-E) (which has f=8 and 8192 
 codebook entries).
@@ -372,10 +372,10 @@ codebook entries).
 ### Other
 - A [video summary](https://www.youtube.com/watch?v=o7dqGcLDf0A&feature=emb_imp_woyt) by [Two Minute Papers](https://www.youtube.com/channel/UCbfYPyITQ-7l4upoX8nvctg).
 - A [video summary](https://www.youtube.com/watch?v=-wDSDtIAyWQ) by [Gradient Dude](https://www.youtube.com/c/GradientDude/about).
-- A [weights and biases report summarizing the paper](https://wandb.ai/ayush-thakur/taming-transformer/reports/-Overview-Taming-Transformers-for-High-Resolution-Image-Synthesis---Vmlldzo0NjEyMTY)
+- A [weights and biases report summarizing the paper](https://wandb.ai/ayush-thakur/phylonn/reports/-Overview-Taming-Transformers-for-High-Resolution-Image-Synthesis---Vmlldzo0NjEyMTY)
 by [ayulockin](https://github.com/ayulockin).
 - A [video summary](https://www.youtube.com/watch?v=JfUTd8fjtX8&feature=emb_imp_woyt) by [What's AI](https://www.youtube.com/channel/UCUzGQrN-lyyc0BWTYoJM_Sg).
-- Take a look at [ak9250's notebook](https://github.com/ak9250/taming-transformers/blob/master/tamingtransformerscolab.ipynb) if you want to run the streamlit demos on Colab.
+- Take a look at [ak9250's notebook](https://github.com/ak9250/phylonn/blob/master/tamingtransformerscolab.ipynb) if you want to run the streamlit demos on Colab.
 
 ### Text-to-Image Optimization via CLIP
 VQGAN has been successfully used as an image generator guided by the [CLIP](https://github.com/openai/CLIP) model, both for pure image generation

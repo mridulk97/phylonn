@@ -1,8 +1,8 @@
 fileNames: [
-    '/home/elhamod/projects/taming-transformers/analysis/paca analysis/level0.csv',
-    '/home/elhamod/projects/taming-transformers/analysis/paca analysis/level1.csv',
-    '/home/elhamod/projects/taming-transformers/analysis/paca analysis/level2.csv',
-    '/home/elhamod/projects/taming-transformers/analysis/paca analysis/level3.csv'
+    '/home/elhamod/projects/phylonn/analysis/paca analysis/level0.csv',
+    '/home/elhamod/projects/phylonn/analysis/paca analysis/level1.csv',
+    '/home/elhamod/projects/phylonn/analysis/paca analysis/level2.csv',
+    '/home/elhamod/projects/phylonn/analysis/paca analysis/level3.csv'
 ]
 
 size: 256

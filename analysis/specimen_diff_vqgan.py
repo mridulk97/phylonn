@@ -2,11 +2,11 @@
 # import copy
 import os
 import numpy as np
-from taming.loading_utils import load_config, load_phylovqvae
-from taming.data.custom import CustomTest as CustomDataset
+from scripts.loading_utils import load_config, load_phylovqvae
+from scripts.data.custom import CustomTest as CustomDataset
 
-from taming.models.vqgan import VQModel
-from taming.plotting_utils import get_fig_pth
+from scripts.models.vqgan import VQModel
+from scripts.plotting_utils import get_fig_pth
 
 
 import matplotlib.pyplot as plt
@@ -132,9 +132,7 @@ def main(configs_yaml):
                 dec_images.insert(-2, dec_image)
                 
                 change = {
-                    # 'indx_': indx_,
                     'code_index': i,
-                    # 'phylo_level': get_code_reshaped_index(i)[1] if i < n_phylocodes else 'nonphylo',  #int(i/model.phylo_disentangler.codebooks_per_phylolevel),
                     'from_code': code1[i].detach().item(),
                     'to_code': code2[i].detach().item(),
                     'code_match_%': 100-torch.cdist(code1_modified.view((1, -1)).float(), code2.view((1, -1)).float(), p=0).item()*100/code2.shape[0]
@@ -161,15 +159,9 @@ def main(configs_yaml):
             if img_index > 0 and img_index < len(dec_images)-1:
                 if img_index > 1 and img_index < len(dec_images)-2:
                     change = changes[change_index]
-                    # title = "indx {} \n from {} to {} \n code match % {}".format(
-                    #     change['code_index'], change['from_code'], change['to_code'], change['code_match_%']
-                    # )
                     title ="translation " + str(int(change['code_match_%'])) + "%"
                     change_index = change_index+ 1
                 else:
-                    # title = "name: {} \n class {}".format(
-                    #     filenames[0 if img_index==1 else 1], classes[0 if img_index==1 else 1]
-                    # )
                     if img_index==1:
                         title="reconstruction"
                     else:
@@ -226,7 +218,6 @@ if __name__ == "__main__":
     )
     
     cfg, _ = parser.parse_known_args()
-    # cfg = parser.config
     configs = OmegaConf.load(cfg.config)
     cli = OmegaConf.from_cli()
     config = OmegaConf.merge(configs, cli)

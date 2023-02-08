@@ -1,7 +1,7 @@
-from taming.loading_utils import load_config, load_phylovqvae, load_CWVQGAN
-from taming.data.custom import CustomTest as CustomDataset
-from taming.data.utils import custom_collate
-from taming.models.vqgan import VQModel
+from scripts.loading_utils import load_config, load_phylovqvae, load_CWVQGAN
+from scripts.data.custom import CustomTest as CustomDataset
+from scripts.data.utils import custom_collate
+from scripts.models.vqgan import VQModel
 
 from torch.utils.data import DataLoader
 from pytorch_lightning.trainer import Trainer
@@ -59,7 +59,6 @@ if __name__ == "__main__":
     )
     
     cfg, _ = parser.parse_known_args()
-    # cfg = parser.config
     configs = OmegaConf.load(cfg.config)
     cli = OmegaConf.from_cli()
     config = OmegaConf.merge(configs, cli)

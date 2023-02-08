@@ -16,18 +16,18 @@ cp -avr /home/elhamod/data/Fish/train_padded_512 /fastscratch/elhamod/data/Fish/
 cp -avr /home/elhamod/data/Fish/taming_transforms_fish_test_padded_256_out.txt /fastscratch/elhamod/data/Fish/taming_transforms_fish_test_padded_256_out.txt
 cp -avr /home/elhamod/data/Fish/taming_transforms_fish_train_padded_256_out.txt /fastscratch/elhamod/data/Fish/taming_transforms_fish_train_padded_256_out.txt
 
-cp -avr /home/elhamod/projects/taming-transformers/logs/2022-11-07T15-02-16_Phylo-VQVAE256img-phase5-nolastrelumlp /fastscratch/elhamod/logs/2022-11-07T15-02-16_Phylo-VQVAE256img-phase5-nolastrelumlp
+cp -avr /home/elhamod/projects/phylonn/logs/2022-11-07T15-02-16_Phylo-VQVAE256img-phase5-nolastrelumlp /fastscratch/elhamod/logs/2022-11-07T15-02-16_Phylo-VQVAE256img-phase5-nolastrelumlp
 
-cp -avr /home/elhamod/projects/taming-transformers/logs/2022-11-04T15-27-23_Phylo-VQVAE256img-phase4-nophylo /fastscratch/elhamod/logs/2022-11-04T15-27-23_Phylo-VQVAE256img-phase4-nophylo
+cp -avr /home/elhamod/projects/phylonn/logs/2022-11-04T15-27-23_Phylo-VQVAE256img-phase4-nophylo /fastscratch/elhamod/logs/2022-11-04T15-27-23_Phylo-VQVAE256img-phase4-nophylo
 
 
-mkdir -p /fastscratch/elhamod/projects/taming-transformers/logs/512pixels_512embedding
-mkdir -p /fastscratch/elhamod/projects/taming-transformers/logs/512pixels_256embedding
-mkdir -p /fastscratch/elhamod/projects/taming-transformers/logs/256pixels_256embedding
-mkdir -p  /fastscratch/elhamod/projects/taming-transformers/SLURM
-cp -avr /home/elhamod/projects/taming-transformers/logs/256pixels_256embedding/checkpoints /fastscratch/elhamod/projects/taming-transformers/logs/256pixels_256embedding/checkpoints
-cp -avr /home/elhamod/projects/taming-transformers/logs/512pixels_256embedding/checkpoints /fastscratch/elhamod/projects/taming-transformers/logs/512pixels_256embedding/checkpoints
-cp -avr /home/elhamod/projects/taming-transformers/logs/512pixels_512embedding/checkpoints /fastscratch/elhamod/projects/taming-transformers/logs/512pixels_512embedding/checkpoints
-cp -avr /home/elhamod/projects/taming-transformers/logs/256pixels_256embedding/configs /fastscratch/elhamod/projects/taming-transformers/logs/256pixels_256embedding/configs
-cp -avr /home/elhamod/projects/taming-transformers/logs/512pixels_256embedding/configs /fastscratch/elhamod/projects/taming-transformers/logs/512pixels_256embedding/configs
-cp -avr /home/elhamod/projects/taming-transformers/logs/512pixels_512embedding/configs /fastscratch/elhamod/projects/taming-transformers/logs/512pixels_512embedding/configs
+mkdir -p /fastscratch/elhamod/projects/phylonn/logs/512pixels_512embedding
+mkdir -p /fastscratch/elhamod/projects/phylonn/logs/512pixels_256embedding
+mkdir -p /fastscratch/elhamod/projects/phylonn/logs/256pixels_256embedding
+mkdir -p  /fastscratch/elhamod/projects/phylonn/SLURM
+cp -avr /home/elhamod/projects/phylonn/logs/256pixels_256embedding/checkpoints /fastscratch/elhamod/projects/phylonn/logs/256pixels_256embedding/checkpoints
+cp -avr /home/elhamod/projects/phylonn/logs/512pixels_256embedding/checkpoints /fastscratch/elhamod/projects/phylonn/logs/512pixels_256embedding/checkpoints
+cp -avr /home/elhamod/projects/phylonn/logs/512pixels_512embedding/checkpoints /fastscratch/elhamod/projects/phylonn/logs/512pixels_512embedding/checkpoints
+cp -avr /home/elhamod/projects/phylonn/logs/256pixels_256embedding/configs /fastscratch/elhamod/projects/phylonn/logs/256pixels_256embedding/configs
+cp -avr /home/elhamod/projects/phylonn/logs/512pixels_256embedding/configs /fastscratch/elhamod/projects/phylonn/logs/512pixels_256embedding/configs
+cp -avr /home/elhamod/projects/phylonn/logs/512pixels_512embedding/configs /fastscratch/elhamod/projects/phylonn/logs/512pixels_512embedding/configs

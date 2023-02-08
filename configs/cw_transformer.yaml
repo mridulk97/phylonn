@@ -1,11 +1,11 @@
 model:
   base_learning_rate: 4.5e-06
   project: CW-VQGAN-transformer
-  target: taming.models.cond_transformer.Net2NetTransformer
+  target: scripts.models.cond_transformer.Net2NetTransformer
   params:
     cond_stage_key: class
     transformer_config:
-      target: taming.modules.transformer.mingpt.GPT
+      target: scripts.modules.transformer.mingpt.GPT
       params:
         vocab_size: 1024 # size of codebook (number of possible codes)
         block_size: 257 # 256 attr+1 cond# codes predicted at once.
@@ -13,8 +13,8 @@ model:
         n_head: 16 # relationships to learn
         n_embd: 1024 #embedding dimensions for transformer. Does not have to be same as codebook but Ill pick same
     first_stage_config:
-      # target: taming.models.vqgan.VQModel
-      target: taming.models.cwautoencoder.CWmodelVQGAN
+      # target: scripts.models.vqgan.VQModel
+      target: scripts.models.cwautoencoder.CWmodelVQGAN
       project: CW-VQVAE
       params:
         # ckpt_path: ./logs/256pixels_256embedding/checkpoints/last.ckpt
@@ -34,9 +34,9 @@ model:
           attn_resolutions: [16]
           dropout: 0.0
         lossconfig:
-          target: taming.modules.losses.DummyLoss
+          target: scripts.modules.losses.DummyLoss
         # lossconfig:
-        #   target: taming.modules.losses.vqperceptual.VQLPIPSWithDiscriminator
+        #   target: scripts.modules.losses.vqperceptual.VQLPIPSWithDiscriminator
         #   params:
         #     disc_conditional: False
         #     disc_in_channels: 3
@@ -49,19 +49,19 @@ model:
             batch_size: 2
             num_workers: 8
             train:
-              target: taming.data.custom.CustomTrain
+              target: scripts.data.custom.CustomTrain
               params:
                 training_images_list_file: /home/mridul/data/phylo-VQVAE/taming_transforms_fish_train_padded_256.txt
                 size: 256
                 add_labels: True
             validation:
-              target: taming.data.custom.CustomTest
+              target: scripts.data.custom.CustomTest
               params:
                 test_images_list_file: /home/mridul/data/phylo-VQVAE/taming_transforms_fish_test_padded_256.txt
                 size: 256
                 add_labels: True
     cond_stage_config:
-      target: taming.modules.misc.label_conditioner.LabelCond
+      target: scripts.modules.misc.label_conditioner.LabelCond
       params:
         num_of_classes: 38
 
@@ -71,13 +71,13 @@ data:
     batch_size: 2
     num_workers: 8
     train:
-      target: taming.data.custom.CustomTrain
+      target: scripts.data.custom.CustomTrain
       params:
         training_images_list_file: /home/mridul/data/phylo-VQVAE/taming_transforms_fish_train_padded_256.txt
         size: 256
         add_labels: True
     validation:
-      target: taming.data.custom.CustomTest
+      target: scripts.data.custom.CustomTest
       params:
         test_images_list_file: //home/mridul/data/phylo-VQVAE/taming_transforms_fish_test_padded_256.txt
         size: 256

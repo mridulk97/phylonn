@@ -13,7 +13,7 @@ from pytorch_lightning.utilities.distributed import rank_zero_only
 
 import torchvision.utils as vutils
 from tqdm import tqdm
-from taming.data.utils import custom_collate
+from scripts.data.utils import custom_collate
 
 import wandb
 
@@ -456,8 +456,8 @@ if __name__ == "__main__":
         grid = (grid * 255).astype(np.uint8)
         return grid
 
-    from taming.analysis_utils import aggregate_metric_from_specimen_to_species, get_CosineDistance_matrix
-    from taming.plotting_utils import plot_heatmap
+    from scripts.analysis_utils import aggregate_metric_from_specimen_to_species, get_CosineDistance_matrix
+    from scripts.plotting_utils import plot_heatmap
 
     labels_to_idx = {
         'Alosa chrysochloris': 0, 

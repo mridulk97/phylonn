@@ -13,7 +13,7 @@ from pytorch_lightning.utilities.distributed import rank_zero_only
 
 import torchvision.utils as vutils
 from tqdm import tqdm
-from taming.data.utils import custom_collate
+from scripts.data.utils import custom_collate
 
 import wandb
 
@@ -504,7 +504,7 @@ if __name__ == "__main__":
 
         return imgs
 
-    output_dir = '/home/harishbabu/projects/taming-transformers/translations18'
+    output_dir = '/home/harishbabu/projects/phylonn/translations18'
     base_img_path = '/home/harishbabu/data/Fish/phylo-VQVAE/train_padded_256/Lepomis humilis/INHS_FISH_13404.jpg'
     target_img_path='/home/harishbabu/data/Fish/phylo-VQVAE/train_padded_256/Gambusia affinis/INHS_FISH_32786.JPG'
     imgs = pic_morphing(output_dir, base_img_path, target_img_path, test_data=train_data, step=7)

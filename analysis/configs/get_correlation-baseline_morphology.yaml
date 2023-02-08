@@ -1,0 +1,17 @@
+path: /home/elhamod/projects/phylonn/analysis/baseline results
+file_name: "trimmed baseline morpho"
+
+output_names: [
+  LSF,
+  CW
+]
+
+arrays1: [
+  trimmed LSF_distances.csv,
+  trimmed CW_distances.csv
+]
+
+arrays2: [
+  /home/elhamod/projects/phylonn/analysis/ancestor analysis/trimmed_ancestor_distance_level3 heat_map.csv,
+  /home/elhamod/projects/phylonn/analysis/ancestor analysis/trimmed_ancestor_distance_level3 heat_map.csv,
+]

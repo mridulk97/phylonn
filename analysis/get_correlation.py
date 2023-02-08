@@ -3,7 +3,7 @@ import pandas as pd
 import argparse
 from omegaconf import OmegaConf
 import numpy as np
-from taming.plotting_utils import dump_to_json
+from scripts.plotting_utils import dump_to_json
 from scipy import stats
 
 ##########
@@ -14,7 +14,6 @@ def main(configs_yaml):
     arrays1 = configs_yaml.arrays1
     arrays2 = configs_yaml.arrays2
     file_name = configs_yaml.file_name
-    permute_array1 = configs_yaml.permute_array1    
     
     distances = {}
     for indx, name in enumerate(output_names):
@@ -24,16 +23,12 @@ def main(configs_yaml):
         df1 = pd.read_csv(p1)
         df2 = pd.read_csv(p2).to_numpy()
         
-        if permute_array1:
-           df1 = df1.sample(frac=1) 
         df1 = df1.to_numpy()
         
         df1 = df1[np.triu_indices(df1.shape[0], k = 1)]
         df2 = df2[np.triu_indices(df2.shape[0], k = 1)]
         
-        # distance = np.corrcoef(df1,df2)[0, 1]
         distance = stats.spearmanr(df1, df2).correlation
-        # distance  = ((df1 - df2) ** 2).mean() ** 0.5
         
         distances[name] = distance
         print(name, distance)
@@ -54,7 +49,6 @@ if __name__ == "__main__":
     )
     
     cfg, _ = parser.parse_known_args()
-    # cfg = parser.config
     configs = OmegaConf.load(cfg.config)
     cli = OmegaConf.from_cli()
     config = OmegaConf.merge(configs, cli)

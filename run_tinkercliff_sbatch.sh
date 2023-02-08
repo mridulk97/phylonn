@@ -10,7 +10,7 @@ module reset
 
 module load Anaconda3/2020.11
 
-source activate taming
+source activate scripts
 module reset
 which python
 

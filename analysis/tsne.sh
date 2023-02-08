@@ -5,7 +5,7 @@
 #SBATCH --time=0-30:00:00 
 #SBATCH --gres=gpu:1
 #SBATCH --nodes=1 --ntasks-per-node=1 --cpus-per-task=8
-#SBATCH -o /fastscratch/elhamod/projects/taming-transformers/SLURM/slurm-%j.out
+#SBATCH -o /fastscratch/elhamod/projects/phylonn/SLURM/slurm-%j.out
 
 ##########SBATCH -o ./SLURM/slurm-%j.out
 

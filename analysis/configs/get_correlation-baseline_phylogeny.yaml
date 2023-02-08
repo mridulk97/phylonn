@@ -1,0 +1,17 @@
+path: /home/elhamod/projects/phylonn/analysis/baseline results
+file_name: "trimmed baseline phylo"
+
+output_names: [
+  LSF,
+  CW
+]
+
+arrays1: [
+  trimmed LSF_distances.csv,
+  trimmed CW_distances.csv
+]
+
+arrays2: [
+  /home/elhamod/projects/phylonn/analysis/phylo analysis/trimmed phylo species distances for level 3 heat_map.csv,
+  /home/elhamod/projects/phylonn/analysis/phylo analysis/trimmed phylo species distances for level 3 heat_map.csv,
+]

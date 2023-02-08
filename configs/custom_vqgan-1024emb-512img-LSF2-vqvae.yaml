@@ -1,6 +1,6 @@
 model:
   base_learning_rate: 4.5e-6 #we tried 4.5e-3 #4.5e-6
-  target: taming.models.LSFautoencoder.LSFVQVAE
+  target: scripts.models.LSFautoencoder.LSFVQVAE
   project: LSF-VQVAE
   params:
     ckpt_path: /home/harishbabu/data/Fish/phylo-VQVAE/512pixels_256embedding/checkpoints/last.ckpt
@@ -18,7 +18,7 @@ model:
       attn_resolutions: [16]
       dropout: 0.0
     lossconfig:
-      target: taming.modules.losses.DummyLoss
+      target: scripts.modules.losses.DummyLoss
           
         
     LSF_params:
@@ -35,13 +35,13 @@ data:
     batch_size: 5
     num_workers: 8
     train:
-      target: taming.data.custom.CustomTrain
+      target: scripts.data.custom.CustomTrain
       params:
         training_images_list_file: /home/harishbabu/data/Fish/phylo-VQVAE/taming_transforms_fish_train_padded_512.txt
         size: 512
         add_labels: true
     validation:
-      target: taming.data.custom.CustomTest
+      target: scripts.data.custom.CustomTest
       params:
         test_images_list_file: /home/harishbabu/data/Fish/phylo-VQVAE/taming_transforms_fish_test_padded_512.txt
         size: 512
