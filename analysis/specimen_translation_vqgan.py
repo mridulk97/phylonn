@@ -4,7 +4,6 @@ import os
 import numpy as np
 from scripts.loading_utils import load_config, load_phylovqvae
 from scripts.data.custom import CustomTest as CustomDataset
-
 from scripts.models.vqgan import VQModel
 from scripts.plotting_utils import get_fig_pth
 
@@ -42,14 +41,6 @@ class KeyImageHelper:
             return True
             
         return False
-    
-    
-            
-def populate_resnet_scores(resnet_model, dec_image, change):
-    if resnet_model is not None:
-        change["class"] = torch.argmax(resnet_model(dec_image), dim=1).item()
-    return change 
-
 
 
 @torch.no_grad()
@@ -64,10 +55,6 @@ def main(configs_yaml):
     file_list_path= configs_yaml.file_list_path
     keyimgrate= configs_yaml.keyimgrate
     
-    bb_model_path = configs_yaml.bb_model_path
-        
-    plt_path = "default"
-    
     # load image
     dataset = CustomDataset(size, file_list_path, add_labels=True)
     
@@ -79,12 +66,10 @@ def main(configs_yaml):
         image_index1 = image_index1_+indx__
         image_index2 = image_index2_+indx__
         
-        # load image. get class and zq_phylo and z_qnonattr
         classes = []
         codes = []
         dec_images = []
         filenames = []
-
         for img_indx in [image_index1, image_index2]:
             specimen = dataset.data[img_indx]
             processed_img = torch.Tensor(specimen['image']).unsqueeze(0).to(DEVICE)
@@ -166,11 +151,6 @@ def main(configs_yaml):
                         title="reconstruction"
                     else:
                         title="translation complete" #TODO: hardcoded!
-                    
-                if bb_model_path is not None:
-                    populate_resnet_scores(bb_model_path, img_, change) 
-                    title = title + "\n classifications: "
-                    title = title + '{}/'.format(change["class"])
                 
             axes.set_title(title, fontdict=None, loc='center', color = "k")
             axes.tick_params(left=False, bottom=False, labelbottom=False, labelleft=False)
@@ -180,31 +160,12 @@ def main(configs_yaml):
         plt.show()
                 
         fig_path = get_fig_pth(ckpt_path)
-        filename = "{} from {} to {}.png".format(plt_path, image_index1, image_index2)
+        filename = "from {} to {}.png".format(image_index1, image_index2)
         fig_path = os.path.join(str(fig_path), "transitions", dataset.indx_to_label[classes[0]] + ' to ' + dataset.indx_to_label[classes[1]])
         Path(fig_path).mkdir(parents=True, exist_ok=True)
         fig.savefig(os.path.join(fig_path, filename),bbox_inches='tight',dpi=300)
         
         plt.close()
-                    
-                    
-                    
-                
-                
-            
-        
-            
-                
-            
-                
-        
-    
-        
-        
-    
-        
-    
-    
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
@@ -214,7 +175,7 @@ if __name__ == "__main__":
         type=str,
         nargs="?",
         const=True,
-        default="analysis/configs/specimen_diff_vqgan.yaml",
+        default="analysis/configs/specimen_translation_vqgan.yaml",
     )
     
     cfg, _ = parser.parse_known_args()

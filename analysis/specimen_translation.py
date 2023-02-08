@@ -1,5 +1,4 @@
 
-# import copy
 import os
 import pickle
 from analysis.replace_codes import get_entropy_ordering
@@ -7,11 +6,9 @@ import numpy as np
 from scripts.analysis_utils import Embedding_Code_converter
 from scripts.loading_utils import load_config, load_phylovqvae
 from scripts.data.custom import CustomTest as CustomDataset
-
 import scripts.constants as CONSTANTS
 from scripts.models.phyloautoencoder import PhyloVQVAE
 from scripts.plotting_utils import get_fig_pth
-
 
 import matplotlib.pyplot as plt
 from mpl_toolkits.axes_grid1 import ImageGrid
@@ -25,35 +22,6 @@ from pathlib import Path
 
 
 
-class KeyImageHelper:
-    def __init__(self, cb_per_level, n_phylolevels, get_code_reshaped_index):
-        self.cb_per_level = cb_per_level
-        self.n_phylolevels = n_phylolevels
-        self.get_code_reshaped_index = get_code_reshaped_index
-        self.n_phylocodes = self.n_phylolevels*self.cb_per_level
-        
-        self.update = True
-    
-    
-    
-    def new_update(self, i):
-        if i < self.n_phylocodes:
-            code_index_relative, _ = self.get_code_reshaped_index(i)
-            if code_index_relative == 0:
-                self.update = True
-        
-        return self.update
-        
-    def isKeyImage(self, i):
-        if i < self.n_phylocodes:
-            if self.update:
-                self.update = False
-                return True
-            
-        return False
-    
-    
-    
 class KeyImageEntropyHelper:
     def __init__(self, cb_per_level, n_phylolevels, n_nonphylocodes, get_code_reshaped_index):
         self.cb_per_level = cb_per_level
@@ -87,25 +55,7 @@ class KeyImageEntropyHelper:
             return True
         
         return False
-            
-def populate_resnet_scores(resnet_models, dec_image, change):
-    if resnet_models is not None:
-        for indx, k in enumerate(resnet_models):
-            change['lvl'+str(indx)+"_class"] = torch.argmax(k(dec_image), dim=1).item()
-    return change 
 
-
-def rearrange_phylo_codeorder(code, get_code_reshaped_index, n_nonphylo, n_phylolevel, n_code_per_level):
-    new_code = code.copy()
-    
-    i = 0
-    for l in range(n_phylolevel):
-        for k in range(n_code_per_level):
-            i_ = get_code_reshaped_index(k,l)
-            new_code[i] = i_
-            i = i+1
-    
-    return new_code
 
 @torch.no_grad()
 def main(configs_yaml):
@@ -117,22 +67,8 @@ def main(configs_yaml):
     count= configs_yaml.count
     size= configs_yaml.size
     file_list_path= configs_yaml.file_list_path
-    order = configs_yaml.order
     show_only_key_imgs = configs_yaml.show_only_key_imgs
-    according_to_target = configs_yaml.according_to_target
-    
-    bb_model_paths = configs_yaml.bb_model_paths
-    resnet_models = None
-    if bb_model_paths is not None:
-        resnet_models = []
-        for i in bb_model_paths:
-            model_ = torch.load(i).eval()
-            if DEVICE is not None:
-                model_ = model_.to(DEVICE)
-            resnet_models.append(model_)
-        
-    plt_path = order if order is not None else "default"
-    
+
     # load image
     dataset = CustomDataset(size, file_list_path, add_labels=True)
     
@@ -142,14 +78,11 @@ def main(configs_yaml):
     
     get_code_reshaped_index = model.phylo_disentangler.embedding_converter.get_code_reshaped_index
     n_phylocodes = model.phylo_disentangler.n_phylolevels*model.phylo_disentangler.codebooks_per_phylolevel
-    n_nonphylocodes = model.phylo_disentangler.n_phylolevels*model.phylo_disentangler.n_levels_non_attribute
     
     for indx__ in tqdm.tqdm(range(count)):
         image_index1 = image_index1_+indx__
         image_index2 = image_index2_+indx__
     
-    
-        # load image. get class and zq_phylo and z_qnonattr
         classes = []
         codes = []
         dec_images = []
@@ -157,7 +90,6 @@ def main(configs_yaml):
         converter_phylo = None
         converter_nonattr = None
         len_phylo = None
-        # imgs = []
         for img_indx in [image_index1, image_index2]:
             specimen = dataset.data[img_indx]
             processed_img = torch.Tensor(specimen['image']).unsqueeze(0).to(DEVICE)
@@ -195,58 +127,44 @@ def main(configs_yaml):
         code1_modified =torch.clone(codes[0])
         code1 = codes[0]
         code2 = codes[1]
+
+        # Get code and location ordering
+        histograms_file = os.path.join(get_fig_pth(ckpt_path, postfix=CONSTANTS.HISTOGRAMS_FOLDER), CONSTANTS.HISTOGRAMS_FILE)
+        histogram_file_exists = os.path.exists(histograms_file)
+        if not histogram_file_exists:
+            raise "histograms have not been generated. Run code_histogram.py first! Defaulting to index ordering"
+        hist_arr, hist_arr_nonattr = pickle.load(open(histograms_file, "rb"))
         
-        
-        if order is None or order == "reverse":
-            order_ = range(codes[0].shape[1])
-            order_ = rearrange_phylo_codeorder(list(order_), get_code_reshaped_index, n_nonphylocodes, model.phylo_disentangler.n_phylolevels, model.phylo_disentangler.codebooks_per_phylolevel)
-            if order == "reverse":
-                order_ = list(reversed(order_))
-        elif order == "entropy":
-            # Get code and location ordering
-            histograms_file = os.path.join(get_fig_pth(ckpt_path, postfix=CONSTANTS.HISTOGRAMS_FOLDER), CONSTANTS.HISTOGRAMS_FILE)
-            histogram_file_exists = os.path.exists(histograms_file)
-            if not histogram_file_exists:
-                raise "histograms have not been generated. Run code_histogram.py first! Defaulting to index ordering"
-            hist_arr, hist_arr_nonattr = pickle.load(open(histograms_file, "rb"))
-            
-            # by entrop over levels
-            target_class = classes[-1 if according_to_target else 0]
-            entropy_nonphylo = np.flip(get_entropy_ordering(hist_arr_nonattr[target_class]) + n_phylocodes)
-            hist_phylo = hist_arr[target_class]
-            hist_levels = []
-            for i in range(n_phylocodes):
-                hist_levels.append([])
-            for i in range(len(hist_phylo)):
-                relative_indx, lvl = get_code_reshaped_index(i)
-                hist_levels[lvl].append(hist_phylo[i])
-            for lvl in range(model.phylo_disentangler.n_phylolevels):
-                hist_levels[lvl] = np.flip(get_entropy_ordering(hist_levels[lvl]))
-            entropy_phylo = np.zeros(len(hist_phylo), dtype=int)
-            o = 0
-            for lvl in range(model.phylo_disentangler.n_phylolevels):
-                for relative_index in range(model.phylo_disentangler.codebooks_per_phylolevel):
-                    abs_indx = get_code_reshaped_index(hist_levels[lvl][relative_index], lvl)
-                    entropy_phylo[o] = abs_indx
-                    o = o+1
-            order_ = np.concatenate((entropy_nonphylo, entropy_phylo))
-        else:
-            raise order + " order is not valid"
+        # by entrop over levels
+        target_class = classes[-1]
+        entropy_nonphylo = np.flip(get_entropy_ordering(hist_arr_nonattr[target_class]) + n_phylocodes)
+        hist_phylo = hist_arr[target_class]
+        hist_levels = []
+        for i in range(n_phylocodes):
+            hist_levels.append([])
+        for i in range(len(hist_phylo)):
+            relative_indx, lvl = get_code_reshaped_index(i)
+            hist_levels[lvl].append(hist_phylo[i])
+        for lvl in range(model.phylo_disentangler.n_phylolevels):
+            hist_levels[lvl] = np.flip(get_entropy_ordering(hist_levels[lvl]))
+        entropy_phylo = np.zeros(len(hist_phylo), dtype=int)
+        o = 0
+        for lvl in range(model.phylo_disentangler.n_phylolevels):
+            for relative_index in range(model.phylo_disentangler.codebooks_per_phylolevel):
+                abs_indx = get_code_reshaped_index(hist_levels[lvl][relative_index], lvl)
+                entropy_phylo[o] = abs_indx
+                o = o+1
+        order_ = np.concatenate((entropy_nonphylo, entropy_phylo))
+
         if show_only_key_imgs:
-            if order != "entropy":
-                key_image_helper = KeyImageHelper(model.phylo_disentangler.codebooks_per_phylolevel, model.phylo_disentangler.n_phylolevels, get_code_reshaped_index)
-            else:
-                key_image_helper = KeyImageEntropyHelper(model.phylo_disentangler.codebooks_per_phylolevel, model.phylo_disentangler.n_phylolevels, model.phylo_disentangler.n_levels_non_attribute, get_code_reshaped_index)
+            key_image_helper = KeyImageEntropyHelper(model.phylo_disentangler.codebooks_per_phylolevel, model.phylo_disentangler.n_phylolevels, model.phylo_disentangler.n_levels_non_attribute, get_code_reshaped_index)
             
         for indx_, i in enumerate(order_):    
             if show_only_key_imgs:
-                if order != "entropy":
-                    key_image_helper.new_update(i)
-                else:
-                    key_image_helper.new_update(indx_, i)
+                key_image_helper.new_update(indx_, i)
                 
             if (not key_image_helper.update) and code1[0, i] == code2[0, i]:
-                continue #NOTE: This means a code might be skipped from key images of it is identical. Does not seem to be a bug but it is disorienting 
+                continue
             
             code1_modified[0, i] = code2[0, i]
             
@@ -293,7 +211,7 @@ def main(configs_yaml):
                     if img_index==1:
                         title="initial reconstruction"
                     else:
-                        title="replacing species level" #TODO: hardcoded!
+                        title="replacing species level"
                 
             axes.set_title(title, fontdict=None, loc='center', color = "k")
             axes.tick_params(left=False, bottom=False, labelbottom=False, labelleft=False)
@@ -303,7 +221,7 @@ def main(configs_yaml):
         plt.show()
                 
         fig_path = get_fig_pth(ckpt_path)
-        filename = "{} from {} to {}.png".format(plt_path, image_index1, image_index2)
+        filename = "entropy from {} to {}.png".format(image_index1, image_index2)
         fig_path = os.path.join(str(fig_path), "transitions", dataset.indx_to_label[classes[0]] + ' to ' + dataset.indx_to_label[classes[1]])
         Path(fig_path).mkdir(parents=True, exist_ok=True)
         fig.savefig(os.path.join(fig_path, filename),bbox_inches='tight',dpi=300)
@@ -337,7 +255,7 @@ if __name__ == "__main__":
         type=str,
         nargs="?",
         const=True,
-        default="analysis/configs/specimen_diff_v2.yaml",
+        default="analysis/configs/specimen_translation.yaml",
     )
     
     cfg, _ = parser.parse_known_args()

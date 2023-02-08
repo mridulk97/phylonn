@@ -1,0 +1,15 @@
+path: /fastscratch/elhamod/logs/2023-01-09T18-13-38_Phylo-VQVAE-phase7256img-originalvqgan-imagenetbg-aug/figs/results_summary
+
+file_name: "trimmed js-divergence to morpho"
+
+output_names: [
+  all,
+]
+
+arrays1: [
+  trimmed_js_divergence for phylo attributes heat_map.csv
+]
+
+arrays2: [
+  /home/elhamod/projects/phylonn/analysis/ancestor analysis/trimmed_ancestor_distance_level3 heat_map.csv,
+]
