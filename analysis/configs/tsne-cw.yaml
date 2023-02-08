@@ -3,7 +3,8 @@ DEVICE: 0
 num_workers: 8
 batch_size: 200
 
-isOriginalVQGAN: VQGAN
+isOriginalVQGAN: CW
+
 
 
 file_prefix: "vqgan-test"

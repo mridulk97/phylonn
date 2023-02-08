@@ -326,7 +326,7 @@ def main(configs_yaml):
     
     phylogeny_knn = configs_yaml.phylogeny_knn
     
-    isOriginalVQGAN = configs_yaml.isOriginalVQGAN if "isOriginalVQGAN" in configs_yaml.keys() else False
+    isOriginalVQGAN = configs_yaml.isOriginalVQGAN if "isOriginalVQGAN" in configs_yaml.keys() else 'PhyloNN'
     
     phylogeny_path = configs_yaml.phylogeny_path
     print(type(phylogeny_path))
