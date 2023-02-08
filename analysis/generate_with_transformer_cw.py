@@ -1,4 +1,4 @@
-from scripts.loading_utils import load_config, load_CWVQGAN
+from scripts.loading_utils import load_config, load_model
 from scripts.models.cond_transformer import Net2NetTransformer
 from scripts.data.custom import CustomTest as CustomDataset
 from main import instantiate_from_config
@@ -27,7 +27,7 @@ def main_cw(configs_yaml):
 
     # Load model
     config = load_config(yaml_path, display=False)
-    model = load_CWVQGAN(config, ckpt_path=ckpt_path, data=dataset.data, cuda=(DEVICE is not None), model_type=Net2NetTransformer)
+    model = load_model(config, ckpt_path=ckpt_path, data=dataset.data, cuda=(DEVICE is not None), model_type=Net2NetTransformer)
     indices = range(len(dataset.indx_to_label))
     data = instantiate_from_config(config.data)
     data.prepare_data()

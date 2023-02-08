@@ -1,4 +1,4 @@
-from scripts.loading_utils import load_config, load_phylovqvae
+from scripts.loading_utils import load_config, load_model
 from scripts.data.custom import CustomTest as CustomDataset
 from scripts.data.utils import custom_collate
 from scripts.analysis_utils import Embedding_Code_converter, HistogramFrequency
@@ -36,7 +36,7 @@ def main(configs_yaml):
     
     # Load model
     config = load_config(yaml_path, display=False)
-    model = load_phylovqvae(config, ckpt_path=ckpt_path, cuda=(DEVICE is not None))
+    model = load_model(config, ckpt_path=ckpt_path, cuda=(DEVICE is not None))
         
     # create the converter.
     item = next(iter(dataloader_noskippedlabels))

@@ -1,6 +1,6 @@
 from scripts.analysis_utils import get_phylomapper_from_config
 from scripts.data.phylogeny import Phylogeny
-from scripts.loading_utils import load_config, load_phylovqvae
+from scripts.loading_utils import load_config, load_model
 from scripts.models.phyloautoencoder import PhyloVQVAE
 from scripts.models.vqgan import VQModel
 from scripts.plotting_utils import get_fig_pth
@@ -233,7 +233,7 @@ def main(configs_yaml):
         model_type=PhyloVQVAE
         
     config = load_config(yaml_path, display=False)
-    model = load_phylovqvae(config, ckpt_path=ckpt_path, cuda=(DEVICE is not None), model_type=model_type)
+    model = load_model(config, ckpt_path=ckpt_path, cuda=(DEVICE is not None), model_type=model_type)
     
     with torch.no_grad():
         get_tsne(dataloader, model, get_fig_pth(ckpt_path, postfix=CONSTANTS.TSNE_FOLDER), 

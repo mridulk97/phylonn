@@ -476,3 +476,7 @@ class PhyloVQVAE(VQModel):
         ]
             
         return opts, lr_schedulers 
+
+    # NOTE: This is kinda hacky. But ok for now for test purposes.
+    def set_test_chkpt_path(self, chkpt_path):
+        self.test_chkpt_path = chkpt_path

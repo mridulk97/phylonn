@@ -1,10 +1,9 @@
+#based on https://github.com/CompVis/taming-transformers
+
 import argparse, os, sys, datetime, glob
 from omegaconf import OmegaConf
 import numpy as np
 from PIL import Image
-from scripts.analysis_utils import aggregate_metric_from_specimen_to_species, get_HammingDistance_matrix
-from scripts.import_utils import instantiate_from_config
-from scripts.models.phyloautoencoder import PhyloVQVAE
 import torch
 import torchvision
 from torch.utils.data import DataLoader, Dataset
@@ -14,6 +13,9 @@ from pytorch_lightning.trainer import Trainer
 from pytorch_lightning.callbacks import Callback
 from pytorch_lightning.utilities.distributed import rank_zero_only
 
+from scripts.analysis_utils import aggregate_metric_from_specimen_to_species, get_HammingDistance_matrix
+from scripts.import_utils import instantiate_from_config
+from scripts.models.phyloautoencoder import PhyloVQVAE
 import scripts.constants as CONSTANTS
 from scripts.data.utils import custom_collate
 
@@ -557,7 +559,6 @@ if __name__ == "__main__":
 
         # configure learning rate
         bs, base_lr = config.data.params.batch_size, config.model.base_learning_rate
-        # use_scheduler = 
         if not cpu:
             ngpu = len(lightning_config.trainer.gpus.strip(",").split(','))
         else:

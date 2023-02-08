@@ -1,10 +1,8 @@
-
-
-import pickle
 from scripts.modules.losses.phyloloss import Species_sibling_finder, get_loss_name, get_relative_distance_for_level, parse_phyloDistances
+
 import torch
 from scipy.spatial import distance as js_distance
-import tqdm
+import pickle
 
 EPS=1e-10
 
@@ -137,7 +135,7 @@ def getPredictions(logits):
 
 ######### Feature manipulation
 
-import scripts.constants as CONSTANTS
+
 
 
 def aggregate_metric_from_specimen_to_species(sorted_class_names_according_to_class_indx, specimen_distance_matrix):
@@ -153,50 +151,7 @@ def aggregate_metric_from_specimen_to_species(sorted_class_names_according_to_cl
             
     return species_dist_matrix
 
-            
-
-
-def accumulate_features(dataloader, model, output_keys=[CONSTANTS.QUANTIZED_PHYLO_OUTPUT], device=None):
-    accumlated_features = {}
-    accumulated_labels= None
-    accumulated_predictions= None
-
-    for i, batch in tqdm(enumerate(dataloader), total=len(dataloader)):
-        images = batch['image'] 
-        labels = batch['label']
-        if device is not None:
-            images = images.to(device)
-        _, disentangler_loss_dic, _, in_out_disentangler = model(images)
-        features = {}
-        for output_key in output_keys:
-            features_ = in_out_disentangler[output_key].detach().cpu()
-            features_ = features.reshape(features.shape[0], -1)
-            features[output_key] = features_
-        pred = getPredictions(in_out_disentangler[CONSTANTS.DISENTANGLER_CLASS_OUTPUT])
-
-        # Calculate distance for each pair.
-        for output_key in output_keys:
-            accumlated_features[output_key] = features[output_key] if accumlated_features[output_key] is None else torch.cat([accumlated_features[output_key], features[output_key]]).detach()
-        accumulated_labels = labels.tolist() if accumulated_labels is None else accumulated_labels + labels.tolist()
-        accumulated_predictions = pred.tolist() if accumulated_predictions is None else accumulated_predictions + pred.tolist()
-
-    return accumlated_features, accumulated_labels, accumulated_predictions
-
-
-def get_zqphylo_sub(zqphylo, num_phylo_levels, level=None):
-    assert level < num_phylo_levels and level>0
-    zqphylo_size = zqphylo.shape[1]
-    vector_unit_ratio = 1/num_phylo_levels
-    sub_vector_ratio = (level+1)/num_phylo_levels if level is not None else None
-
-    if sub_vector_ratio is not None:
-        sub_vector= slice(int((sub_vector_ratio-vector_unit_ratio)*zqphylo_size), int(sub_vector_ratio*zqphylo_size))
-    else:
-        sub_vector= slice(0, zqphylo_size)
-
-    return zqphylo[:, sub_vector]
-
-
+    
 def get_CosineDistance_matrix(features):
     if features.dim() >2:
         features = features.reshape(features.shape[0], -1)
@@ -214,30 +169,6 @@ def get_HammingDistance_matrix(features):
     hamming_distance = hamming_distance/torch.max(hamming_distance)
     return hamming_distance
 
-def get_species_phylo_distance(classnames, distance_function, **distance_function_args):
-    unique_class_names = list(set(classnames))
-    ans = torch.zeros(len(classnames),len(classnames))
-    
-    cache = {}
-    for i in unique_class_names:
-        cache[i] = {}
-
-    for indx, i in enumerate(classnames):
-        for indx2, j in enumerate(classnames[indx+1:]):
-            if (j in cache[i].keys()):
-                dist = cache[i][j]
-            else:
-                dist = distance_function(i, j, **distance_function_args)
-                cache[i][j] = dist
-
-            ans[indx][indx2+1+indx] = ans[indx2+1+indx][indx] = dist
-            
-    distances_phylo_normalized = ans/(EPS+torch.max(ans))
-
-    return distances_phylo_normalized
-
-
-    
 
 class Embedding_Code_converter():
     def __init__(self, get_codebook_entry_index_function, embedding_function, embedding_shape):

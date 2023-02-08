@@ -1,6 +1,6 @@
 
 from scripts.analysis_utils import Embedding_Code_converter
-from scripts.loading_utils import load_config, load_phylovqvae
+from scripts.loading_utils import load_config, load_model
 from scripts.data.custom import CustomTest as CustomDataset
 import scripts.constants as CONSTANTS
 from scripts.models.phyloautoencoder import PhyloVQVAE
@@ -70,7 +70,7 @@ def main(configs_yaml):
     
     # Load model
     config = load_config(yaml_path, display=False)
-    model = load_phylovqvae(config, ckpt_path=ckpt_path, cuda=(DEVICE is not None), model_type=PhyloVQVAE)
+    model = load_model(config, ckpt_path=ckpt_path, cuda=(DEVICE is not None), model_type=PhyloVQVAE)
     
     get_code_reshaped_index = model.phylo_disentangler.embedding_converter.get_code_reshaped_index
     n_phylocodes = model.phylo_disentangler.n_phylolevels*model.phylo_disentangler.codebooks_per_phylolevel

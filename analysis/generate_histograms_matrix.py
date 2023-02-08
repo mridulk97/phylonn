@@ -1,4 +1,4 @@
-from scripts.loading_utils import load_config, load_phylovqvae
+from scripts.loading_utils import load_config, load_model
 from scripts.analysis_utils import Embedding_Code_converter, HistogramParser
 from scripts.plotting_utils import get_fig_pth, plot_heatmap
 import scripts.constants as CONSTANTS
@@ -19,7 +19,7 @@ def main(configs_yaml):
 
     # Load model
     config = load_config(yaml_path, display=False)
-    model = load_phylovqvae(config, ckpt_path=ckpt_path, cuda=(DEVICE is not None))
+    model = load_model(config, ckpt_path=ckpt_path, cuda=(DEVICE is not None))
 
     # load histograms
     histograms_file = os.path.join(get_fig_pth(ckpt_path, postfix=CONSTANTS.HISTOGRAMS_FOLDER), CONSTANTS.HISTOGRAMS_FILE)

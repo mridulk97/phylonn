@@ -9,8 +9,6 @@ from scripts.import_utils import instantiate_from_config
 from scripts.plotting_utils import dump_to_json
 from scripts.modules.diffusionmodules.model import Encoder, Decoder
 from scripts.modules.vqvae.quantize import VectorQuantizer2 as VectorQuantizer
-from scripts.modules.vqvae.quantize import GumbelQuantize
-from scripts.modules.vqvae.quantize import EMAVectorQuantizer
 from scripts.models.iterative_normalization import IterNormRotation as cw_layer
 
 class VQModel(pl.LightningModule):

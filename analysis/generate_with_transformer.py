@@ -1,4 +1,4 @@
-from scripts.loading_utils import load_config, load_phylovqvae
+from scripts.loading_utils import load_config, load_model
 from scripts.data.custom import CustomTest as CustomDataset
 from scripts.analysis_utils import Embedding_Code_converter
 from scripts.plotting_utils import save_image, save_image_grid, save_to_cvs
@@ -34,7 +34,7 @@ def main(configs_yaml):
 
     # Load model
     config = load_config(yaml_path, display=False)
-    model = load_phylovqvae(config, ckpt_path=ckpt_path, cuda=(DEVICE is not None), model_type=PhyloNN_transformer)
+    model = load_model(config, ckpt_path=ckpt_path, cuda=(DEVICE is not None), model_type=PhyloNN_transformer)
     
     # generate the images
     if not model.be_unconditional:

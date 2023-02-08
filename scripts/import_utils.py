@@ -1,3 +1,5 @@
+#based on https://github.com/CompVis/taming-transformers
+
 import importlib
 
 def get_obj_from_str(string, reload=False):

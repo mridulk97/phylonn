@@ -1,3 +1,6 @@
+
+#based on https://github.com/CompVis/taming-transformers
+ 
 import matplotlib.pyplot as plt
 import seaborn as sns
 import os
@@ -10,8 +13,6 @@ import json
 import csv
 import pandas as pd
 
-
-from sklearn.metrics import ConfusionMatrixDisplay
 
 def dump_to_json(dict, ckpt_path, name='results', get_fig_path=True):
     
@@ -113,28 +114,6 @@ def plot_heatmap(heatmap, ckpt_path=None, title='default', postfix=None):
     fig.savefig(os.path.join(path, title+ " heat_map.png"),bbox_inches='tight',dpi=300)
     pd.DataFrame(heatmap.numpy()).to_csv(os.path.join(path, title+ " heat_map.csv"))
     
-    
-    
-
-
-
-def plot_confusionmatrix(preds, classes, classnames, ckpt_path, postfix=None, title="", get_fig_path=True):
-    fig, ax = plt.subplots(figsize=(30,30))
-    preds_max = np.argmax(preds.cpu().numpy(), axis=-1)
-    disp = ConfusionMatrixDisplay.from_predictions(classes.cpu().numpy(), preds_max, display_labels=classnames, normalize='true', xticks_rotation='vertical', ax=ax)
-    disp.plot()
-    
-    if get_fig_path:
-        fig_path = get_fig_pth(ckpt_path, postfix=postfix)
-    else:
-        fig_path = ckpt_path
-        if not os.path.exists(fig_path):
-            os.mkdir(fig_path)
-    
-    print(fig_path)
-    fig.savefig(os.path.join(fig_path, title+ " heat_map.png"))
-
-
 
 class Histogram_plotter:
     def __init__(self, codebooks_per_phylolevel, n_phylolevels, n_embed, 

@@ -1,5 +1,5 @@
 
-from scripts.loading_utils import load_config, load_phylovqvae
+from scripts.loading_utils import load_config, load_model
 from scripts.data.custom import CustomTest as CustomDataset
 from scripts.models.vqgan import VQModel
 from scripts.plotting_utils import get_fig_pth
@@ -56,7 +56,7 @@ def main(configs_yaml):
     
     # Load model
     config = load_config(yaml_path, display=False)
-    model = load_phylovqvae(config, ckpt_path=ckpt_path, cuda=(DEVICE is not None), model_type=VQModel)
+    model = load_model(config, ckpt_path=ckpt_path, cuda=(DEVICE is not None), model_type=VQModel)
     
     for indx__ in tqdm.tqdm(range(count)):
         image_index1 = image_index1_+indx__
