@@ -1,5 +1,6 @@
+#based on https://github.com/CompVis/taming-transformers
+
 import torch.nn as nn
-import torch.nn.functional as F
 import torch
 
 def get_ce(pred: torch.Tensor, target: torch.Tensor, dim:int)-> torch.Tensor:
