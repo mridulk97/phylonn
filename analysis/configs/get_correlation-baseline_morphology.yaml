@@ -1,5 +1,5 @@
-path: /home/elhamod/projects/phylonn/analysis/baseline results
-file_name: "trimmed baseline morpho"
+path: /home/elhamod/projects/phylonn/analysis/baseline results # where to fine files in arrays1
+file_name: "trimmed baseline morpho" # output file name
 
 output_names: [
   LSF,

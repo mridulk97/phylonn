@@ -28,7 +28,6 @@ def main(configs_yaml):
     file_list_path = configs_yaml.file_list_path    
     num_workers = configs_yaml.num_workers
     size = configs_yaml.size
-    num_specimen_generated = configs_yaml.num_specimen_generated
     create_histograms = configs_yaml.create_histograms
     per_phylo_level = configs_yaml.per_phylo_level
 

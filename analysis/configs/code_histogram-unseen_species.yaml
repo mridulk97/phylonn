@@ -1,6 +1,7 @@
-size: 256
+# data 
+size: 256 # resolution
 file_list_path:  /fastscratch/elhamod/data/Fish/taming_transforms_fish_test_padded_256_imagenetmeancolor.txt
-unique_skipped_labels:
+unique_skipped_labels: #unseen species ids
 - 13
 - 26
 - 35
@@ -8,13 +9,10 @@ unique_skipped_labels:
 DEVICE: 0
 num_workers: 8
 batch_size: 1 # DO NOT CHANGE! 
+ 
+per_phylo_level: True # whether to calculate the histograms for ancestor levels as well
 
-per_phylo_level: True
-
-create_histograms: True
-
-generate_specifmen: False
-num_specimen_generated: 16
+create_histograms: True # whether to plot the histpgrams
 
 ##############################
 
