@@ -1,6 +1,6 @@
   model:
     base_learning_rate: 4.5e-06
-    project: Phylo-VQVAE-transformer
+    project: PhyloNN
     target: scripts.models.cond_transformer.Net2NetTransformer
     params:
       cond_stage_key: class
@@ -15,7 +15,7 @@
 
       first_stage_config:
         target: scripts.models.vqgan.VQModel
-        project: Phylo-VQVAE
+        project: PhyloNN
         params:
           embed_dim: 256
           n_embed: 1024
@@ -46,12 +46,12 @@
       train:
         target: scripts.data.custom.CustomTrain
         params:
-          training_images_list_file: /fastscratch/elhamod/data/Fish/taming_transforms_fish_train_padded_256_imagenetmeancolor.txt
+          training_images_list_file: /fastscratch/elhamod/data/Fish/fish_train.txt
           size: 256
           add_labels: True
       validation:
         target: scripts.data.custom.CustomTest
         params:
-          test_images_list_file: /fastscratch/elhamod/data/Fish/taming_transforms_fish_test_padded_256_imagenetmeancolor.txt
+          test_images_list_file: /fastscratch/elhamod/data/Fish/fish_test.txt
           size: 256
           add_labels: True

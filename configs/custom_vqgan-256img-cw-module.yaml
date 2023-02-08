@@ -56,13 +56,13 @@ model:
         train:
           target: scripts.data.custom.CustomTrain
           params:
-            training_images_list_file: /home/mridul/data/phylo-VQVAE/taming_transforms_fish_train_padded_256.txt
+            training_images_list_file: /home/mridul/data/phylo-VQVAE/fish_train_padded_256.txt
             size: 256
             add_labels: True
         validation:
           target: scripts.data.custom.CustomTest
           params:
-            test_images_list_file: /home/mridul/data/phylo-VQVAE/taming_transforms_fish_test_padded_256.txt
+            test_images_list_file: /home/mridul/data/phylo-VQVAE/fish_test_padded_256.txt
             size: 256
             add_labels: True
 
@@ -76,13 +76,13 @@ data:
     train:
       target: scripts.data.custom.CustomTrain
       params:
-        training_images_list_file: /home/mridul/data/phylo-VQVAE/taming_transforms_fish_train_padded_256.txt
+        training_images_list_file: /home/mridul/data/phylo-VQVAE/fish_train_padded_256.txt
         size: 256
         add_labels: True
     validation:
       target: scripts.data.custom.CustomTest
       params:
-        test_images_list_file: /home/mridul/data/phylo-VQVAE/taming_transforms_fish_test_padded_256.txt
+        test_images_list_file: /home/mridul/data/phylo-VQVAE/fish_test_padded_256.txt
         size: 256
         add_labels: True
 

@@ -146,13 +146,13 @@ exit;
 
 
 # Run these for the dataset you want before updating the custom_vqgan.yaml file and then running this script
-# find /home/elhamod/data/Fish/test_padded_512 -name "*.???" > /home/elhamod/data/Fish/taming_transforms_fish_test_padded_512.txt
-# find /home/elhamod/data/Fish/train_padded_512 -name "*.???" > /home/elhamod/data/Fish/taming_transforms_fish_train_padded_512.txt
+# find /home/elhamod/data/Fish/test_padded_512 -name "*.???" > /home/elhamod/data/Fish/fish_test_padded_512.txt
+# find /home/elhamod/data/Fish/train_padded_512 -name "*.???" > /home/elhamod/data/Fish/fish_train_padded_512.txt
 
-# find /home/elhamod/data/Fish/test_padded_256 -name "*.???" > /home/elhamod/data/Fish/taming_transforms_fish_test_padded_256.txt
-# find /home/elhamod/data/Fish/train_padded_256 -name "*.???" > /home/elhamod/data/Fish/taming_transforms_fish_train_padded_256.txt
+# find /home/elhamod/data/Fish/test_padded_256 -name "*.???" > /home/elhamod/data/Fish/fish_test_padded_256.txt
+# find /home/elhamod/data/Fish/train_padded_256 -name "*.???" > /home/elhamod/data/Fish/fish_train_padded_256.txt
 
 
-# find /fastscratch/elhamod/logs/2023-02-01T13-45-34_Phylo-VQVAE-transformer-phase8256img-phase8-originalVQGAN-round2-smallerbatch/transformer-generated/008190_100_1.0/samples -name "*.???" > /fastscratch/elhamod/logs/2023-02-01T13-45-34_Phylo-VQVAE-transformer-phase8256img-phase8-originalVQGAN-round2-smallerbatch/transformer-generated/008190_100_1.0/taming_transforms_fish_test_padded_512.txt
+# find /fastscratch/elhamod/logs/2023-02-01T13-45-34_Phylo-VQVAE-transformer-phase8256img-phase8-originalVQGAN-round2-smallerbatch/transformer-generated/008190_100_1.0/samples -name "*.???" > /fastscratch/elhamod/logs/2023-02-01T13-45-34_Phylo-VQVAE-transformer-phase8256img-phase8-originalVQGAN-round2-smallerbatch/transformer-generated/008190_100_1.0/fish_test_padded_512.txt
 
-# find /fastscratch/elhamod/logs/2023-01-28T17-44-33_Phylo-VQVAE-transformer-phase8256img-phase8-4phylo-4nonphylo-idea1-lvl3/figs/transformer_generated_dataset/species_transfromer_generated -name "*.???" > /fastscratch/elhamod/logs/2023-01-28T17-44-33_Phylo-VQVAE-transformer-phase8256img-phase8-4phylo-4nonphylo-idea1-lvl3/figs/transformer_generated_dataset/taming_transforms_fish_test_padded_512.txt
+# find /fastscratch/elhamod/logs/2023-01-28T17-44-33_Phylo-VQVAE-transformer-phase8256img-phase8-4phylo-4nonphylo-idea1-lvl3/figs/transformer_generated_dataset/species_transfromer_generated -name "*.???" > /fastscratch/elhamod/logs/2023-01-28T17-44-33_Phylo-VQVAE-transformer-phase8256img-phase8-4phylo-4nonphylo-idea1-lvl3/figs/transformer_generated_dataset/fish_test_padded_512.txt

@@ -8,7 +8,7 @@ image_index2: 734 # index of first image in target in dataset
 count: 15 # number of consequitive images to run the script for
 
 size: 256
-file_list_path: "/fastscratch/elhamod/data/Fish/taming_transforms_fish_train_padded_256_imagenetmeancolor.txt"
+file_list_path: "/fastscratch/elhamod/data/Fish/fish_train.txt"
 
 show_only_key_imgs: True # whether to only show images at transitions.
 

@@ -1,6 +1,6 @@
 # data 
 size: 256 # resolution
-file_list_path:  /fastscratch/elhamod/data/Fish/taming_transforms_fish_test_padded_256_imagenetmeancolor.txt
+file_list_path:  /fastscratch/elhamod/data/Fish/fish_test.txt
 unique_skipped_labels: #unseen species ids
 - 13
 - 26

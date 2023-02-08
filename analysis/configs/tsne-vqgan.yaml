@@ -8,7 +8,7 @@ isOriginalVQGAN: true #TODO: fix this based on Mridul's
 file_prefix: "vanilla-vqgan-test-set"
 
 img_res: 256
-dataset_path: "/fastscratch/elhamod/data/Fish/taming_transforms_fish_test_padded_256_imagenetmeancolor.txt"
+dataset_path: "/fastscratch/elhamod/data/Fish/fish_test.txt"
 
 ckpt_path: /fastscratch/elhamod/logs/2023-01-09T18-13-38_Phylo-VQVAE-phase7256img-originalvqgan-imagenetbg-aug/checkpoints/last.ckpt
 yaml_path: /fastscratch/elhamod/logs/2023-01-09T18-13-38_Phylo-VQVAE-phase7256img-originalvqgan-imagenetbg-aug/configs/2023-01-09T18-13-38-project.yaml

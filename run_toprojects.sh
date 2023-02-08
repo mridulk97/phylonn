@@ -18,10 +18,10 @@ which python
 
 
 # mkdir -p /projects/ml4science/phylonn/elhamod/data/Fish
-# cp -avr /home/elhamod/data/Fish/taming_transforms_fish_test_padded_256.txt /projects/ml4science/phylonn/elhamod/data/Fish/taming_transforms_fish_test_padded_256.txt
-# cp -avr /home/elhamod/data/Fish/taming_transforms_fish_train_padded_256.txt /projects/ml4science/phylonn/elhamod/data/Fish/taming_transforms_fish_train_padded_256.txt
-# cp -avr /home/elhamod/data/Fish/taming_transforms_fish_test_padded_512.txt /projects/ml4science/phylonn/elhamod/data/Fish/taming_transforms_fish_test_padded_512.txt
-# cp -avr /home/elhamod/data/Fish/taming_transforms_fish_train_padded_512.txt /projects/ml4science/phylonn/elhamod/data/Fish/taming_transforms_fish_train_padded_512.txt
+# cp -avr /home/elhamod/data/Fish/fish_test_padded_256.txt /projects/ml4science/phylonn/elhamod/data/Fish/fish_test_padded_256.txt
+# cp -avr /home/elhamod/data/Fish/fish_train_padded_256.txt /projects/ml4science/phylonn/elhamod/data/Fish/fish_train_padded_256.txt
+# cp -avr /home/elhamod/data/Fish/fish_test_padded_512.txt /projects/ml4science/phylonn/elhamod/data/Fish/fish_test_padded_512.txt
+# cp -avr /home/elhamod/data/Fish/fish_train_padded_512.txt /projects/ml4science/phylonn/elhamod/data/Fish/fish_train_padded_512.txt
 # cp -avr /home/elhamod/data/Fish/cleaned_metadata.tre /projects/ml4science/phylonn/elhamod/data/Fish/cleaned_metadata.tre
 # cp -avr /home/elhamod/data/Fish/name_conversion.pkl /projects/ml4science/phylonn/elhamod/data/Fish/name_conversion.pkl
 # cp -avr /home/elhamod/data/Fish/test_padded_256 /projects/ml4science/phylonn/elhamod/data/Fish/test_padded_256
@@ -29,8 +29,8 @@ which python
 # cp -avr /home/elhamod/data/Fish/test_padded_512 /projects/ml4science/phylonn/elhamod/data/Fish/test_padded_512
 # cp -avr /home/elhamod/data/Fish/train_padded_512 /projects/ml4science/phylonn/elhamod/data/Fish/train_padded_512
 
-# cp -avr /home/elhamod/data/Fish/taming_transforms_fish_test_padded_256_out.txt /projects/ml4science/phylonn/elhamod/data/Fish/taming_transforms_fish_test_padded_256_out.txt
-# cp -avr /home/elhamod/data/Fish/taming_transforms_fish_train_padded_256_out.txt /projects/ml4science/phylonn/elhamod/data/Fish/taming_transforms_fish_train_padded_256_out.txt
+# cp -avr /home/elhamod/data/Fish/fish_test_padded_256_out.txt /projects/ml4science/phylonn/elhamod/data/Fish/fish_test_padded_256_out.txt
+# cp -avr /home/elhamod/data/Fish/fish_train_padded_256_out.txt /projects/ml4science/phylonn/elhamod/data/Fish/fish_train_padded_256_out.txt
 
 
 # mkdir -p /projects/ml4science/phylonn/elhamod/projects/phylonn/logs/512pixels_512embedding

@@ -6,7 +6,7 @@ batch_size: 200
 file_prefix: "tsne-test-set"
 
 img_res: 256
-dataset_path:  /fastscratch/elhamod/data/Fish/taming_transforms_fish_test_padded_256_imagenetmeancolor.txt
+dataset_path:  /fastscratch/elhamod/data/Fish/fish_test.txt
 
 ckpt_path: /fastscratch/elhamod/logs/2023-01-15T00-45-57_Phylo-VQVAE-phase8256img-4phylo-4nonphylo/checkpoints/last.ckpt
 yaml_path: /fastscratch/elhamod/logs/2023-01-15T00-45-57_Phylo-VQVAE-phase8256img-4phylo-4nonphylo/configs/2023-01-15T00-45-57-project.yaml

@@ -1,5 +1,5 @@
 size: 256
-file_list_path:  /fastscratch/elhamod/data/Fish/taming_transforms_fish_test_padded_256_imagenetmeancolor.txt
+file_list_path:  /fastscratch/elhamod/data/Fish/fish_test.txt
 unique_skipped_labels: []
 
 DEVICE: 0
