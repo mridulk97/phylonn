@@ -67,13 +67,12 @@ model:
           padding: 0
           stride: 1
           verbose: false
-      lossconfig_anticlassification:
-        target: scripts.modules.losses.anticlassificationloss.AntiClassificationLoss
+      lossconfig_adversarial:
+        target: scripts.modules.losses.adversarialLoss.AdversarialLoss
         params:
           weight: 0.1
           beta: 0.7
           v3: true
-          verbose: false
 data:
   target: main.DataModuleFromConfig
   params:

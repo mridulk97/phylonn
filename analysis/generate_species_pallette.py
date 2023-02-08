@@ -1,14 +1,14 @@
-from omegaconf import OmegaConf
-import argparse
 from scripts.analysis_utils import get_phylomapper_from_config
 from scripts.data.custom import CustomTest as CustomDataset
-from PIL import Image
-import torch
-import os
-from PIL import ImageDraw 
-
 from scripts.modules.losses.phyloloss import parse_phyloDistances
 from scripts.data.phylogeny import Phylogeny
+
+from omegaconf import OmegaConf
+import argparse
+from PIL import Image
+from PIL import ImageDraw 
+import torch
+import os
 
 @torch.no_grad()
 def main(configs_yaml):
@@ -28,6 +28,7 @@ def main(configs_yaml):
     
     rows = len(set(labels))
     
+    # create phylogeny
     phylogeny = Phylogeny(phylogeny_path)
     phylo_distances = parse_phyloDistances(phyloDistances_string)
     phylo_mappers = []

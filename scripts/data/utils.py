@@ -1,3 +1,5 @@
+#based on https://github.com/CompVis/taming-transformers
+
 import collections
 
 import torch

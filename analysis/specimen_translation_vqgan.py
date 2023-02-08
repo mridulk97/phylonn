@@ -1,18 +1,14 @@
 
-# import copy
-import os
-import numpy as np
 from scripts.loading_utils import load_config, load_phylovqvae
 from scripts.data.custom import CustomTest as CustomDataset
 from scripts.models.vqgan import VQModel
 from scripts.plotting_utils import get_fig_pth
 
-
+import os
+import numpy as np
 import matplotlib.pyplot as plt
 from mpl_toolkits.axes_grid1 import ImageGrid
-
 import torch
-
 from omegaconf import OmegaConf
 import argparse
 import tqdm
@@ -106,7 +102,7 @@ def main(configs_yaml):
             key_image_helper.new_update(i)
                 
             if (not key_image_helper.update) and code1[i] == code2[i]:
-                continue #NOTE: This means a code might be skipped from key images of it is identical. Does not seem to be a bug but it is disorienting 
+                continue
             
             code1_modified[i] = code2[i]
             

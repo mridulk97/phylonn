@@ -10,15 +10,15 @@ output_names: [
 ]
 
 arrays1: [
-  trimmed phylo species distances for level 0 heat_map.csv,
-  trimmed phylo species distances for level 1 heat_map.csv,
-  trimmed phylo species distances for level 2 heat_map.csv,
-  trimmed phylo species distances for level 3 heat_map.csv,
+   phylo species distances for level 0 heat_map.csv,
+  phylo species distances for level 1 heat_map.csv,
+  phylo species distances for level 2 heat_map.csv,
+  phylo species distances for level 3 heat_map.csv,
 ]
 
 arrays2: [
-  /home/elhamod/projects/phylonn/analysis/ancestor analysis/trimmed_ancestor_distance_level0 heat_map.csv,
-  /home/elhamod/projects/phylonn/analysis/ancestor analysis/trimmed_ancestor_distance_level1 heat_map.csv,
-  /home/elhamod/projects/phylonn/analysis/ancestor analysis/trimmed_ancestor_distance_level2 heat_map.csv,
-  /home/elhamod/projects/phylonn/analysis/ancestor analysis/trimmed_ancestor_distance_level3 heat_map.csv,
+  /home/elhamod/projects/phylonn/analysis/ancestor analysis/ancestor_distance_level0 heat_map.csv,
+  /home/elhamod/projects/phylonn/analysis/ancestor analysis/ancestor_distance_level1 heat_map.csv,
+  /home/elhamod/projects/phylonn/analysis/ancestor analysis/ancestor_distance_level2 heat_map.csv,
+  /home/elhamod/projects/phylonn/analysis/ancestor analysis/ancestor_distance_level3 heat_map.csv,
 ]

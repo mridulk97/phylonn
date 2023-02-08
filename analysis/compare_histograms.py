@@ -2,16 +2,12 @@ from scripts.loading_utils import load_config, load_phylovqvae
 from scripts.data.custom import CustomTest as CustomDataset
 from scripts.analysis_utils import Embedding_Code_converter, HistogramParser
 from scripts.plotting_utils import dump_to_json, get_fig_pth
-
-import torch
-
 import scripts.constants as CONSTANTS
 
+import torch
 import os
-
 from omegaconf import OmegaConf
 import argparse
-
 import pickle
 
 ##########
@@ -81,13 +77,14 @@ def main(configs_yaml):
     config = load_config(yaml_path, display=False)
     model = load_phylovqvae(config, ckpt_path=ckpt_path, cuda=(DEVICE is not None))
     
-
+    # load histograms
     histograms_file = os.path.join(get_fig_pth(ckpt_path, postfix=CONSTANTS.HISTOGRAMS_FOLDER), CONSTANTS.HISTOGRAMS_FILE)
     histogram_file_exists = os.path.exists(histograms_file)
     if not histogram_file_exists:
         raise "histograms have not been generated. Run code_histogram.py first! Defaulting to index ordering"
     hist_arr, hist_arr_nonattr = pickle.load(open(histograms_file, "rb"))
     
+    # parse histograms
     hist_parser = HistogramParser(model)
     converter = Embedding_Code_converter(model.phylo_disentangler.quantize.get_codebook_entry_index, model.phylo_disentangler.quantize.embedding, (1, model.phylo_disentangler.embed_dim, hist_parser.codebooks_per_phylolevel, hist_parser.n_phylolevels))
     

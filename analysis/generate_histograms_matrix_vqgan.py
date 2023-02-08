@@ -2,16 +2,12 @@ from scripts.analysis_utils import js_divergence
 from scripts.loading_utils import load_config, load_phylovqvae
 from scripts.models.vqgan import VQModel
 from scripts.plotting_utils import get_fig_pth, plot_heatmap
-
-import torch
-
 import scripts.constants as CONSTANTS
 
+import torch
 import os
-
 from omegaconf import OmegaConf
 import argparse
-
 import pickle
 
 #*****************
@@ -61,16 +57,17 @@ def main(configs_yaml):
     config = load_config(yaml_path, display=False)
     model = load_phylovqvae(config, ckpt_path=ckpt_path, cuda=(DEVICE is not None), model_type=VQModel)
 
-
-
+    # get histograms
     histograms_file = os.path.join(get_fig_pth(ckpt_path, postfix=CONSTANTS.HISTOGRAMS_FOLDER), CONSTANTS.HISTOGRAMS_FILE)
     histogram_file_exists = os.path.exists(histograms_file)
     if not histogram_file_exists:
         raise "histograms have not been generated. Run code_histogram.py first! Defaulting to index ordering"
     hist_arr, _ = pickle.load(open(histograms_file, "rb"))
     
+    # parse histograms
     hist_parser = HistogramParser_VQGAN(model)
     
+    # get js distance
     jsdistances = torch.zeros([len(hist_arr), len(hist_arr)])
     for species1_indx in range(len(hist_arr)):
         for species2_indx in range(len(hist_arr)):

@@ -3,18 +3,14 @@ from scripts.data.custom import CustomTest as CustomDataset
 from scripts.data.utils import custom_collate
 from scripts.analysis_utils import Embedding_Code_converter, HistogramFrequency
 from scripts.plotting_utils import get_fig_pth, Histogram_plotter, save_to_txt
+import scripts.constants as CONSTANTS
 
 from torch.utils.data import DataLoader
 import torch
 from tqdm import tqdm
-
-import scripts.constants as CONSTANTS
-
 import os
-
 from omegaconf import OmegaConf
 import argparse
-
 from operator import add
 
 ##########
@@ -56,6 +52,7 @@ def main(configs_yaml):
     converter_nonattribute = Embedding_Code_converter(model.phylo_disentangler.quantize.get_codebook_entry_index, model.phylo_disentangler.quantize.embedding, q_phylo_output_nonattribute[0, :, :, :].shape)
     q_phylo_output_nonattribute_indices = converter.get_phylo_codes(q_phylo_output_nonattribute)
     
+    # create histogram counter
     hist_freq = HistogramFrequency(len(dataset.indx_to_label.keys()), q_phylo_output_indices.shape[1], q_phylo_output_nonattribute_indices.shape[1])
                     
         
@@ -118,8 +115,7 @@ def main(configs_yaml):
             hist_plotter.plot_histograms(species_arr, species_indx, is_nonattribute=False)
             hist_plotter_non_attribute.plot_histograms(hist_freq.hist_arr_nonattr[species_indx], species_indx, is_nonattribute=True)
         
-        
-        
+
         if per_phylo_level:
             for level in range(n_phylolevels-1): # last level already plotted.
 

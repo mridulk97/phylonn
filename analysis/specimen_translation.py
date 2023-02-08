@@ -1,8 +1,4 @@
 
-import os
-import pickle
-from analysis.replace_codes import get_entropy_ordering
-import numpy as np
 from scripts.analysis_utils import Embedding_Code_converter
 from scripts.loading_utils import load_config, load_phylovqvae
 from scripts.data.custom import CustomTest as CustomDataset
@@ -10,17 +6,17 @@ import scripts.constants as CONSTANTS
 from scripts.models.phyloautoencoder import PhyloVQVAE
 from scripts.plotting_utils import get_fig_pth
 
+import os
+import pickle
+from analysis.replace_codes import get_entropy_ordering
+import numpy as np
 import matplotlib.pyplot as plt
 from mpl_toolkits.axes_grid1 import ImageGrid
-
 import torch
-
 from omegaconf import OmegaConf
 import argparse
 import tqdm
 from pathlib import Path
-
-
 
 class KeyImageEntropyHelper:
     def __init__(self, cb_per_level, n_phylolevels, n_nonphylocodes, get_code_reshaped_index):

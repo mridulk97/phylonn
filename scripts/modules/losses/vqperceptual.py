@@ -1,10 +1,11 @@
+#based on https://github.com/CompVis/taming-transformers
+
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
 
 from scripts.modules.losses.lpips import LPIPS
 from scripts.modules.discriminator.model import NLayerDiscriminator, weights_init
-# from scripts.modules.losses.pixelloss import PixelLoss
 
 
 class DummyLoss(nn.Module):

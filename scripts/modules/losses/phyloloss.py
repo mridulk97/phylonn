@@ -1,9 +1,9 @@
 from scripts.import_utils import instantiate_from_config
-from scripts.labelsmoothing import LabelSmoothingLoss
+import scripts.constants as CONSTANTS
 import torch.nn as nn
 import torch
 from torchmetrics import F1Score
-import scripts.constants as CONSTANTS
+
 
 import numpy as np
 
@@ -30,14 +30,12 @@ class Species_sibling_finder():
                 distance_relative = get_relative_distance_for_level(genetic_distances_from_root, indx)
                 self.map[species][get_loss_name(genetic_distances_from_root, indx)] = phylogeny.get_siblings_by_name(species, distance_relative)
 
-        # print('self.map', self.map)
 
     def map_speciesId_siblingVector(self, speciesId, loss_name):
         label_list = self.phylogeny.getLabelList()
         species = label_list[speciesId]
         siblings = self.map[species][loss_name]
         siblings_indices = list(map(lambda x: label_list.index(x), siblings))
-        # print('siblings0', loss_name, speciesId, species, siblings, siblings_indices, range(len(fine_list)))
         return siblings_indices
     
 ###----------------------------------###
@@ -47,7 +45,7 @@ class Species_sibling_finder():
 
 
 class PhyloLoss(nn.Module):
-    def __init__(self, phyloDistances_string, phylogenyconfig, phylo_weight, fc_layers=None, beta=1.0, label_smoothing=0.0, verbose=False):
+    def __init__(self, phyloDistances_string, phylogenyconfig, phylo_weight, fc_layers=None, beta=1.0, verbose=False):
         super().__init__()
         self.phylo_distances = parse_phyloDistances(phyloDistances_string) 
         self.phylogeny = instantiate_from_config(phylogenyconfig)
@@ -67,11 +65,9 @@ class PhyloLoss(nn.Module):
             species_groups_representatives = list(map(lambda x: self.phylogeny.getLabelList().index(x), species_groups_representatives))
             self.mlb[get_loss_name(self.phylo_distances, level)] = species_groups_representatives
                 
-        if label_smoothing > 0:
-            self.criterionCE = LabelSmoothingLoss(smoothing=label_smoothing)
-        else:
-            self.criterionCE = torch.nn.CrossEntropyLoss()
-        # 
+
+        self.criterionCE = torch.nn.CrossEntropyLoss()
+         
         self.F1 = F1Score(num_classes=self.classifier_output_sizes[-1], multiclass=True)
     
     def get_classification_output_sizes(self):   

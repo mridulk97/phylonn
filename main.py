@@ -486,7 +486,7 @@ if __name__ == "__main__":
         # https://pytorch-lightning.readthedocs.io/en/stable/common/checkpointing_intermediate.html
         phylomodel_class = "scripts.models.phyloautoencoder.PhyloVQVAE"
         transformer_classes = [
-            "scripts.models.cond_transformer.Phylo_Net2NetTransformer",
+            "scripts.models.cond_transformer.PhyloNN_transformer",
             "scripts.models.cond_transformer.Net2NetTransformer"
         ]
         default_modelckpt_cfg = {

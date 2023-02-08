@@ -1,24 +1,9 @@
-import bisect
+#based on https://github.com/CompVis/taming-transformers
+
 import numpy as np
 import albumentations
 from PIL import Image
-from torch.utils.data import Dataset, ConcatDataset
-
-
-class ConcatDatasetWithIndex(ConcatDataset):
-    """Modified from original pytorch code to return dataset idx"""
-    def __getitem__(self, idx):
-        if idx < 0:
-            if -idx > len(self):
-                raise ValueError("absolute value of index should not exceed dataset length")
-            idx = len(self) + idx
-        dataset_idx = bisect.bisect_right(self.cumulative_sizes, idx)
-        if dataset_idx == 0:
-            sample_idx = idx
-        else:
-            sample_idx = idx - self.cumulative_sizes[dataset_idx - 1]
-        return self.datasets[dataset_idx][sample_idx], dataset_idx
-
+from torch.utils.data import Dataset
 
 class ImagePaths(Dataset):
     def __init__(self, paths, size=None, random_crop=False, horizontalflip=False, random_contrast=False, shiftrotate=False, labels=None, unique_skipped_labels=[]):
@@ -67,10 +52,6 @@ class ImagePaths(Dataset):
         image = self.preprocessor(image=image)["image"]
         image = (image/127.5 - 1.0).astype(np.float32)
         return image
-
-    def get_unique_labels(self):
-        labels = self.labels if self.labels_without_skipped is None else self.labels_without_skipped
-        return np.unique(labels['class'])
     
     def __getitem__(self, i):
         labels = self.labels if self.labels_without_skipped is None else self.labels_without_skipped
@@ -79,14 +60,3 @@ class ImagePaths(Dataset):
         for k in labels:
             example[k] = labels[k][i]
         return example
-
-
-class NumpyPaths(ImagePaths):
-    def preprocess_image(self, image_path):
-        image = np.load(image_path).squeeze(0)  # 3 x 1024 x 1024
-        image = np.transpose(image, (1,2,0))
-        image = Image.fromarray(image, mode="RGB")
-        image = np.array(image).astype(np.uint8)
-        image = self.preprocessor(image=image)["image"]
-        image = (image/127.5 - 1.0).astype(np.float32)
-        return image

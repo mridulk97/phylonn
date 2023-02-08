@@ -1,4 +1,5 @@
-from turtle import forward
+# based on https://github.com/samaonline/Orthogonal-Convolutional-Neural-Networks
+
 from torch import nn
 import torch
 import numpy as np

@@ -1,3 +1,5 @@
+# Code based on https://github.com/CompVis/taming-transformers
+
 import argparse, os, sys, glob
 from scripts.import_utils import instantiate_from_config
 import torch
@@ -250,9 +252,6 @@ if __name__ == "__main__":
     print(ckpt)
     gpu = True
     eval_mode = True
-    show_config = False
-    if show_config:
-        print(OmegaConf.to_container(config))
 
     dsets, model, global_step = load_model_and_dset(config, ckpt, gpu, eval_mode)
     print(f"Global step: {global_step}")

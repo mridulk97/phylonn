@@ -2,7 +2,7 @@ from scripts.loading_utils import load_config, load_phylovqvae
 from scripts.data.custom import CustomTest as CustomDataset
 from scripts.analysis_utils import Embedding_Code_converter
 from scripts.plotting_utils import save_image, save_image_grid, save_to_cvs
-from scripts.models.cond_transformer import Phylo_Net2NetTransformer
+from scripts.models.cond_transformer import PhyloNN_transformer
 
 import torch
 from tqdm import tqdm
@@ -34,8 +34,9 @@ def main(configs_yaml):
 
     # Load model
     config = load_config(yaml_path, display=False)
-    model = load_phylovqvae(config, ckpt_path=ckpt_path, cuda=(DEVICE is not None), model_type=Phylo_Net2NetTransformer)
+    model = load_phylovqvae(config, ckpt_path=ckpt_path, cuda=(DEVICE is not None), model_type=PhyloNN_transformer)
     
+    # generate the images
     if not model.be_unconditional:
         indices = range(len(dataset.indx_to_label))
         if model.cond_stage_model.phylo_mapper is not None:
@@ -64,7 +65,6 @@ def generate_images(index, lbl,
     
     sequence_length = model.transformer.get_block_size()-1
     
-    
     list_of_created_sequence = []
     list_of_created_nonattribute_sequence = []     
     
@@ -76,13 +76,12 @@ def generate_images(index, lbl,
         
     converter = Embedding_Code_converter(model.first_stage_model.phylo_disentangler.quantize.get_codebook_entry_index, model.first_stage_model.phylo_disentangler.quantize.embedding, (embed_dim, codebooks_per_phylolevel, n_phylolevels))
     converter_nonattribute = Embedding_Code_converter(model.first_stage_model.phylo_disentangler.quantize.get_codebook_entry_index, model.first_stage_model.phylo_disentangler.quantize.embedding, (embed_dim, codebooks_per_phylolevel, n_levels_non_attribute))
-            
-    # for all images
+
+    # construct the label conditioning
     generated_imgs = []
     steps = sequence_length
     c = torch.Tensor([index]).repeat(num_specimen_generated, 1).to(device).long()
     
-
     # generate the sequences.
     code = model.sample(torch.zeros([num_specimen_generated, 0]).to(device).long(), c, steps, sample=True, top_k=top_k)
             
@@ -93,6 +92,7 @@ def generate_images(index, lbl,
     embedding_nonattribute = converter_nonattribute.get_phylo_embeddings(created_nonattribute_sequence)
     dec_image_new, _ = model.first_stage_model.from_quant_only(embedding, embedding_nonattribute)
     
+    # save the images
     for j in tqdm(range(num_specimen_generated)):    
         list_of_created_sequence.append(created_sequence[j, :].reshape(-1).tolist())
         list_of_created_nonattribute_sequence.append(created_nonattribute_sequence[j, :].reshape(-1).tolist())
@@ -106,7 +106,7 @@ def generate_images(index, lbl,
     save_to_cvs(ckpt_path, GENERATED_FOLDER, "{}_attributecodes_{}_{}.csv".format(prefix_text, index, lbl), list_of_created_sequence)
     save_to_cvs(ckpt_path, GENERATED_FOLDER, "{}_non_attributecodes_{}_{}.csv".format(prefix_text, index, lbl), list_of_created_nonattribute_sequence)
 
-    # save the images
+    # save the images as a grid
     generated_imgs = torch.cat(generated_imgs, dim=0)
     save_image_grid(generated_imgs, ckpt_path, subfolder=GENERATED_FOLDER, postfix= "{}_{}_{}".format(prefix_text, index, lbl))
 

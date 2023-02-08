@@ -4,15 +4,12 @@ from scripts.data.utils import custom_collate
 from scripts.analysis_utils import Embedding_Code_converter, HistogramFrequency
 from scripts.models.vqgan import VQModel
 from scripts.plotting_utils import get_fig_pth
+import scripts.constants as CONSTANTS
 
 from torch.utils.data import DataLoader
 import torch
 from tqdm import tqdm
-
-import scripts.constants as CONSTANTS
-
 import os
-
 from omegaconf import OmegaConf
 import argparse
 
@@ -41,9 +38,9 @@ def main(configs_yaml):
     img = model.get_input(item, model.image_key).to(DEVICE)
     lbl = item[CONSTANTS.DISENTANGLER_CLASS_OUTPUT]
     q_phylo_output = model.encode(img)[0]
-    
     converter_phylo = Embedding_Code_converter(model.quantize.get_codebook_entry_index, model.quantize.embedding, q_phylo_output[0, :, :, :].shape)
     
+    # create histogram frequency counter
     q_phylo_output_indices = converter_phylo.get_phylo_codes(q_phylo_output[0, :, :, :].unsqueeze(0), verify=False)
     hist_freq = HistogramFrequency(len(dataset.indx_to_label.keys()), q_phylo_output_indices.shape[1])
         

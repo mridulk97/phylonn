@@ -1,10 +1,7 @@
-import os
-import numpy as np
-import albumentations
+#based on https://github.com/CompVis/taming-transformers
+
 from torch.utils.data import Dataset
-
-from scripts.data.base import ImagePaths, NumpyPaths, ConcatDatasetWithIndex
-
+from scripts.data.base import ImagePaths
 import scripts.constants as CONSTANTS
 
 

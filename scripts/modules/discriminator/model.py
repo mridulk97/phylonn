@@ -1,3 +1,5 @@
+#based on https://github.com/CompVis/taming-transformers
+
 import functools
 import torch.nn as nn
 
