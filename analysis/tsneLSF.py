@@ -18,7 +18,6 @@ from matplotlib.pyplot import imshow, show
 import os
 import pandas as pd
 import seaborn as sns
-# import mpld3
 import matplotlib.pyplot as plt
 from omegaconf import OmegaConf
 from taming.data.utils import custom_collate
