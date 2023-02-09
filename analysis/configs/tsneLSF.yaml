@@ -3,11 +3,9 @@ DEVICE: 0
 num_workers: 8
 batch_size: 200
 
-isOriginalVQGAN: true
+model_name: 'LSF'
 
-model_type: 'lsf'
-
-file_prefix: "LSF-testing"
+file_prefix: "LSF-test"
 img_res: 256
 dataset_path: "/fastscratch/elhamod/data/Fish/taming_transforms_fish_test_padded_256_imagenetmeancolor.txt"
 
