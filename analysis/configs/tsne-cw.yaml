@@ -1,0 +1,24 @@
+DEVICE: 0
+
+num_workers: 8
+batch_size: 200
+
+isOriginalVQGAN: CW
+
+file_prefix: "CW-test-set"
+img_res: 256
+dataset_path: "/fastscratch/elhamod/data/Fish/taming_transforms_fish_test_padded_256_imagenetmeancolor.txt"
+
+ckpt_path: /fastscratch/elhamod/logs/2023-01-09T18-13-38_Phylo-VQVAE-phase7256img-originalvqgan-imagenetbg-aug/checkpoints/last.ckpt
+yaml_path: /fastscratch/elhamod/logs/2023-01-09T18-13-38_Phylo-VQVAE-phase7256img-originalvqgan-imagenetbg-aug/configs/2023-01-09T18-13-38-project.yaml
+
+# Just set phylogeny_path to None when not applicable
+phylogeny_path: 
+# level: 0
+# phyloDistances_string: "0.77,0.5,0.33"
+# phylogeny_path: /fastscratch/elhamod/data/Fish
+
+phylogeny_knn: /fastscratch/elhamod/data/Fish
+
+which_tsne_plots: ['standard', 'knn']
+legend_labels: ['class']

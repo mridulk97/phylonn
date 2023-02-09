@@ -1,14 +1,14 @@
+from scripts.analysis_utils import get_phylomapper_from_config
+from scripts.data.custom import CustomTest as CustomDataset
+from scripts.modules.losses.phyloloss import parse_phyloDistances
+from scripts.data.phylogeny import Phylogeny
+
 from omegaconf import OmegaConf
 import argparse
-from taming.data.custom import CustomTest as CustomDataset
 from PIL import Image
+from PIL import ImageDraw 
 import torch
 import os
-from PIL import ImageFont
-from PIL import ImageDraw 
-
-from taming.modules.losses.phyloloss import parse_phyloDistances, get_relative_distance_for_level
-from taming.data.phylogeny import Phylogeny
 
 @torch.no_grad()
 def main(configs_yaml):
@@ -28,10 +28,12 @@ def main(configs_yaml):
     
     rows = len(set(labels))
     
+    # create phylogeny
     phylogeny = Phylogeny(phylogeny_path)
     phylo_distances = parse_phyloDistances(phyloDistances_string)
+    phylo_mappers = []
     for indx, i in enumerate(phylo_distances):
-        phylo_distances[indx] = get_relative_distance_for_level(phylo_distances, indx)
+        phylo_mappers.append(get_phylomapper_from_config(phylogeny, phyloDistances_string, indx))
     
     indices = {}
     for j in range(max(labels)+1):
@@ -42,12 +44,6 @@ def main(configs_yaml):
     
     grid = Image.new('RGB', size=(cols*size, rows*size))
     
-    
-    # print(indices)
-    # print(paths)
-    # print(labels)
-    # print(grid)
-    
     for j in range(max(labels)+1):
         species_name = dataset.indx_to_label[j]
         
@@ -56,8 +52,8 @@ def main(configs_yaml):
             draw = ImageDraw.Draw(im)
             
             txt = str(j) + "-" + species_name
-            for d in phylo_distances:
-                txt = txt + "-" + str(dataset.labels_to_idx[phylogeny.get_siblings_by_name(species_name, d)[0]])
+            for indx_, d in enumerate(phylo_distances):
+                txt = txt + "-" + str(phylo_mappers[indx_].get_mapped_truth(torch.LongTensor([j])).item())
             draw.text((0, 0), txt ,(0,0,0))
 
             grid.paste(im, box=(indx*size, j*size))
@@ -82,7 +78,6 @@ if __name__ == "__main__":
     )
     
     cfg, _ = parser.parse_known_args()
-    # cfg = parser.config
     configs = OmegaConf.load(cfg.config)
     cli = OmegaConf.from_cli()
     config = OmegaConf.merge(configs, cli)

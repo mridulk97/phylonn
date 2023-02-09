@@ -1,0 +1,27 @@
+path: /fastscratch/elhamod/logs/2023-01-15T00-45-57_Phylo-VQVAE-phase8256img-4phylo-4nonphylo/figs/results_summary # where to fine files in arrays1
+
+file_name: "baseline phylo"
+
+output_names: [
+  non-attr to level3,
+  level0,
+  level1,
+  level2,
+  level3,
+]
+
+arrays1: [
+  js_divergence for non-attributes heat_map.csv,
+  js_divergence for phylo attributes for level 0 heat_map.csv,
+  js_divergence for phylo attributes for level 1 heat_map.csv,
+  js_divergence for phylo attributes for level 2 heat_map.csv,
+  js_divergence for phylo attributes heat_map.csv
+]
+
+arrays2: [
+  /home/elhamod/projects/phylonn/analysis/phylo analysis/stances for level 3 heat_map.csv,
+  /home/elhamod/projects/phylonn/analysis/phylo analysis/phylo species distances for level 0 heat_map.csv,
+  /home/elhamod/projects/phylonn/analysis/phylo analysis/phylo species distances for level 1 heat_map.csv,
+  /home/elhamod/projects/phylonn/analysis/phylo analysis/phylo species distances for level 2 heat_map.csv,
+  /home/elhamod/projects/phylonn/analysis/phylo analysis/phylo species distances for level 3 heat_map.csv,
+]

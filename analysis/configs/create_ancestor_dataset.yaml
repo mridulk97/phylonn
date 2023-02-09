@@ -1,5 +1,0 @@
-dataset: /fastscratch/elhamod/data/Fish/train_padded_256
-
-level: 2
-phyloDistances_string: "0.77,0.5,0.33"
-phylogeny_path: /fastscratch/elhamod/data/Fish

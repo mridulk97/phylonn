@@ -1,28 +1,30 @@
+#based on https://github.com/CompVis/taming-transformers
+
 import argparse, os, sys, datetime, glob
 from omegaconf import OmegaConf
 import numpy as np
 from PIL import Image
-from taming.analysis_utils import aggregate_metric_from_specimen_to_species, get_HammingDistance_matrix
-from taming.import_utils import instantiate_from_config
-from taming.models.phyloautoencoder import PhyloVQVAE
 import torch
 import torchvision
-from torch.utils.data import random_split, DataLoader, Dataset
+from torch.utils.data import DataLoader, Dataset
 import pytorch_lightning as pl
 from pytorch_lightning import seed_everything
 from pytorch_lightning.trainer import Trainer
-from pytorch_lightning.callbacks import ModelCheckpoint, Callback, LearningRateMonitor
+from pytorch_lightning.callbacks import Callback
 from pytorch_lightning.utilities.distributed import rank_zero_only
 
-import taming.constants as CONSTANTS
-from taming.data.utils import custom_collate
+from scripts.analysis_utils import aggregate_metric_from_specimen_to_species, get_HammingDistance_matrix
+from scripts.import_utils import instantiate_from_config
+from scripts.models.phyloautoencoder import PhyloVQVAE
+import scripts.constants as CONSTANTS
+from scripts.data.utils import custom_collate
 
 import wandb
 
 def get_monitor(target):
     if target == phylomodel_class:
-        return "val"+CONSTANTS.DISENTANGLER_PHYLO_LOSS
-    elif target in transformer_classes:
+        return "val"+CONSTANTS.BASERECLOSS
+    if target in transformer_classes:
         return "val"+CONSTANTS.TRANSFORMER_LOSS
     return "val" +CONSTANTS.RECLOSS
 
@@ -174,7 +176,7 @@ class DataModuleFromConfig(pl.LightningDataModule):
     def _val_dataloader(self):
         return DataLoader(self.datasets["validation"],
                           batch_size=self.batch_size,
-                          num_workers=self.num_workers, collate_fn=custom_collate) #TODO: shuffling validation in pytorch lightning does not work. workaround?
+                          num_workers=self.num_workers, collate_fn=custom_collate)
 
     def _test_dataloader(self):
         return DataLoader(self.datasets["test"], batch_size=self.batch_size,
@@ -240,7 +242,6 @@ class ImageLogger(Callback):
 
         for k in images:
             grid = torchvision.utils.make_grid(images[k].detach())
-            # print('grid', grid.shape, grid.dtype)
             grid = grid.cpu().numpy().transpose((1, 2, 0))
             grid = (grid+1.0)/2.0 # -1,1 -> 0,1; c,h,w
             grid = (grid * 255).astype(np.uint8)
@@ -284,7 +285,7 @@ class ImageLogger(Callback):
             Image.fromarray(grid).save(path)
 
     def log_img(self, pl_module, batch, batch_idx, split="train"):
-        if (self.check_frequency(batch_idx) and  # batch_idx % self.batch_freq == 0
+        if (self.check_frequency(batch_idx) and
                 hasattr(pl_module, "log_images") and
                 callable(pl_module.log_images) and
                 self.max_images > 0):
@@ -328,11 +329,7 @@ class ImageLogger(Callback):
 
     def on_validation_batch_end(self, trainer, pl_module, outputs, batch, batch_idx, dataloader_idx):
         self.log_img(pl_module, batch, batch_idx, split="val")
-    
-    def on_training_epoch_end(self, trainer, pl_module):    
-        x=0
         
-    #TODO: somehow when this is addedd. logging breaks.
     def on_validation_epoch_end(self, trainer, pl_module):    
         if isinstance(pl_module, PhyloVQVAE):
             is_train = pl_module.training
@@ -368,52 +365,8 @@ class ImageLogger(Callback):
 
 
 if __name__ == "__main__":
-    # custom parser to specify config files, train, test and debug mode,
-    # postfix, resume.
-    # `--key value` arguments are interpreted as arguments to the trainer.
-    # `nested.key=value` arguments are interpreted as config parameters.
-    # configs are merged from left-to-right followed by command line parameters.
-
-    # model:
-    #   base_learning_rate: float
-    #   target: path to lightning module
-    #   params:
-    #       key: value
-    # data:
-    #   target: main.DataModuleFromConfig
-    #   params:
-    #      batch_size: int
-    #      wrap: bool
-    #      train:
-    #          target: path to train dataset
-    #          params:
-    #              key: value
-    #      validation:
-    #          target: path to validation dataset
-    #          params:
-    #              key: value
-    #      test:
-    #          target: path to test dataset
-    #          params:
-    #              key: value
-    # lightning: (optional, has sane defaults and can be specified on cmdline)
-    #   trainer:
-    #       additional arguments to trainer
-    #   logger:
-    #       logger to instantiate
-    #   modelcheckpoint:
-    #       modelcheckpoint to instantiate
-    #   callbacks:
-    #       callback1:
-    #           target: importpath
-    #           params:
-    #               key: value
-
     now = datetime.datetime.now().strftime("%Y-%m-%dT%H-%M-%S")
 
-    # add cwd for convenience and to make classes in this file available when
-    # running as `python main.py`
-    # (in particular `main.DataModuleFromConfig`)
     sys.path.append(os.getcwd())
 
     parser = get_parser()
@@ -533,10 +486,10 @@ if __name__ == "__main__":
         # specify which metric is used to determine best models
         # https://pytorch-lightning.readthedocs.io/en/stable/api/pytorch_lightning.callbacks.ModelCheckpoint.html
         # https://pytorch-lightning.readthedocs.io/en/stable/common/checkpointing_intermediate.html
-        phylomodel_class = "taming.models.phyloautoencoder.PhyloVQVAE"
+        phylomodel_class = "scripts.models.phyloautoencoder.PhyloVQVAE"
         transformer_classes = [
-            "taming.models.cond_transformer.Phylo_Net2NetTransformer",
-            "taming.models.cond_transformer.Net2NetTransformer"
+            "scripts.models.cond_transformer.PhyloNN_transformer",
+            "scripts.models.cond_transformer.Net2NetTransformer"
         ]
         default_modelckpt_cfg = {
             "target": "pytorch_lightning.callbacks.ModelCheckpoint",
@@ -587,7 +540,6 @@ if __name__ == "__main__":
                 "target": "main.LearningRateMonitor",
                 "params": {
                     "logging_interval": "step",
-                    #"log_momentum": True
                 }
             },
         }
@@ -607,7 +559,6 @@ if __name__ == "__main__":
 
         # configure learning rate
         bs, base_lr = config.data.params.batch_size, config.model.base_learning_rate
-        # use_scheduler = 
         if not cpu:
             ngpu = len(lightning_config.trainer.gpus.strip(",").split(','))
         else:
@@ -626,18 +577,6 @@ if __name__ == "__main__":
                 print("Summoning checkpoint.")
                 ckpt_path = os.path.join(ckptdir, "last.ckpt")
                 trainer.save_checkpoint(ckpt_path)
-
-            # from pytorch_memlab import MemReporter
-            # reporter = MemReporter()
-            # reporter.report()
-
-            # for obj in gc.get_objects():
-            #     try:
-            #         import sys 
-            #         if torch.is_tensor(obj) or (hasattr(obj, 'data') and torch.is_tensor(obj.data)):
-            #             print(sys.getsizeof(obj), type(obj), obj.size())
-            #     except:
-            #         pass
                 
         def divein(*args, **kwargs):
             if trainer.global_rank == 0:

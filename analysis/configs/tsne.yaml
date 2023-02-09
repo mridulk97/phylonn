@@ -3,21 +3,19 @@ DEVICE: 0
 num_workers: 8
 batch_size: 200
 
-file_prefix: "tsne"
+file_prefix: "tsne-test-set"
+
 img_res: 256
-# file_list_path: "/home/elhamod/data/Fish/taming_transforms_fish_train_padded_256.txt"
-dataset_path: "/fastscratch/elhamod/data/Fish/taming_transforms_fish_test_padded_256.txt"
+dataset_path:  /fastscratch/elhamod/data/Fish/fish_test.txt
 
-# # slower lr stronganti
-ckpt_path: /fastscratch/elhamod/logs/2022-10-31T12-46-01_Phylo-VQVAE256img-phase4-multiclass-lowerlr-8cblevel-stronganti/checkpoints/last.ckpt
-yaml_path: /fastscratch/elhamod/logs/2022-10-31T12-46-01_Phylo-VQVAE256img-phase4-multiclass-lowerlr-8cblevel-stronganti/configs/2022-10-31T12-46-01-project-updated.yaml
-
+ckpt_path: /fastscratch/elhamod/logs/2023-01-15T00-45-57_Phylo-VQVAE-phase8256img-4phylo-4nonphylo/checkpoints/last.ckpt
+yaml_path: /fastscratch/elhamod/logs/2023-01-15T00-45-57_Phylo-VQVAE-phase8256img-4phylo-4nonphylo/configs/2023-01-15T00-45-57-project.yaml
 
 # Just set phylogeny_path to None for training species level
-phylogeny_path: 
-# level: 0
-# phyloDistances_string: "0.77,0.5,0.33"
-# phylogeny_path: /fastscratch/elhamod/data/Fish
+level: 1
+phyloDistances_string: "0.77,0.5,0.33"
+phylogeny_path: /fastscratch/elhamod/data/Fish
 
-which_tsne_plots: [ 'standard', 'images'] #, 'incorrect' 
-legend_labels: ['class']
+phylogeny_knn: /fastscratch/elhamod/data/Fish
+
+which_tsne_plots: ['standard',  'knn']

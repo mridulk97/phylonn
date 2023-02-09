@@ -1,0 +1,115 @@
+model:
+model:
+  base_learning_rate: 4.5e-06
+  project: Phylo-VQVAE-transformer-phase7
+  target: scripts.models.cond_transformer.PhyloNN_transformer
+  posttraining_ckpt: /fastscratch/elhamod/logs/2023-01-31T15-12-29_Phylo-VQVAE-phase8256img-4phylo-4nonphylo-fewernonphylodim/checkpoints/epoch=000719.ckpt
+  params:
+    cond_stage_key: class
+    top_k: 5
+    transformer_config:
+      target: scripts.modules.transformer.mingpt.GPT
+      params:
+        vocab_size: 64 # size of codebook (number of possible codes)
+        block_size: 65 # 4*8 attr+4*8 nonattr+1 cond# codes predicted at once.
+        n_layer: 5
+        n_head: 4
+        n_embd: 16 #embedding dimensions for transformer. Does not have to be same as vqgan codebook
+    
+    first_stage_config:
+      target: scripts.models.phyloautoencoder.PhyloVQVAE
+      project: PhyloNN
+      params:
+        embed_dim: 256
+        n_embed: 1024
+        ddconfig:
+          double_z: false
+          z_channels: 256
+          resolution: 256
+          in_channels: 3
+          out_ch: 3
+          ch: 128
+          ch_mult:
+          - 1
+          - 1
+          - 2
+          - 2
+          - 4
+          num_res_blocks: 2
+          attn_resolutions:
+          - 16
+          dropout: 0.0
+        lossconfig:
+          target: scripts.modules.losses.DummyLoss
+        phylomodel_params:
+          embed_dim: 16
+          n_embed: 64
+          n_phylolevels: 4
+          n_levels_non_attribute: 4
+          codes_per_phylolevel: 8
+          n_phylo_channels: 94
+          verbose: false
+          ch: 128
+          resolution: 16
+          in_channels: 256
+          out_ch: 256
+          n_mlp_layers: 1
+          lossconfig:
+            target: scripts.modules.losses.vqperceptual.VQLPIPSWithDiscriminator
+            params:
+              codebook_weight: 1.0
+              disc_in_channels: 0
+              disc_num_layers: 0
+              disc_weight: 0.0
+              disc_factor: 0.0
+              perceptual_weight: 0.0
+              disc_start: 10000
+          lossconfig_phylo:
+            target: scripts.modules.losses.phyloloss.PhyloLoss
+            params:
+              phylo_weight: 0.1
+              fc_layers: 1
+              beta: 0.5
+              phyloDistances_string: 0.77,0.5,0.33
+              phylogenyconfig:
+                target: scripts.data.phylogeny.Phylogeny
+                params:
+                  filePath: /fastscratch/elhamod/data/Fish
+              verbose: false
+          lossconfig_kernelorthogonality:
+            target: scripts.modules.losses.orthogonalloss.OrthogonalLoss
+            params:
+              weight: 1.0
+              padding: 0
+              stride: 1
+              verbose: false
+          lossconfig_adversarial:
+            target: scripts.modules.losses.adversarialLoss.AdversarialLoss
+            params:
+              weight: 0.1
+              beta: 0.7
+              v3: true
+                
+    cond_stage_config:
+      target: scripts.modules.misc.label_conditioner.LabelCond
+      params:
+        phyloDistances_string: "0.77,0.5,0.33"
+        level: 3
+
+data:
+  target: main.DataModuleFromConfig
+  params:
+    batch_size: 32
+    num_workers: 8
+    train:
+      target: scripts.data.custom.CustomTrain
+      params:
+        training_images_list_file: /fastscratch/elhamod/data/Fish/fish_train.txt
+        size: 256
+        add_labels: true
+    validation:
+      target: scripts.data.custom.CustomTest
+      params:
+        test_images_list_file: /fastscratch/elhamod/data/Fish/fish_test.txt
+        size: 256
+        add_labels: true
