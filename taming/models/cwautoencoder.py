@@ -171,7 +171,6 @@ class AverageMeter(object):
         self.count += n
         self.avg = self.sum / self.count
 
-class CWmodelVQGAN_baseline(VQModel):
     def __init__(self, **args):
         print(args)
         
