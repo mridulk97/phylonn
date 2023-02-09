@@ -1,26 +1,14 @@
 import os
-import pickle
-from analysis.replace_codes import get_entropy_ordering
-import numpy as np
-from taming.loading_utils import load_config, load_phylovqvae, load_LSFvqvae
-from taming.data.custom import CustomTest as CustomDataset
+from scripts.loading_utils import load_config, load_model
+from scripts.data.custom import CustomTest as CustomDataset
+from scripts.models.LSFautoencoder import LSFVQVAE
+from scripts.plotting_utils import get_fig_pth
 
-import taming.constants as CONSTANTS
-from taming.models.vqgan import VQModel
-from taming.models.LSFautoencoder import LSFVQVAE
-from taming.modules.losses.lpips import LPIPS
-from taming.plotting_utils import get_fig_pth
-
-
-import matplotlib.pyplot as plt
-from mpl_toolkits.axes_grid1 import ImageGrid
 
 import torch
-
 from omegaconf import OmegaConf
 import argparse
 import tqdm
-from pathlib import Path
 import torchvision.utils as vutils
 
 
@@ -97,7 +85,7 @@ def main(configs_yaml):
     
     # Load model
     config = load_config(yaml_path, display=False)
-    model = load_LSFvqvae(config, ckpt_path=ckpt_path, cuda=(DEVICE is not None), model_type=LSFVQVAE)
+    model = load_model(config, ckpt_path=ckpt_path, cuda=(DEVICE is not None), model_type=LSFVQVAE)
 
     for indx__ in tqdm.tqdm(range(count)):
         image_index1 = image_index1_+indx__

@@ -1,0 +1,17 @@
+path: /home/elhamod/projects/phylonn/analysis/baseline results # where to fine files in arrays1
+file_name: "baseline morpho" # output file name
+
+output_names: [
+  LSF,
+  CW
+]
+
+arrays1: [
+  LSF_distances.csv,
+  CW_distances.csv
+]
+
+arrays2: [
+  /home/elhamod/projects/phylonn/analysis/ancestor analysis/ancestor_distance_level3 heat_map.csv,
+  /home/elhamod/projects/phylonn/analysis/ancestor analysis/ancestor_distance_level3 heat_map.csv,
+]

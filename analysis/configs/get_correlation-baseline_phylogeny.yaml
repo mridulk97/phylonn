@@ -1,0 +1,17 @@
+path: /home/elhamod/projects/phylonn/analysis/baseline results # where to fine files in arrays1
+file_name: "baseline phylo"
+
+output_names: [
+  LSF,
+  CW
+]
+
+arrays1: [
+  LSF_distances.csv,
+  CW_distances.csv
+]
+
+arrays2: [
+  /home/elhamod/projects/phylonn/analysis/phylo analysis/phylo species distances for level 3 heat_map.csv,
+  /home/elhamod/projects/phylonn/analysis/phylo analysis/phylo species distances for level 3 heat_map.csv,
+]

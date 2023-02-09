@@ -5,20 +5,14 @@ batch_size: 200
 
 isOriginalVQGAN: CW
 
-
-
-file_prefix: "vqgan-test"
+file_prefix: "CW-test-set"
 img_res: 256
 dataset_path: "/fastscratch/elhamod/data/Fish/taming_transforms_fish_test_padded_256_imagenetmeancolor.txt"
-# dataset_path: /fastscratch/elhamod/logs/2023-02-01T13-45-34_Phylo-VQVAE-transformer-phase8256img-phase8-originalVQGAN-round2-smallerbatch/transformer-generated/008190_100_1.0/taming_transforms_fish_test_padded_512.txt
 
-# original vqgan
-# ckpt_path: /fastscratch/elhamod/projects/taming-transformers/logs/256pixels_256embedding/checkpoints/last.ckpt
-# yaml_path: /fastscratch/elhamod/projects/taming-transformers/logs/256pixels_256embedding/configs/2022-09-21T11-17-33-project.yaml
 ckpt_path: /fastscratch/elhamod/logs/2023-01-09T18-13-38_Phylo-VQVAE-phase7256img-originalvqgan-imagenetbg-aug/checkpoints/last.ckpt
 yaml_path: /fastscratch/elhamod/logs/2023-01-09T18-13-38_Phylo-VQVAE-phase7256img-originalvqgan-imagenetbg-aug/configs/2023-01-09T18-13-38-project.yaml
 
-# Just set phylogeny_path to None for training species level
+# Just set phylogeny_path to None when not applicable
 phylogeny_path: 
 # level: 0
 # phyloDistances_string: "0.77,0.5,0.33"
@@ -26,5 +20,5 @@ phylogeny_path:
 
 phylogeny_knn: /fastscratch/elhamod/data/Fish
 
-which_tsne_plots: ['standard', 'knn'] #  , 'images'
+which_tsne_plots: ['standard', 'knn']
 legend_labels: ['class']

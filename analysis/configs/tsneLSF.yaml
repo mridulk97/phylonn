@@ -5,7 +5,7 @@ batch_size: 200
 
 model_name: 'LSF'
 
-file_prefix: "LSF-test"
+file_prefix: "LSF-test-set"
 img_res: 256
 dataset_path: "/fastscratch/elhamod/data/Fish/taming_transforms_fish_test_padded_256_imagenetmeancolor.txt"
 

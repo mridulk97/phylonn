@@ -4,23 +4,21 @@ import numpy as np
 from PIL import Image
 import torch
 import torchvision
-from torch.utils.data import random_split, DataLoader, Dataset
+from torch.utils.data import DataLoader, Dataset
 import pytorch_lightning as pl
 from pytorch_lightning import seed_everything
 from pytorch_lightning.trainer import Trainer
-from pytorch_lightning.callbacks import ModelCheckpoint, Callback, LearningRateMonitor
+from pytorch_lightning.callbacks import Callback
 from pytorch_lightning.utilities.distributed import rank_zero_only
-
-import torchvision.utils as vutils
 from tqdm import tqdm
-from taming.data.utils import custom_collate
-
-from taming.plotting_utils import get_fig_pth
-
-from taming.analysis_utils import aggregate_metric_from_specimen_to_species, get_CosineDistance_matrix
-from taming.plotting_utils import plot_heatmap
-
 import wandb
+
+
+from scripts.data.utils import custom_collate
+from scripts.plotting_utils import get_fig_pth
+from scripts.analysis_utils import aggregate_metric_from_specimen_to_species, get_CosineDistance_matrix
+from scripts.plotting_utils import plot_heatmap
+
 
 def get_obj_from_str(string, reload=False):
     module, cls = string.rsplit(".", 1)
@@ -448,6 +446,9 @@ if __name__ == "__main__":
         grid = (grid+1.0)/2.0
         grid = (grid * 255).astype(np.uint8)
         return grid
+
+    from scripts.analysis_utils import aggregate_metric_from_specimen_to_species, get_CosineDistance_matrix
+    from scripts.plotting_utils import plot_heatmap
 
     labels_to_idx = {
         'Alosa chrysochloris': 0, 
