@@ -1,4 +1,3 @@
-from scripts.constants import DISENTANGLER_CLASS_OUTPUT
 from torch import nn
 import torch
 
