@@ -7,6 +7,7 @@ from taming.data.phylogeny import Phylogeny
 from taming.loading_utils import load_config, load_phylovqvae, load_CWVQGAN
 from taming.models.phyloautoencoder import PhyloVQVAE
 from taming.models.cwautoencoder import CWmodelVQGAN
+from taming.models.LSFautoencoder import LSFVQVAE
 from taming.models.vqgan import VQModel
 from taming.plotting_utils import get_fig_pth
 from torchvision import transforms
@@ -18,7 +19,6 @@ from matplotlib.pyplot import imshow, show
 import os
 import pandas as pd
 import seaborn as sns
-import mpld3
 import matplotlib.pyplot as plt
 from omegaconf import OmegaConf
 from taming.data.utils import custom_collate
@@ -37,10 +37,13 @@ def get_output(model, image):
         quant, _, _ = model.encode(image)
         return quant
     elif type(model) == CWmodelVQGAN:
-        # quant, _, _ = model.encode(image)
         h = model.encoder(image)
         h = model.quant_conv(h)
         return h
+    elif type(model) == LSFVQVAE:
+        z, _, _= model.image2encoding(image)
+        z = (z @ model.LSF_disentangler.M.t())[:, :38]
+        return z
     else:
         raise "Model type unknown"
     
@@ -82,8 +85,6 @@ def get_tsne(dataloader, model, path,
     tx = (tx-np.min(tx)) / (np.max(tx) - np.min(tx))
     ty = (ty-np.min(ty)) / (np.max(ty) - np.min(ty))
 
-
-
     if img_res is not None and 'images' in which_tsne_plots:
         visualize_tsne_images(dataloader, tx, ty, img_res, path, file_prefix, phylomapper, cuda)
 
@@ -101,19 +102,9 @@ def get_tsne(dataloader, model, path,
         else:
             phylogeny_knn = Phylogeny(phylogeny_knn)
             plot_phylo_KNN(dataloader, tx, ty, path, file_prefix, phylogeny_knn)
-            
-
-    
-
+        
     show(block=False)
     print('--------')
-    
-
-
-
-
-
-
 
 
 def avg_distances(fine_label, indexes, phylogeny, dataset):
@@ -124,7 +115,6 @@ def avg_distances(fine_label, indexes, phylogeny, dataset):
         dist = dist + phylogeny.get_distance(label_list[fine_label], label_list[lbl])
     result = dist/len(indexes)
     return result
-
 
 
 def plot_phylo_KNN(dataloader, tx, ty, path, file_prefix, phylogeny_knn, n_neighbors=5):
@@ -156,7 +146,7 @@ def plot_phylo_KNN(dataloader, tx, ty, path, file_prefix, phylogeny_knn, n_neigh
         hue='KNN_phylo_dist',
         palette="Oranges",
         data=df,
-        legend=False #legend="full"
+        legend=False
     )
 
     norm = plt.Normalize(df['KNN_phylo_dist'].min(), df['KNN_phylo_dist'].max())
@@ -205,7 +195,7 @@ def plot_correct_incorrect(dataloader, tx, ty, path, file_prefix, model=None, ph
         hue='isCorrect',
         palette=sns.color_palette("hls", len(set(fine_labels))),
         data=df,
-        legend=False #"full"
+        legend=False
     )
     fig = sns_plot.get_figure()
     fig.savefig(os.path.join(path, file_prefix+"_tsne_correctPrediction.png"),bbox_inches='tight',dpi=300)
@@ -219,7 +209,6 @@ def plot_tsne_dots(dataloader, tx, ty, path, file_prefix, legend_labels=[CONSTAN
         for j in legend_labels:
             labels[j] = batch[j] if j not in labels else torch.cat([labels[j], batch[j]]).detach()
         file_names = file_names + file_name
-
 
     df = pd.DataFrame()
     df['tsne-x'] = tx
@@ -242,15 +231,10 @@ def plot_tsne_dots(dataloader, tx, ty, path, file_prefix, legend_labels=[CONSTAN
             hue=j,
             palette=sns.color_palette("hls", len(set(labels[j]))),
             data=df,
-            legend=False# legend="full"
+            legend=False
         )
-        # tooltip_label = [str(j) for i in range(len(labels))] #TODO: is this i a j?
-        # tooltip = mpld3.plugins.PointLabelTooltip(sns_plot, labels=tooltip_label)
         fig = sns_plot.get_figure()
-        # mpld3.plugins.connect(fig, tooltip)
         fig.savefig(os.path.join(path, file_prefix+"_legend_" + j +"_tsne_dots.png"),bbox_inches='tight',dpi=300)
-
-
 
 
 def visualize_tsne_images(dataloader, tx, ty, img_res, path, file_prefix, phylomapper, cuda=None):    
@@ -283,31 +267,21 @@ def visualize_tsne_images(dataloader, tx, ty, img_res, path, file_prefix, phylom
     
     for img, x, y, file_name, fine_label in tqdm(zip(images, tx, ty, file_names, fine_labels), total=tx.shape[0]):
         tile = transforms.ToPILImage()(img).convert("RGB")
-        # print(img.shape)
-        # print(tile.size, tile.mode)
         
         draw = ImageDraw.Draw(tile)
-        # draw.text((0, int(img_res*0.8)), "true: " + str(fine_label.item())+"\npredicted: "+str(pred.item()), (255,0,0), font=font)
         draw.text((0, int(img_res*0.8)), str(fine_label.item()), (255,0,0), font=font)
         
         rs = max(1, tile.width/max_dim, tile.height/max_dim)
-        # print(rs, tile.width, tile.height, max_dim)
         tile = tile.resize((int(tile.width/rs), int(tile.height/rs)), Image.Resampling.LANCZOS)
-        # print(tile.size, tile.mode)
-        full_image.paste(tile, (int((width-max_dim)*x), height - int((height-max_dim)*y)))#, mask=tile.convert('RGBA'))
-        # raise
+        full_image.paste(tile, (int((width-max_dim)*x), height - int((height-max_dim)*y)))
 
     if phylomapper is not None:
         file_prefix = file_prefix+"_level"+str(phylomapper.level)
     
     matplotlib.pyplot.figure(figsize = (16,12))
-    # full_image = full_image.transpose(Image.FLIP_TOP_BOTTOM)
     imshow(full_image)
     full_image.save(os.path.join(path, file_prefix+"_tsne_images.png"))
     
-
-
-
 
 def main(configs_yaml):
     yaml_path = configs_yaml.yaml_path
@@ -326,10 +300,9 @@ def main(configs_yaml):
     
     phylogeny_knn = configs_yaml.phylogeny_knn
     
-    isOriginalVQGAN = configs_yaml.isOriginalVQGAN if "isOriginalVQGAN" in configs_yaml.keys() else 'PhyloNN'
+    model_name = configs_yaml.model_name if "model_name" in configs_yaml.keys() else 'PhyloNN'
     
     phylogeny_path = configs_yaml.phylogeny_path
-    print(type(phylogeny_path))
     
     phylomapper=None
     if phylogeny_path is not None:
@@ -342,21 +315,22 @@ def main(configs_yaml):
     dataloader = DataLoader(dataset.data, batch_size=batch_size, num_workers=num_workers, collate_fn=custom_collate)
     
     # Load model
-    if isOriginalVQGAN=='VQGAN':
+    if model_name=='VQGAN':
         model_type=VQModel
-    elif isOriginalVQGAN=='CW':
+    elif model_name=='CW':
         model_type=CWmodelVQGAN
+    elif model_name=='LSF':
+        model_type=LSFVQVAE
     else:
         model_type=PhyloVQVAE
         
     config = load_config(yaml_path, display=False)
-    model = load_phylovqvae(config, ckpt_path=ckpt_path, cuda=(DEVICE is not None), model_type=model_type)
-    # model.set_test_chkpt_path(ckpt_path)
+    model = load_model(config, ckpt_path=ckpt_path, cuda=(DEVICE is not None), model_type=model_type)
     
     with torch.no_grad():
         get_tsne(dataloader, model, get_fig_pth(ckpt_path, postfix=CONSTANTS.TSNE_FOLDER), 
-            legend_labels=legend_labels, #['fine'], 
-            which_tsne_plots = which_tsne_plots #['standard', 'images', 'incorrect']
+            legend_labels=legend_labels,
+            which_tsne_plots = which_tsne_plots
             , file_prefix=file_prefix
             , img_res=img_res,
             phylomapper=phylomapper,
@@ -376,7 +350,6 @@ if __name__ == "__main__":
     )
     
     cfg, _ = parser.parse_known_args()
-    # cfg = parser.config
     configs = OmegaConf.load(cfg.config)
     cli = OmegaConf.from_cli()
     config = OmegaConf.merge(configs, cli)
