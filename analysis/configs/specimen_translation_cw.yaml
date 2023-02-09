@@ -1,5 +1,5 @@
-ckpt_path: /fastscratch/elhamod/logs/2023-01-09T18-13-38_Phylo-VQVAE-phase7256img-originalvqgan-imagenetbg-aug/checkpoints/last.ckpt
-yaml_path: /fastscratch/elhamod/logs/2023-01-09T18-13-38_Phylo-VQVAE-phase7256img-originalvqgan-imagenetbg-aug/configs/2023-01-09T18-13-38-project.yaml
+ckpt_path: /home/mridul/debug/taming-transformers/logs/2023-02-02T13-37-50_CW-VQVAE-debugcw_imagenet_no_aug_base_model_no_aug_lr_4.5/checkpoints/last.ckpt
+yaml_path: /home/mridul/debug/taming-transformers/logs/2023-02-02T13-37-50_CW-VQVAE-debugcw_imagenet_no_aug_base_model_no_aug_lr_4.5/configs/2023-02-02T13-37-50-project.yaml
 
 DEVICE: 0
 

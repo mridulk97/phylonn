@@ -7,11 +7,11 @@ model:
     transformer_config:
       target: scripts.modules.transformer.mingpt.GPT
       params:
-        vocab_size: 1024 # size of codebook (number of possible codes)
-        block_size: 257 # 256 attr+1 cond# codes predicted at once.
+        vocab_size: 1024
+        block_size: 257
         n_layer: 5
-        n_head: 16 # relationships to learn
-        n_embd: 1024 #embedding dimensions for transformer. Does not have to be same as codebook but Ill pick same
+        n_head: 16
+        n_embd: 1024
     first_stage_config:
       target: scripts.models.cwautoencoder.CWmodelVQGAN
       project: CW-VQGAN
@@ -27,16 +27,22 @@ model:
           in_channels: 3
           out_ch: 3
           ch: 128
-          ch_mult: [ 1,1,2,2,4]  # num_down = len(ch_mult)-1
+          ch_mult:
+          - 1
+          - 1
+          - 2
+          - 2
+          - 4
           num_res_blocks: 2
-          attn_resolutions: [16]
+          attn_resolutions:
+          - 16
           dropout: 0.0
         lossconfig:
           target: scripts.modules.losses.DummyLoss
         concept_data:
           target: main.DataModuleFromConfig
           params:
-            batch_size: 2
+            batch_size: 20
             num_workers: 8
             train:
               target: scripts.data.custom.CustomTrain
@@ -52,8 +58,7 @@ model:
                 add_labels: True
     cond_stage_config:
       target: scripts.modules.misc.label_conditioner.LabelCond
-      params:
-        num_of_classes: 38
+
 
 data:
   target: main.DataModuleFromConfig
