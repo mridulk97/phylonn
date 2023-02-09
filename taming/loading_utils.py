@@ -39,7 +39,7 @@ def load_LSFvqvae(config, ckpt_path=None, data=None, cuda=False, model_type=LSFV
     if ckpt_path is not None:
         print('Loading model from', ckpt_path)
         sd = torch.load(ckpt_path, map_location="cpu")["state_dict"]
-        missing, unexpected = model.load_state_dict(sd, strict=False)
+        missing, unexpected = model.load_state_dict(sd, strict=True)
     if cuda:
         model = model.cuda()
     return model.eval()

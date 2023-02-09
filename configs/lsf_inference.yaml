@@ -1,0 +1,56 @@
+model:
+  base_learning_rate: 1.0e-06
+  target: taming.models.LSFautoencoder.LSFVQVAE
+  project: LSF-VQVAE
+  params:
+    embed_dim: 256
+    n_embed: 1024
+    ddconfig:
+      double_z: false
+      z_channels: 256
+      resolution: 256
+      in_channels: 3
+      out_ch: 3
+      ch: 128
+      ch_mult:
+      - 1
+      - 1
+      - 2
+      - 2
+      - 4
+      num_res_blocks: 2
+      attn_resolutions:
+      - 16
+      dropout: 0.0
+    lossconfig:
+      target: taming.modules.losses.DummyLoss
+          
+        
+    LSF_params:
+      # This ckpt_path is to load the entire VQGAN+LSF model (typically for retraining the model or for performing inference)
+      ckpt_path: /home/harishbabu/projects/taming-transformers/logs/2023-02-01T23-38-48_LSF2-VQVAE1024emb-256img_imagenetmean_noaug-base_noaug_withimgnet/checkpoints/last.ckpt
+      learning_rate: 1.0e-4
+      image_size: 16 # not the actual image, input from the base encoder to disentangler (256x16x16)
+      label_size: 38
+      nf: 256
+      hidden_size: 1024
+      nc: 256
+       
+
+data:
+  target: main.DataModuleFromConfig
+  params:
+    batch_size: 1
+    num_workers: 8
+    train:
+      target: taming.data.custom.CustomTrain
+      params:
+        training_images_list_file: /fastscratch/elhamod/data/Fish/taming_transforms_fish_train_padded_256_imagenetmeancolor.txt
+        size: 256
+        add_labels: true
+    validation:
+      target: taming.data.custom.CustomTest
+      params:
+        test_images_list_file: /fastscratch/elhamod/data/Fish/taming_transforms_fish_test_padded_256_imagenetmeancolor.txt
+        size: 256
+        add_labels: true
