@@ -103,7 +103,7 @@ class PhyloDisentangler(torch.nn.Module):
     def __init__(self, 
                 in_channels, ch, out_ch, resolution, ## same ad ddconfigs for autoencoder
                 embed_dim, n_embed, # same as codebook configs
-                n_phylo_channels, n_phylolevels, codebooks_per_phylolevel, # The dimensions for the phylo descriptors.
+                n_phylo_channels, n_phylolevels, codes_per_phylolevel, # The dimensions for the phylo descriptors.
                 lossconfig, 
                 n_mlp_layers=1, n_levels_non_attribute=None,
                 lossconfig_phylo=None, lossconfig_kernelorthogonality=None, lossconfig_adversarial=None, verbose=False): 
@@ -112,7 +112,7 @@ class PhyloDisentangler(torch.nn.Module):
         self.ch = ch
         self.n_phylo_channels = n_phylo_channels
         self.n_phylolevels = n_phylolevels
-        self.codebooks_per_phylolevel = codebooks_per_phylolevel
+        self.codes_per_phylolevel = codes_per_phylolevel
         self.embed_dim = embed_dim
         self.n_embed = n_embed
         self.n_levels_non_attribute = n_levels_non_attribute
@@ -138,17 +138,17 @@ class PhyloDisentangler(torch.nn.Module):
         self.conv_in = nn.Sequential(*l)
         
         # phylo MLP
-        self.mlp_in = make_MLP([self.n_phylo_channels,resolution,resolution], [embed_dim, codebooks_per_phylolevel, n_phylolevels], n_mlp_layers, normalize=True)
-        self.mlp_out = make_MLP([embed_dim, codebooks_per_phylolevel, n_phylolevels], [self.n_phylo_channels,resolution,resolution], n_mlp_layers, normalize=False)
+        self.mlp_in = make_MLP([self.n_phylo_channels,resolution,resolution], [embed_dim, codes_per_phylolevel, n_phylolevels], n_mlp_layers, normalize=True)
+        self.mlp_out = make_MLP([embed_dim, codes_per_phylolevel, n_phylolevels], [self.n_phylo_channels,resolution,resolution], n_mlp_layers, normalize=False)
         
-        self.mlp_in_non_attribute = make_MLP([self.ch - self.n_phylo_channels,resolution,resolution], [embed_dim, codebooks_per_phylolevel, n_levels_non_attribute], n_mlp_layers, normalize=True)
-        self.mlp_out_non_attribute = make_MLP([embed_dim, codebooks_per_phylolevel, n_levels_non_attribute], [self.ch - self.n_phylo_channels,resolution,resolution], n_mlp_layers, normalize=False)
+        self.mlp_in_non_attribute = make_MLP([self.ch - self.n_phylo_channels,resolution,resolution], [embed_dim, codes_per_phylolevel, n_levels_non_attribute], n_mlp_layers, normalize=True)
+        self.mlp_out_non_attribute = make_MLP([embed_dim, codes_per_phylolevel, n_levels_non_attribute], [self.ch - self.n_phylo_channels,resolution,resolution], n_mlp_layers, normalize=False)
             
 
         # quantizer
         self.quantize = VectorQuantizer(n_embed, embed_dim, beta=0.25)
 
-        self.embedding_converter = Embedding_Code_converter(self.quantize.get_codebook_entry_index, self.quantize.embedding, (self.embed_dim, self.codebooks_per_phylolevel, self.n_phylolevels))
+        self.embedding_converter = Embedding_Code_converter(self.quantize.get_codebook_entry_index, self.quantize.embedding, (self.embed_dim, self.codes_per_phylolevel, self.n_phylolevels))
 
 
         # upsampling
@@ -178,7 +178,7 @@ class PhyloDisentangler(torch.nn.Module):
             # get loss and parse params
             lossconfig_phylo['params'] = {**lossconfig_phylo['params'], **{'verbose': verbose}}
             self.loss_phylo = instantiate_from_config(lossconfig_phylo)
-            len_features = n_phylolevels*codebooks_per_phylolevel*embed_dim
+            len_features = n_phylolevels*codes_per_phylolevel*embed_dim
             assert n_phylolevels==len(self.loss_phylo.phylo_distances)+1, "Number of phylo distances should be consistent in the settings."
             
             # Create classification layers.
@@ -191,7 +191,7 @@ class PhyloDisentangler(torch.nn.Module):
         if lossconfig_adversarial is not None:
             lossconfig_adversarial['params'] = {**lossconfig_adversarial['params'], **{'verbose': verbose}}
             self.loss_adversarial= instantiate_from_config(lossconfig_adversarial)
-            self.codebook_mapping_layers = make_MLP([embed_dim, codebooks_per_phylolevel, n_levels_non_attribute], [embed_dim, codebooks_per_phylolevel, n_phylolevels], n_mlp_layers, normalize=False)    
+            self.codebook_mapping_layers = make_MLP([embed_dim, codes_per_phylolevel, n_levels_non_attribute], [embed_dim, codes_per_phylolevel, n_phylolevels], n_mlp_layers, normalize=False)    
         
         # print model
         print('PhyloNN', self)
@@ -263,7 +263,7 @@ class PhyloDisentangler(torch.nn.Module):
         # Phylo networks
         if self.loss_phylo is not None:
             for name, layer in self.classification_layers.items():
-                num_of_levels_included = int(layer.get_inputsize()/(self.embed_dim * self.codebooks_per_phylolevel))
+                num_of_levels_included = int(layer.get_inputsize()/(self.embed_dim * self.codes_per_phylolevel))
                 o = zq_phylo[:, :, :, :num_of_levels_included]
                 outputs[name] = layer(o) # 0 for level 1, 0:1 for level 2, etc.
         

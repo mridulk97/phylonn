@@ -22,4 +22,3 @@ phylogeny_path:
 phylogeny_knn: /fastscratch/elhamod/data/Fish
 
 which_tsne_plots: ['standard', 'knn']
-legend_labels: ['class']

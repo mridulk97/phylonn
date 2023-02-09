@@ -68,14 +68,14 @@ def generate_images(index, lbl,
     list_of_created_sequence = []
     list_of_created_nonattribute_sequence = []     
     
-    codebooks_per_phylolevel = model.first_stage_model.phylo_disentangler.codebooks_per_phylolevel
+    codes_per_phylolevel = model.first_stage_model.phylo_disentangler.codes_per_phylolevel
     n_phylolevels = model.first_stage_model.phylo_disentangler.n_phylolevels
     embed_dim = model.first_stage_model.phylo_disentangler.embed_dim
     n_levels_non_attribute = model.first_stage_model.phylo_disentangler.n_levels_non_attribute
-    attr_codes_range = codebooks_per_phylolevel*n_phylolevels
+    attr_codes_range = codes_per_phylolevel*n_phylolevels
         
-    converter = Embedding_Code_converter(model.first_stage_model.phylo_disentangler.quantize.get_codebook_entry_index, model.first_stage_model.phylo_disentangler.quantize.embedding, (embed_dim, codebooks_per_phylolevel, n_phylolevels))
-    converter_nonattribute = Embedding_Code_converter(model.first_stage_model.phylo_disentangler.quantize.get_codebook_entry_index, model.first_stage_model.phylo_disentangler.quantize.embedding, (embed_dim, codebooks_per_phylolevel, n_levels_non_attribute))
+    converter = Embedding_Code_converter(model.first_stage_model.phylo_disentangler.quantize.get_codebook_entry_index, model.first_stage_model.phylo_disentangler.quantize.embedding, (embed_dim, codes_per_phylolevel, n_phylolevels))
+    converter_nonattribute = Embedding_Code_converter(model.first_stage_model.phylo_disentangler.quantize.get_codebook_entry_index, model.first_stage_model.phylo_disentangler.quantize.embedding, (embed_dim, codes_per_phylolevel, n_levels_non_attribute))
 
     # construct the label conditioning
     generated_imgs = []

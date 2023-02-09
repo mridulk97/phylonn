@@ -73,7 +73,7 @@ def main(configs_yaml):
     model = load_model(config, ckpt_path=ckpt_path, cuda=(DEVICE is not None), model_type=PhyloVQVAE)
     
     get_code_reshaped_index = model.phylo_disentangler.embedding_converter.get_code_reshaped_index
-    n_phylocodes = model.phylo_disentangler.n_phylolevels*model.phylo_disentangler.codebooks_per_phylolevel
+    n_phylocodes = model.phylo_disentangler.n_phylolevels*model.phylo_disentangler.codes_per_phylolevel
     
     for indx__ in tqdm.tqdm(range(count)):
         image_index1 = image_index1_+indx__
@@ -146,14 +146,14 @@ def main(configs_yaml):
         entropy_phylo = np.zeros(len(hist_phylo), dtype=int)
         o = 0
         for lvl in range(model.phylo_disentangler.n_phylolevels):
-            for relative_index in range(model.phylo_disentangler.codebooks_per_phylolevel):
+            for relative_index in range(model.phylo_disentangler.codes_per_phylolevel):
                 abs_indx = get_code_reshaped_index(hist_levels[lvl][relative_index], lvl)
                 entropy_phylo[o] = abs_indx
                 o = o+1
         order_ = np.concatenate((entropy_nonphylo, entropy_phylo))
 
         if show_only_key_imgs:
-            key_image_helper = KeyImageEntropyHelper(model.phylo_disentangler.codebooks_per_phylolevel, model.phylo_disentangler.n_phylolevels, model.phylo_disentangler.n_levels_non_attribute, get_code_reshaped_index)
+            key_image_helper = KeyImageEntropyHelper(model.phylo_disentangler.codes_per_phylolevel, model.phylo_disentangler.n_phylolevels, model.phylo_disentangler.n_levels_non_attribute, get_code_reshaped_index)
             
         for indx_, i in enumerate(order_):    
             if show_only_key_imgs:

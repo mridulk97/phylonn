@@ -27,7 +27,7 @@ model:
     #   n_embed: 64
     #   #
     #   n_phylolevels: 4
-    #   codebooks_per_phylolevel: 4
+    #   codes_per_phylolevel: 4
     #   #
     #   n_phylo_channels: 32 # tried 1 #32
     #   # NOT hyperparameters.

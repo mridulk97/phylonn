@@ -12,7 +12,7 @@ batch_size: 1 # DO NOT CHANGE!
  
 per_phylo_level: True # whether to calculate the histograms for ancestor levels as well
 
-create_histograms: True # whether to plot the histpgrams
+visualize_histograms: True # whether to plot the histpgrams
 
 ##############################
 

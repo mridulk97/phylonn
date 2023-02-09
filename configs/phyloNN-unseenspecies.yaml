@@ -30,7 +30,7 @@ model:
       n_embed: 64
       n_phylolevels: 4
       n_levels_non_attribute: 4
-      codebooks_per_phylolevel: 8
+      codes_per_phylolevel: 8
       n_phylo_channels: 94
       verbose: false
       ch: 128

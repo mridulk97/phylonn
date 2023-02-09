@@ -86,7 +86,7 @@ def main(configs_yaml):
     
     # parse histograms
     hist_parser = HistogramParser(model)
-    converter = Embedding_Code_converter(model.phylo_disentangler.quantize.get_codebook_entry_index, model.phylo_disentangler.quantize.embedding, (1, model.phylo_disentangler.embed_dim, hist_parser.codebooks_per_phylolevel, hist_parser.n_phylolevels))
+    converter = Embedding_Code_converter(model.phylo_disentangler.quantize.get_codebook_entry_index, model.phylo_disentangler.quantize.embedding, (1, model.phylo_disentangler.embed_dim, hist_parser.codes_per_phylolevel, hist_parser.n_phylolevels))
     
     species1_indx = dataset.labels_to_idx[species1_name]
     species2_indx = dataset.labels_to_idx[species2_name]

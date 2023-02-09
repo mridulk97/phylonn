@@ -59,7 +59,7 @@ class HistogramParser:
     def __init__(self, model):
         self.possible_codes = model.phylo_disentangler.n_embed
         self.n_phylolevels = model.phylo_disentangler.n_phylolevels
-        self.codebooks_per_phylolevel = model.phylo_disentangler.codebooks_per_phylolevel
+        self.codes_per_phylolevel = model.phylo_disentangler.codes_per_phylolevel
         self.n_levels_non_attribute = model.phylo_disentangler.n_levels_non_attribute
     
     def get_distances(self, hist, species1, species2):

@@ -116,11 +116,11 @@ def plot_heatmap(heatmap, ckpt_path=None, title='default', postfix=None):
     
 
 class Histogram_plotter:
-    def __init__(self, codebooks_per_phylolevel, n_phylolevels, n_embed, 
+    def __init__(self, codes_per_phylolevel, n_phylolevels, n_embed, 
                  converter, 
                  indx_to_label,
                  ckpt_path, directory):
-        self.codebooks_per_phylolevel = codebooks_per_phylolevel
+        self.codes_per_phylolevel = codes_per_phylolevel
         self.n_phylolevels = n_phylolevels
         self.n_embed = n_embed
         self.converter = converter
@@ -129,7 +129,7 @@ class Histogram_plotter:
         self.indx_to_label = indx_to_label
         
     def plot_histograms(self, histograms, species_indx, is_nonattribute=False, prefix="species"):
-        fig, axs = plt.subplots(self.codebooks_per_phylolevel, self.n_phylolevels, figsize = (5*self.n_phylolevels,30))
+        fig, axs = plt.subplots(self.codes_per_phylolevel, self.n_phylolevels, figsize = (5*self.n_phylolevels,30))
         for i, ax in enumerate(axs.reshape(-1)):
             ax.hist(histograms[i], density=True, range=(0, self.n_embed-1), bins=self.n_embed)
             

@@ -24,7 +24,7 @@ def main(configs_yaml):
     file_list_path = configs_yaml.file_list_path    
     num_workers = configs_yaml.num_workers
     size = configs_yaml.size
-    create_histograms = configs_yaml.create_histograms
+    visualize_histograms = configs_yaml.visualize_histograms
     per_phylo_level = configs_yaml.per_phylo_level
 
     unique_skipped_labels = configs_yaml.unique_skipped_labels
@@ -81,7 +81,7 @@ def main(configs_yaml):
          
          
     
-    codebooks_per_phylolevel = model.phylo_disentangler.codebooks_per_phylolevel
+    codes_per_phylolevel = model.phylo_disentangler.codes_per_phylolevel
     n_phylolevels = model.phylo_disentangler.n_phylolevels
     n_levels_nonattribute = model.phylo_disentangler.n_levels_non_attribute if model.phylo_disentangler.n_levels_non_attribute is not None else model.phylo_disentangler.n_phylolevels
     
@@ -105,11 +105,11 @@ def main(configs_yaml):
             
 
     # create histograms
-    if create_histograms:
+    if visualize_histograms:
         print('plotting histograms...')
         
-        hist_plotter = Histogram_plotter(codebooks_per_phylolevel, n_phylolevels, model.phylo_disentangler.n_embed, converter, dataset.indx_to_label, ckpt_path, CONSTANTS.HISTOGRAMS_FOLDER)
-        hist_plotter_non_attribute = Histogram_plotter(codebooks_per_phylolevel, n_levels_nonattribute, model.phylo_disentangler.n_embed, converter_nonattribute, dataset.indx_to_label, ckpt_path, CONSTANTS.HISTOGRAMS_FOLDER)
+        hist_plotter = Histogram_plotter(codes_per_phylolevel, n_phylolevels, model.phylo_disentangler.n_embed, converter, dataset.indx_to_label, ckpt_path, CONSTANTS.HISTOGRAMS_FOLDER)
+        hist_plotter_non_attribute = Histogram_plotter(codes_per_phylolevel, n_levels_nonattribute, model.phylo_disentangler.n_embed, converter_nonattribute, dataset.indx_to_label, ckpt_path, CONSTANTS.HISTOGRAMS_FOLDER)
         
         for species_indx, species_arr in tqdm(enumerate(hist_freq.hist_arr)):         
             hist_plotter.plot_histograms(species_arr, species_indx, is_nonattribute=False)

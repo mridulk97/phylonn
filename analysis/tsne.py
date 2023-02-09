@@ -27,6 +27,7 @@ from sklearn.neighbors import NearestNeighbors
 
 
 MAX_DIMS_PCA=100
+CLASS_LABEL = CONSTANTS.DISENTANGLER_CLASS_OUTPUT
 
 def get_output(model, image):
     if type(model) == PhyloVQVAE:
@@ -46,7 +47,6 @@ def get_output(model, image):
 
 # Given a dataloader, a model, and an activation layer, it displays an images tsne
 def get_tsne(dataloader, model, path, 
-    legend_labels=[CONSTANTS.DISENTANGLER_CLASS_OUTPUT], 
     cuda=None,
     which_tsne_plots = ['standard',  'knn']
     , file_prefix='default_name',
@@ -77,7 +77,7 @@ def get_tsne(dataloader, model, path,
     ty = (ty-np.min(ty)) / (np.max(ty) - np.min(ty))
 
     if 'standard' in which_tsne_plots:
-        plot_tsne_dots(dataloader, tx, ty, path, file_prefix, legend_labels, phylomapper)
+        plot_tsne_dots(dataloader, tx, ty, path, file_prefix, phylomapper)
     
     if ('knn' in which_tsne_plots):
         if phylogeny_knn is None:
@@ -158,41 +158,39 @@ def plot_phylo_KNN(dataloader, tx, ty, path, file_prefix, phylogeny_knn, n_neigh
     fig.savefig(save_path,bbox_inches='tight',dpi=300)  
 
 
-def plot_tsne_dots(dataloader, tx, ty, path, file_prefix, legend_labels=[CONSTANTS.DISENTANGLER_CLASS_OUTPUT], phylomapper=None):
+def plot_tsne_dots(dataloader, tx, ty, path, file_prefix, phylomapper=None):
     labels = {}
     file_names=[]
     for i, batch in tqdm(enumerate(dataloader), total=len(dataloader)):
         file_name = batch['file_path_']
-        for j in legend_labels:
-            labels[j] = batch[j] if j not in labels else torch.cat([labels[j], batch[j]]).detach()
+        labels[CLASS_LABEL] = batch[CLASS_LABEL] if CLASS_LABEL not in labels else torch.cat([labels[CLASS_LABEL], batch[CLASS_LABEL]]).detach()
         file_names = file_names + file_name
 
 
     df = pd.DataFrame()
     df['tsne-x'] = tx
     df['tsne-y'] = ty
-    for j in legend_labels:
-        if phylomapper is not None:
-            labels[j] = phylomapper.get_mapped_truth(labels[j])
-            
-        labels[j] = labels[j].tolist()
-        df[j] = labels[j]
+
+    if phylomapper is not None:
+        labels[CLASS_LABEL] = phylomapper.get_mapped_truth(labels[CLASS_LABEL])
+        
+    labels[CLASS_LABEL] = labels[CLASS_LABEL].tolist()
+    df[CLASS_LABEL] = labels[CLASS_LABEL]
         
     
     if phylomapper is not None:
         file_prefix = file_prefix+"_level"+str(phylomapper.level)
     
-    for j in legend_labels:    
-        matplotlib.pyplot.figure(figsize=(16,10))
-        sns_plot = sns.scatterplot(
-            x="tsne-x", y="tsne-y",
-            hue=j,
-            palette=sns.color_palette("hls", len(set(labels[j]))),
-            data=df,
-            legend=False
-        )
-        fig = sns_plot.get_figure()
-        fig.savefig(os.path.join(path, file_prefix+"_legend_" + j +"_tsne_dots.png"),bbox_inches='tight',dpi=300)
+    matplotlib.pyplot.figure(figsize=(16,10))
+    sns_plot = sns.scatterplot(
+        x="tsne-x", y="tsne-y",
+        hue=CLASS_LABEL,
+        palette=sns.color_palette("hls", len(set(labels[CLASS_LABEL]))),
+        data=df,
+        legend=False
+    )
+    fig = sns_plot.get_figure()
+    fig.savefig(os.path.join(path, file_prefix+"_legend_" + CLASS_LABEL +"_tsne_dots.png"),bbox_inches='tight',dpi=300)
 
 
 
@@ -206,7 +204,6 @@ def main(configs_yaml):
     file_prefix = configs_yaml.file_prefix
     img_res = configs_yaml.img_res
     which_tsne_plots = configs_yaml.which_tsne_plots
-    legend_labels = configs_yaml.legend_labels
     DEVICE= configs_yaml.DEVICE
     batch_size = configs_yaml.batch_size
     num_workers = configs_yaml.num_workers
@@ -237,7 +234,6 @@ def main(configs_yaml):
     
     with torch.no_grad():
         get_tsne(dataloader, model, get_fig_pth(ckpt_path, postfix=CONSTANTS.TSNE_FOLDER), 
-            legend_labels=legend_labels,
             which_tsne_plots = which_tsne_plots
             , file_prefix=file_prefix,
             phylomapper=phylomapper,

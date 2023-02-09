@@ -30,7 +30,7 @@ def main(configs_yaml):
     
     # parse histograms and create phylo converter
     hist_parser = HistogramParser(model)
-    converter = Embedding_Code_converter(model.phylo_disentangler.quantize.get_codebook_entry_index, model.phylo_disentangler.quantize.embedding, (1, model.phylo_disentangler.embed_dim, hist_parser.codebooks_per_phylolevel, hist_parser.n_phylolevels))
+    converter = Embedding_Code_converter(model.phylo_disentangler.quantize.get_codebook_entry_index, model.phylo_disentangler.quantize.embedding, (1, model.phylo_disentangler.embed_dim, hist_parser.codes_per_phylolevel, hist_parser.n_phylolevels))
     
     # claculate distances
     jsdistances = torch.zeros([len(hist_arr), len(hist_arr), hist_parser.n_phylolevels+1])

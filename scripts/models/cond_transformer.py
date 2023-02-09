@@ -87,7 +87,7 @@ class Net2NetTransformer(pl.LightningModule):
         
         if isinstance(self, PhyloNN_transformer):
             if not self.be_unconditional:
-                num_phylo_features = self.first_stage_model.phylo_disentangler.n_phylolevels * self.first_stage_model.phylo_disentangler.codebooks_per_phylolevel
+                num_phylo_features = self.first_stage_model.phylo_disentangler.n_phylolevels * self.first_stage_model.phylo_disentangler.codes_per_phylolevel
                 z_indices_phylo = z_indices[:, :num_phylo_features]
                 z_indices_phylo_sub = self.first_stage_model.phylo_disentangler.embedding_converter.get_level(z_indices_phylo, self.cond_stage_model.level)
                 z_indices = z_indices_phylo_sub
@@ -218,9 +218,9 @@ class Net2NetTransformer(pl.LightningModule):
         # sample
         z_start_indices = z_indices[:, :0]
         if isinstance(self, PhyloNN_transformer) and self.PhyloNN_transformer:
-            codebooks_per_phylolevel = self.first_stage_model.phylo_disentangler.codebooks_per_phylolevel
+            codes_per_phylolevel = self.first_stage_model.phylo_disentangler.codes_per_phylolevel
             n_phylolevels = self.first_stage_model.phylo_disentangler.n_phylolevels
-            attr_codes_range = codebooks_per_phylolevel*n_phylolevels
+            attr_codes_range = codes_per_phylolevel*n_phylolevels
             z_indices_samples = z_indices[:, attr_codes_range:]
         else:
             z_indices_samples = z_indices.clone()
@@ -231,9 +231,9 @@ class Net2NetTransformer(pl.LightningModule):
                                 top_k=top_k if top_k is not None else 100,
                                 callback=callback if callback is not None else lambda k: None)
         if isinstance(self, PhyloNN_transformer) and self.PhyloNN_transformer:
-            codebooks_per_phylolevel = self.first_stage_model.phylo_disentangler.codebooks_per_phylolevel
+            codes_per_phylolevel = self.first_stage_model.phylo_disentangler.codes_per_phylolevel
             n_levels_non_attribute = self.first_stage_model.phylo_disentangler.n_levels_non_attribute
-            index_sample = torch.cat([c_indices[:, -n_levels_non_attribute*codebooks_per_phylolevel:], index_sample], dim=-1)
+            index_sample = torch.cat([c_indices[:, -n_levels_non_attribute*codes_per_phylolevel:], index_sample], dim=-1)
         x_sample_nopix = self.decode_to_img(index_sample, quant_z.shape)
 
         # det sample
@@ -243,9 +243,9 @@ class Net2NetTransformer(pl.LightningModule):
                                 sample=False,
                                 callback=callback if callback is not None else lambda k: None)
         if isinstance(self, PhyloNN_transformer) and self.PhyloNN_transformer:
-            codebooks_per_phylolevel = self.first_stage_model.phylo_disentangler.codebooks_per_phylolevel
+            codes_per_phylolevel = self.first_stage_model.phylo_disentangler.codes_per_phylolevel
             n_levels_non_attribute = self.first_stage_model.phylo_disentangler.n_levels_non_attribute
-            index_sample = torch.cat([c_indices[:, -n_levels_non_attribute*codebooks_per_phylolevel:], index_sample], dim=-1)
+            index_sample = torch.cat([c_indices[:, -n_levels_non_attribute*codes_per_phylolevel:], index_sample], dim=-1)
         x_sample_det = self.decode_to_img(index_sample, quant_z.shape)
 
         # reconstruction
@@ -417,11 +417,11 @@ class PhyloNN_transformer(Net2NetTransformer):
         return quant_z, indices
     
     def assert_can_decode_into_image(self, index, zshape, assert_=False):
-        codebooks_per_phylolevel = self.first_stage_model.phylo_disentangler.codebooks_per_phylolevel
+        codes_per_phylolevel = self.first_stage_model.phylo_disentangler.codes_per_phylolevel
         n_phylolevels = self.first_stage_model.phylo_disentangler.n_phylolevels
         n_levels_non_attribute = self.first_stage_model.phylo_disentangler.n_levels_non_attribute
-        attr_codes_range = codebooks_per_phylolevel*n_phylolevels
-        nonattr_codes_range = codebooks_per_phylolevel*n_levels_non_attribute
+        attr_codes_range = codes_per_phylolevel*n_phylolevels
+        nonattr_codes_range = codes_per_phylolevel*n_levels_non_attribute
         
         if assert_:
             assert index.shape[1] == attr_codes_range + nonattr_codes_range
@@ -433,10 +433,10 @@ class PhyloNN_transformer(Net2NetTransformer):
 
         index = self.permuter(index, reverse=True)
         
-        codebooks_per_phylolevel = self.first_stage_model.phylo_disentangler.codebooks_per_phylolevel
+        codes_per_phylolevel = self.first_stage_model.phylo_disentangler.codes_per_phylolevel
         n_phylolevels = self.first_stage_model.phylo_disentangler.n_phylolevels
         n_levels_non_attribute = self.first_stage_model.phylo_disentangler.n_levels_non_attribute
-        attr_codes_range = codebooks_per_phylolevel*n_phylolevels
+        attr_codes_range = codes_per_phylolevel*n_phylolevels
 
         index_attr = index[:, :attr_codes_range]
         index_nonattr = index[:, attr_codes_range:]
@@ -482,9 +482,9 @@ class PhyloNN_transformer(Net2NetTransformer):
                                         steps=z_indices.shape[1],
                                         sample=False)
                 if self.PhyloNN_transformer:
-                    codebooks_per_phylolevel = self.first_stage_model.phylo_disentangler.codebooks_per_phylolevel
+                    codes_per_phylolevel = self.first_stage_model.phylo_disentangler.codes_per_phylolevel
                     n_levels_non_attribute = self.first_stage_model.phylo_disentangler.n_levels_non_attribute
-                    index_sample = torch.cat([c_indices[:, -n_levels_non_attribute*codebooks_per_phylolevel:], index_sample], dim=-1)
+                    index_sample = torch.cat([c_indices[:, -n_levels_non_attribute*codes_per_phylolevel:], index_sample], dim=-1)
                 x_sample_det = self.decode_to_img(index_sample, quant_z.shape)
                     
                 truth = quant_c[:, 0]
