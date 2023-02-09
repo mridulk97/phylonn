@@ -1,0 +1,58 @@
+model:
+  base_learning_rate: 4.5e-06
+  project: CUB-VQGAN-tranformer
+  target: taming.models.cond_transformer.Net2NetTransformer
+  params:
+    cond_stage_key: class
+    transformer_config:
+      target: taming.modules.transformer.mingpt.GPT
+      params:
+        vocab_size: 1024 # size of codebook (number of possible codes)
+        block_size: 257 # 256 attr+1 cond# codes predicted at once.
+        n_layer: 5
+        n_head: 16 # relationships to learn
+        n_embd: 1024 #embedding dimensions for transformer. Does not have to be same as codebook but Ill pick same
+    first_stage_config:
+      # target: taming.models.vqgan.VQModel
+      target: taming.models.vqgan.VQModel
+      project: CUB-VQGAN-tranformer
+      params:
+        ckpt_path: ./logs/2023-01-21T17-26-56_CUB-VQGANcub_segmented/checkpoints/last.ckpt
+        embed_dim: 256
+        n_embed: 1024
+        cw_module_transformers: False
+        ddconfig:
+          double_z: False
+          z_channels: 256
+          resolution: 256
+          in_channels: 3
+          out_ch: 3
+          ch: 128
+          ch_mult: [ 1,1,2,2,4]  # num_down = len(ch_mult)-1
+          num_res_blocks: 2
+          attn_resolutions: [16]
+          dropout: 0.0
+        lossconfig:
+          target: taming.modules.losses.DummyLoss
+    cond_stage_config:
+      target: taming.modules.misc.label_conditioner.LabelCond
+      params:
+        # num_of_classes: 190
+
+data:
+  target: main.DataModuleFromConfig
+  params:
+    batch_size: 10
+    num_workers: 8
+    train:
+      target: taming.data.custom.CustomTrain
+      params:
+        training_images_list_file: /fastscratch/mridul/cub_190_split_resized/official/CUB_200_2011/train_segmented_white_background_256.txt
+        size: 256
+        add_labels: True
+    validation:
+      target: taming.data.custom.CustomTest
+      params:
+        test_images_list_file: /fastscratch/mridul/cub_190_split_resized/official/CUB_200_2011/test_segmented_white_background_256.txt
+        size: 256
+        add_labels: True

@@ -73,5 +73,8 @@ DEVICE: 0
 
 
 # original vqgan
-ckpt_path: /fastscratch/elhamod/projects/taming-transformers/logs/256pixels_256embedding/checkpoints/last.ckpt
-yaml_path: /fastscratch/elhamod/projects/taming-transformers/logs/256pixels_256embedding/configs/2022-09-21T11-17-33-project.yaml
+# ckpt_path: /fastscratch/elhamod/projects/taming-transformers/logs/256pixels_256embedding/checkpoints/last.ckpt
+# yaml_path: /fastscratch/elhamod/projects/taming-transformers/logs/256pixels_256embedding/configs/2022-09-21T11-17-33-project.yaml
+
+ckpt_path: /fastscratch/elhamod/logs/2023-01-09T18-13-38_Phylo-VQVAE-phase7256img-originalvqgan-imagenetbg-aug/checkpoints/last.ckpt
+yaml_path: /fastscratch/elhamod/logs/2023-01-09T18-13-38_Phylo-VQVAE-phase7256img-originalvqgan-imagenetbg-aug/configs/2023-01-09T18-13-38-project.yaml

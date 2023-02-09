@@ -14,14 +14,19 @@ def main(configs_yaml):
     arrays1 = configs_yaml.arrays1
     arrays2 = configs_yaml.arrays2
     file_name = configs_yaml.file_name
+    permute_array1 = configs_yaml.permute_array1    
     
     distances = {}
     for indx, name in enumerate(output_names):
         p1 = os.path.join(path, arrays1[indx])
         p2 = os.path.join(arrays2[indx])
         
-        df1 = pd.read_csv(p1).to_numpy()
+        df1 = pd.read_csv(p1)
         df2 = pd.read_csv(p2).to_numpy()
+        
+        if permute_array1:
+           df1 = df1.sample(frac=1) 
+        df1 = df1.to_numpy()
         
         df1 = df1[np.triu_indices(df1.shape[0], k = 1)]
         df2 = df2[np.triu_indices(df2.shape[0], k = 1)]

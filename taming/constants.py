@@ -16,6 +16,9 @@ DATASET_CLASSNAME = 'class_name'
 
 PHYLOCONFIG_KEY = "phylomodel_params"
 LRFACTOR_KEY = "lr_factor"
+LRCYCLE = "lr_cycle"
+SCHEDULER = "scheduler"
+OPTIM = "optim"
 DISENTANGLERTYPE_KEY = 'disentangler_type'
 COMPLETE_CKPT_KEY = "posttraining_ckpt"
 NONPHYLOONLY_KEY = "non_phylo_only"
@@ -27,6 +30,7 @@ HISTOGRAMS_FILE="histograms.pkl"
 DISENTANGLER_PHYLO_LOSS="/disentangler_phylo_loss"
 TRANSFORMER_LOSS="/loss"
 RECLOSS = "/rec_loss"
+BASERECLOSS = "/base_true_rec_loss"
 
 TEST_DIR="results_summary"
 

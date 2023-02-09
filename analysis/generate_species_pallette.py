@@ -1,5 +1,6 @@
 from omegaconf import OmegaConf
 import argparse
+from taming.analysis_utils import get_phylomapper_from_config
 from taming.data.custom import CustomTest as CustomDataset
 from PIL import Image
 import torch
@@ -30,8 +31,9 @@ def main(configs_yaml):
     
     phylogeny = Phylogeny(phylogeny_path)
     phylo_distances = parse_phyloDistances(phyloDistances_string)
+    phylo_mappers = []
     for indx, i in enumerate(phylo_distances):
-        phylo_distances[indx] = get_relative_distance_for_level(phylo_distances, indx)
+        phylo_mappers.append(get_phylomapper_from_config(phylogeny, phyloDistances_string, indx))
     
     indices = {}
     for j in range(max(labels)+1):
@@ -56,8 +58,8 @@ def main(configs_yaml):
             draw = ImageDraw.Draw(im)
             
             txt = str(j) + "-" + species_name
-            for d in phylo_distances:
-                txt = txt + "-" + str(dataset.labels_to_idx[phylogeny.get_siblings_by_name(species_name, d)[0]])
+            for indx_, d in enumerate(phylo_distances):
+                txt = txt + "-" + str(phylo_mappers[indx_].get_mapped_truth(torch.LongTensor([j])).item())
             draw.text((0, 0), txt ,(0,0,0))
 
             grid.paste(im, box=(indx*size, j*size))

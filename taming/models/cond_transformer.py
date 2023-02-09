@@ -129,6 +129,7 @@ class Net2NetTransformer(pl.LightningModule):
         out[out < v[..., [-1]]] = -float('Inf')
         return out
 
+    #NOTE: When sampling we need to make sure that passed x follows the embedding convension. Same goes for the output
     @torch.no_grad()
     def sample(self, x, c, steps, temperature=1.0, sample=False, top_k=None,
                callback=lambda k: None):
@@ -138,7 +139,7 @@ class Net2NetTransformer(pl.LightningModule):
         if self.pkeep <= 0.0:
             # one pass suffices since input is pure noise anyway
             assert len(x.shape)==2
-            noise_shape = (x.shape[0], steps-1)
+            # noise_shape = (x.shape[0], steps-1)
             #noise = torch.randint(self.transformer.config.vocab_size, noise_shape).to(x)
             noise = c.clone()[:,x.shape[1]-c.shape[1]:-1]
             x = torch.cat((x,noise),dim=1)
@@ -216,8 +217,7 @@ class Net2NetTransformer(pl.LightningModule):
     @torch.no_grad()
     def log_images(self, batch, temperature=None, top_k=None, callback=None, lr_interface=False, split="train", **kwargs):
         log = dict()
-        if not (self.non_phylo_only or 
-            self.phylo_to_nonphylo or 
+        if  not isinstance(self, Phylo_Net2NetTransformer) or not (self.non_phylo_only or 
             self.cond_stage_model.level_codes or 
             self.cond_stage_model.partial_codes):
 
@@ -232,32 +232,37 @@ class Net2NetTransformer(pl.LightningModule):
             quant_z, z_indices = self.encode_to_z(x)
             quant_c, c_indices = self.encode_to_c(c)
 
-            # create a "half"" sample
-            z_start_indices = z_indices[:,:z_indices.shape[1]//2]
-            index_sample = self.sample(z_start_indices, c_indices,
-                                    steps=z_indices.shape[1]-z_start_indices.shape[1],
-                                    temperature=temperature if temperature is not None else 1.0,
-                                    sample=True,
-                                    top_k=top_k if top_k is not None else 100,
-                                    callback=callback if callback is not None else lambda k: None)
-            x_sample = self.decode_to_img(index_sample, quant_z.shape)
-
             # sample
             z_start_indices = z_indices[:, :0]
+            if isinstance(self, Phylo_Net2NetTransformer) and self.phylo_to_nonphylo:
+                codebooks_per_phylolevel = self.first_stage_model.phylo_disentangler.codebooks_per_phylolevel
+                n_phylolevels = self.first_stage_model.phylo_disentangler.n_phylolevels
+                attr_codes_range = codebooks_per_phylolevel*n_phylolevels
+                z_indices_samples = z_indices[:, attr_codes_range:]
+            else:
+                z_indices_samples = z_indices.clone()
             index_sample = self.sample(z_start_indices, c_indices,
-                                    steps=z_indices.shape[1],
+                                    steps=z_indices_samples.shape[1],
                                     temperature=temperature if temperature is not None else 1.0,
                                     sample=True,
                                     top_k=top_k if top_k is not None else 100,
                                     callback=callback if callback is not None else lambda k: None)
+            if isinstance(self, Phylo_Net2NetTransformer) and self.phylo_to_nonphylo:
+                codebooks_per_phylolevel = self.first_stage_model.phylo_disentangler.codebooks_per_phylolevel
+                n_levels_non_attribute = self.first_stage_model.phylo_disentangler.n_levels_non_attribute
+                index_sample = torch.cat([c_indices[:, -n_levels_non_attribute*codebooks_per_phylolevel:], index_sample], dim=-1)
             x_sample_nopix = self.decode_to_img(index_sample, quant_z.shape)
 
             # det sample
             z_start_indices = z_indices[:, :0]
             index_sample = self.sample(z_start_indices, c_indices,
-                                    steps=z_indices.shape[1],
+                                    steps=z_indices_samples.shape[1],
                                     sample=False,
                                     callback=callback if callback is not None else lambda k: None)
+            if isinstance(self, Phylo_Net2NetTransformer) and self.phylo_to_nonphylo:
+                codebooks_per_phylolevel = self.first_stage_model.phylo_disentangler.codebooks_per_phylolevel
+                n_levels_non_attribute = self.first_stage_model.phylo_disentangler.n_levels_non_attribute
+                index_sample = torch.cat([c_indices[:, -n_levels_non_attribute*codebooks_per_phylolevel:], index_sample], dim=-1)
             x_sample_det = self.decode_to_img(index_sample, quant_z.shape)
 
             # reconstruction
@@ -265,8 +270,6 @@ class Net2NetTransformer(pl.LightningModule):
 
             log["inputs"] = x
             log["reconstructions"] = x_rec
-            # print("inputs", x.shape)
-            # print("reconstructions", x_rec.shape)
 
             if self.cond_stage_key in ["objects_bbox", "objects_center_points"]:
                 figure_size = (x_rec.shape[2], x_rec.shape[3])
@@ -293,7 +296,6 @@ class Net2NetTransformer(pl.LightningModule):
                     cond_rec = cond_rec.squeeze(1).permute(0, 3, 1, 2).float()
                     cond_rec = self.cond_stage_model.to_rgb(cond_rec)
                     
-            log["samples_half"] = x_sample
             log["samples_nopix"] = x_sample_nopix
             log["samples_det"] = x_sample_det
         return log
@@ -313,6 +315,7 @@ class Net2NetTransformer(pl.LightningModule):
         c = self.get_input(self.cond_stage_key, batch)
         
         if not self.be_unconditional and self.cond_stage_model.postfix_codes and self.cond_stage_model.level>0: # append the level's prefix as condition.
+            #TODO: postfix_codes is probably buggy and won't work. just remove it and never use it.
             zq_phylo, _, _, _, _, _, _, _ = self.first_stage_model.encode(x.to(device=self.device))
             zq_phylo_sub = zq_phylo[:, :, :, :self.cond_stage_model.level]
             zq_phylo_sub = self.first_stage_model.phylo_disentangler.embedding_converter.get_phylo_codes(zq_phylo_sub, verify=False)
@@ -353,54 +356,56 @@ class Net2NetTransformer(pl.LightningModule):
         weight decay for regularization and those that won't (biases, and layernorm/embedding weights).
         We are then returning the PyTorch optimizer object.
         """
-        # separate out all parameters to those that will and won't experience regularizing weight decay
-        decay = set()
-        no_decay = set()
-        whitelist_weight_modules = (torch.nn.Linear, )
-        blacklist_weight_modules = (torch.nn.LayerNorm, torch.nn.Embedding)
-        for mn, m in self.transformer.named_modules():
-            for pn, p in m.named_parameters():
-                fpn = '%s.%s' % (mn, pn) if mn else pn # full param name
-
-                if pn.endswith('bias'):
-                    # all biases will not be decayed
-                    no_decay.add(fpn)
-                elif pn.endswith('weight') and isinstance(m, whitelist_weight_modules):
-                    # weights of whitelist modules will be weight decayed
-                    decay.add(fpn)
-                elif pn.endswith('weight') and isinstance(m, blacklist_weight_modules):
-                    # weights of blacklist modules will NOT be weight decayed
-                    no_decay.add(fpn)
-
-        # special case the position embedding parameter in the root GPT module as not decayed
-        no_decay.add('pos_emb')
-
-        # validate that we considered every parameter
-        param_dict = {pn: p for pn, p in self.transformer.named_parameters()}
-        inter_params = decay & no_decay
-        union_params = decay | no_decay
-        assert len(inter_params) == 0, "parameters %s made it into both decay/no_decay sets!" % (str(inter_params), )
-        assert len(param_dict.keys() - union_params) == 0, "parameters %s were not separated into either decay/no_decay set!" \
-                                                    % (str(param_dict.keys() - union_params), )
-
-        # create the pytorch optimizer object
-        optim_groups = [
-            {"params": [param_dict[pn] for pn in sorted(list(decay))], "weight_decay": 0.01},
-            {"params": [param_dict[pn] for pn in sorted(list(no_decay))], "weight_decay": 0.0},
-        ]
-        optimizer = torch.optim.AdamW(optim_groups, lr=self.learning_rate, betas=(0.9, 0.95))
         
-        
-        # lr_scheduler = {
-        #     "scheduler": torch.optim.lr_scheduler.CosineAnnealingWarmRestarts(optimizer, 30, eta_min=self.learning_rate*0.01),
-        #     "monitor": "val"+CONSTANTS.TRANSFORMER_LOSS
-        #     }
-    # {
-    #         "scheduler": torch.optim.lr_scheduler.ReduceLROnPlateau(optimizer, mode='min', factor=0.33, min_lr=self.learning_rate*0.01, verbose=True), 
-    #         "monitor": "val/loss_epoch"
-    #         }
+        #TODO: probably won't need this in the official submission. can delete later.
+        if self.transformer.type_ == "gpt":
+            # separate out all parameters to those that will and won't experience regularizing weight decay
+            decay = set()
+            no_decay = set()
+            whitelist_weight_modules = (torch.nn.Linear, )
+            blacklist_weight_modules = (torch.nn.LayerNorm, torch.nn.Embedding)
+            for mn, m in self.transformer.named_modules():
+                for pn, p in m.named_parameters():
+                    fpn = '%s.%s' % (mn, pn) if mn else pn # full param name
+
+                    if pn.endswith('bias'):
+                        # all biases will not be decayed
+                        no_decay.add(fpn)
+                    elif pn.endswith('weight') and isinstance(m, whitelist_weight_modules):
+                        # weights of whitelist modules will be weight decayed
+                        decay.add(fpn)
+                    elif pn.endswith('weight') and isinstance(m, blacklist_weight_modules):
+                        # weights of blacklist modules will NOT be weight decayed
+                        no_decay.add(fpn)
+
+            # special case the position embedding parameter in the root GPT module as not decayed
+            no_decay.add('pos_emb')
+
+            # validate that we considered every parameter
+            param_dict = {pn: p for pn, p in self.transformer.named_parameters()}
+            inter_params = decay & no_decay
+            union_params = decay | no_decay
+            assert len(inter_params) == 0, "parameters %s made it into both decay/no_decay sets!" % (str(inter_params), )
+            assert len(param_dict.keys() - union_params) == 0, "parameters %s were not separated into either decay/no_decay set!" \
+                                                        % (str(param_dict.keys() - union_params), )
+
+            # create the pytorch optimizer object
+            optim_groups = [
+                {"params": [param_dict[pn] for pn in sorted(list(decay))], "weight_decay": 0.01},
+                {"params": [param_dict[pn] for pn in sorted(list(no_decay))], "weight_decay": 0.0}
+            ]
+            optimizer = torch.optim.AdamW(optim_groups, lr=self.learning_rate, betas=(0.9, 0.95))
+        else:
+            optimizer = torch.optim.AdamW(self.transformer.parameters(), lr=self.learning_rate, betas=(0.9, 0.95))
             
-        return [optimizer]#, [lr_scheduler]
+            
+        
+        lr_scheduler = {
+            "scheduler": torch.optim.lr_scheduler.ReduceLROnPlateau(optimizer, patience=50, mode='min', factor=0.33, min_lr=self.learning_rate*0.1, verbose=True), 
+            "monitor": "val"+CONSTANTS.TRANSFORMER_LOSS
+            }
+            
+        return [optimizer], [lr_scheduler]
     
     
     
@@ -501,24 +506,25 @@ class Phylo_Net2NetTransformer(Net2NetTransformer):
                 quant_z, z_indices = self.encode_to_z(x)
                 quant_c, c_indices = self.encode_to_c(c)
                 
-                if not (self.non_phylo_only or self.phylo_to_nonphylo or self.cond_stage_model.level_codes or self.cond_stage_model.partial_codes):
-
-                    # create a "half"" sample
-                    z_start_indices = z_indices[:,:z_indices.shape[1]//2]
-                    index_sample = self.sample(z_start_indices, c_indices,
-                                            steps=z_indices.shape[1]-z_start_indices.shape[1],
-                                            temperature= 1.0,
-                                            sample=True,
-                                            top_k=self.top_k)
-                    x_sample = self.decode_to_img(index_sample, quant_z.shape)
-
+                
+                if not (self.non_phylo_only or self.cond_stage_model.level_codes or self.cond_stage_model.partial_codes):
                     # sample
                     z_start_indices = z_indices[:, :0]
+                    if self.phylo_to_nonphylo:
+                        codebooks_per_phylolevel = self.first_stage_model.phylo_disentangler.codebooks_per_phylolevel
+                        n_phylolevels = self.first_stage_model.phylo_disentangler.n_phylolevels
+                        attr_codes_range = codebooks_per_phylolevel*n_phylolevels
+                        z_indices = z_indices[:, attr_codes_range:]
                     index_sample = self.sample(z_start_indices, c_indices,
                                             steps=z_indices.shape[1],
                                             temperature=1.0,
                                             sample=True,
                                             top_k=self.top_k)
+                    if self.phylo_to_nonphylo:
+                        codebooks_per_phylolevel = self.first_stage_model.phylo_disentangler.codebooks_per_phylolevel
+                        n_levels_non_attribute = self.first_stage_model.phylo_disentangler.n_levels_non_attribute
+                        
+                        index_sample = torch.cat([c_indices[:, -n_levels_non_attribute*codebooks_per_phylolevel:], index_sample], dim=-1)
                     x_sample_nopix = self.decode_to_img(index_sample, quant_z.shape)
 
                     # det sample
@@ -526,16 +532,18 @@ class Phylo_Net2NetTransformer(Net2NetTransformer):
                     index_sample = self.sample(z_start_indices, c_indices,
                                             steps=z_indices.shape[1],
                                             sample=False)
+                    if self.phylo_to_nonphylo:
+                        codebooks_per_phylolevel = self.first_stage_model.phylo_disentangler.codebooks_per_phylolevel
+                        n_levels_non_attribute = self.first_stage_model.phylo_disentangler.n_levels_non_attribute
+                        index_sample = torch.cat([c_indices[:, -n_levels_non_attribute*codebooks_per_phylolevel:], index_sample], dim=-1)
                     x_sample_det = self.decode_to_img(index_sample, quant_z.shape)
                         
-                    truth = quant_c
+                    truth = quant_c[:, 0]
                     if not self.be_unconditional and self.cond_stage_model.phylo_mapper is not None:
                         truth = self.cond_stage_model.phylo_mapper.get_mapped_truth(truth)
                         
-                    f1_samples_half = self.F1(self.first_stage_model(x_sample)[3][self.outputname], truth)
                     f1_samples_nopix = self.F1(self.first_stage_model(x_sample_nopix)[3][self.outputname], truth)
                     f1_x_sample_det = self.F1(self.first_stage_model(x_sample_det)[3][self.outputname], truth)
-                    self.log(split+"/f1_samples_half", f1_samples_half, prog_bar=False, logger=True, on_step=False, on_epoch=True)
                     self.log(split+"/f1_samples_nopix", f1_samples_nopix, prog_bar=False, logger=True, on_step=False, on_epoch=True)
                     self.log(split+"/f1_x_sample_det", f1_x_sample_det, prog_bar=False, logger=True, on_step=False, on_epoch=True)
 

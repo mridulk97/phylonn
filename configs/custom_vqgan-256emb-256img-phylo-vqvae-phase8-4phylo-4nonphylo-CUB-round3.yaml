@@ -1,0 +1,102 @@
+model:
+  base_learning_rate: 4.5e-06
+  target: taming.models.phyloautoencoder.PhyloVQVAE
+  project: Phylo-VQVAE
+  params:
+    ckpt_path: /fastscratch/mridul/models/cub_bb_crop_imagenet_padding_segmented.ckpt
+    embed_dim: 256
+    n_embed: 1024
+    optim: "adamW"
+    lr_factor: 0.1
+    scheduler: "warmup"
+    ddconfig:
+      double_z: False
+      z_channels: 256
+      resolution: 256
+      in_channels: 3
+      out_ch: 3
+      ch: 128
+      ch_mult: [ 1,1,2,2,4]  # num_down = len(ch_mult)-1
+      num_res_blocks: 2
+      attn_resolutions: [16]
+      dropout: 0.0
+    lossconfig:
+      target: taming.modules.losses.vqperceptual.VQLPIPSWithDiscriminator
+      params:
+        disc_conditional: False
+        disc_in_channels: 3
+        disc_start: 1000
+        disc_weight: 0.8
+        codebook_weight: 0.0
+    phylomodel_params:
+      embed_dim: 16
+      n_embed: 64
+      n_phylolevels: 4
+      n_levels_non_attribute: 4
+      codebooks_per_phylolevel: 8
+      n_phylo_channels: 64
+      verbose: false
+      ch: 128
+      resolution: 16
+      in_channels: 256
+      out_ch: 256
+      n_mlp_layers: 1
+      lossconfig:
+        target: taming.modules.losses.vqperceptual.VQLPIPSWithDiscriminator
+        params:
+          codebook_weight: 0.8
+          disc_in_channels: 0
+          disc_num_layers: 0
+          disc_weight: 0.0
+          disc_factor: 0.0
+          perceptual_weight: 0.0
+          disc_start: 10000
+      lossconfig_phylo:
+        target: taming.modules.losses.phyloloss.PhyloLoss
+        params:
+          phylo_weight: 0.1
+          fc_layers: 1
+          beta: 1.0
+          phyloDistances_string: 0.93,0.83,0.63
+          phylogenyconfig:
+            target: taming.data.phylogeny.PhylogenyCUB
+            params:
+              filePath: /home/elhamod/projects/taming-transformers/analysis/phylotree
+          verbose: false
+      lossconfig_kernelorthogonality:
+        target: taming.modules.losses.orthogonalloss.OrthogonalLoss
+        params:
+          weight: 0.5
+          padding: 0
+          stride: 1
+          verbose: false
+      lossconfig_anticlassification:
+        target: taming.modules.losses.anticlassificationloss.AntiClassificationLoss
+        params:
+          weight: 0.1
+          beta: 0.7
+          v3: true
+          verbose: false
+data:
+  target: main.DataModuleFromConfig
+  params:
+    batch_size: 32
+    num_workers: 8
+    train:
+      target: taming.data.custom.CustomTrain
+      params:
+        training_images_list_file: /fastscratch/mridul/cub_190_split_resized/official/CUB_200_2011/train_segmented_imagenet_background_bb_crop_256.txt
+        size: 256
+        add_labels: True
+        horizontalflip: True
+        random_contrast: True
+        shiftrotate: True
+    validation:
+      target: taming.data.custom.CustomTest
+      params:
+        test_images_list_file: /fastscratch/mridul/cub_190_split_resized/official/CUB_200_2011/test_segmented_imagenet_background_bb_crop_256.txt
+        size: 256
+        add_labels: True
+
+
+

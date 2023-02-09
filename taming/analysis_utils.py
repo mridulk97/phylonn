@@ -300,6 +300,24 @@ class Embedding_Code_converter():
         answer[:, :, :index+1] = replacement_reshaped
         answer_reshaped = self.reshape_code(answer)
         return answer_reshaped
+    
+    
+    # k, 32 -> (k, 8, :level),(k, 8, level:) -> corresponding codes.
+    def split_codes(self, code, level, n_phylolevel):
+        code_postfix = self.get_post_level(code, level)
+        code_prefix = self.get_sub_level(code, level-1)
+        assert code.shape[-1] == code_postfix.shape[-1] + code_prefix.shape[-1]
+        return code_prefix, code_postfix
+    
+    # codes prefix and postfdix -> combined.
+    def merge_codes(self, code_prefix, code_postfix, n_phylolevels):
+        code_postfix_reshaped = self.reshape_code(code_postfix, reverse = True)
+        code_prefix_reshaped = self.reshape_code(code_prefix, reverse = True)
+        code_reshaped = torch.cat([code_prefix_reshaped,code_postfix_reshaped ], dim=-1)
+        assert code_reshaped.shape[-1] == n_phylolevels
+        return self.reshape_code(code_reshaped)
+        
+        
         
         
 

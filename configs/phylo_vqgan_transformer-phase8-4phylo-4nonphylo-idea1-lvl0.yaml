@@ -4,11 +4,11 @@ model:
   project: Phylo-VQVAE-transformer-phase7
   target: taming.models.cond_transformer.Phylo_Net2NetTransformer
   # posttraining_ckpt: /fastscratch/elhamod/logs/2022-11-07T15-02-16_Phylo-VQVAE256img-phase5-nolastrelumlp/checkpoints/epoch=000068.ckpt
-  posttraining_ckpt: /fastscratch/elhamod/logs/2023-01-15T00-45-57_Phylo-VQVAE-phase8256img-4phylo-4nonphylo/checkpoints/last-550.ckpt
+  posttraining_ckpt: /fastscratch/elhamod/logs/2023-01-31T15-12-29_Phylo-VQVAE-phase8256img-4phylo-4nonphylo-fewernonphylodim/checkpoints/epoch=000719.ckpt
   params:
     cond_stage_key: class # key to condition (label in this case)
     # phyloModel: True
-    top_k: 64
+    top_k: 5
     transformer_config:
       target: taming.modules.transformer.mingpt.GPT
       params:
@@ -49,7 +49,7 @@ model:
           n_phylolevels: 4
           n_levels_non_attribute: 4
           codebooks_per_phylolevel: 8
-          n_phylo_channels: 64
+          n_phylo_channels: 94
           verbose: false
           ch: 128
           resolution: 16
@@ -97,11 +97,11 @@ model:
       target: taming.modules.misc.label_conditioner.LabelCond
       params:
         phyloDistances_string: "0.77,0.5,0.33"
-        level: 3
-        # phylogenyconfig:
-        #   target: taming.data.phylogeny.Phylogeny
-        #   params:
-        #     filePath: /fastscratch/elhamod/data/Fish
+        level: 0
+        phylogenyconfig:
+          target: taming.data.phylogeny.Phylogeny
+          params:
+            filePath: /fastscratch/elhamod/data/Fish
 
 # We are not using augmentation because we only want generated images with no augmentation
 data:

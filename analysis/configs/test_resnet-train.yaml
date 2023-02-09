@@ -13,5 +13,5 @@ bb_model_path: analysis/BBmodels/classification_model_3.path
 size: 256
 
 file_name: "train"
-dataset_path: /fastscratch/elhamod/data/Fish/train_padded_256
+dataset_path: /fastscratch/elhamod/data/Fish/train_padded_256_imagenetmeancolor
 save_path: /home/elhamod/projects/taming-transformers/analysis/BBmodels/level3

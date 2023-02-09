@@ -19,8 +19,8 @@ GENERATED_FOLDER = "most_likely_generations"
 ##########
 
 def generate_report(species_names, ckpt_path, attr_info, nonattr_info, converter, hist_parser):
-    attr_distances, attr_most_common1, attr_most_common2 = [attr_info[i] for i in attr_info] 
-    nonattr_distances, non_attr_most_common1, non_attr_most_common2 = [nonattr_info[i] for i in nonattr_info] 
+    attr_distances, attr_most_common1, attr_most_common2 = attr_info  
+    nonattr_distances, non_attr_most_common1, non_attr_most_common2 = nonattr_info 
     
     all_distances = torch.cat((attr_distances, nonattr_distances), dim=0)
     

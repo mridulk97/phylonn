@@ -37,17 +37,19 @@ def main(configs_yaml):
     per_phylo_level = configs_yaml.per_phylo_level
     generate_specimen = configs_yaml.generate_specifmen
     save_individual_images = configs_yaml.save_individual_images
+    unique_skipped_labels = configs_yaml.unique_skipped_labels
 
     # load image
-    dataset = CustomDataset(size, file_list_path, add_labels=True)
-    dataloader = DataLoader(dataset.data, batch_size=batch_size, num_workers=num_workers, collate_fn=custom_collate)
+    dataset = CustomDataset(size, file_list_path, add_labels=True, unique_skipped_labels=unique_skipped_labels)
+    dataset_noskippedlabels = CustomDataset(size, file_list_path, add_labels=True)
+    dataloader_noskippedlabels = DataLoader(dataset_noskippedlabels.data, batch_size=batch_size, num_workers=num_workers, collate_fn=custom_collate)
     
     # Load model
     config = load_config(yaml_path, display=False)
     model = load_phylovqvae(config, ckpt_path=ckpt_path, cuda=(DEVICE is not None))
         
     # create the converter.
-    item = next(iter(dataloader))
+    item = next(iter(dataloader_noskippedlabels))
     img = model.get_input(item, model.image_key).to(DEVICE)
     lbl = item[CONSTANTS.DISENTANGLER_CLASS_OUTPUT]
     _, _, _, in_out_disentangler = model(img)
@@ -69,7 +71,7 @@ def main(configs_yaml):
         hist_freq.load_from_file(hist_file_path)
     except (OSError, IOError) as e:
         print(hist_file_path, '... Calculating histograms.')
-        for item in tqdm(dataloader):
+        for item in tqdm(dataloader_noskippedlabels):
             img = model.get_input(item, model.image_key).to(DEVICE)
             lbl = item[CONSTANTS.DISENTANGLER_CLASS_OUTPUT]
             
@@ -198,12 +200,13 @@ def generate_images(species_arr, species_indx,
                     species_arr_nonattr, 
                     num_specimen_generated, 
                     model, converter, converter_nonattribute, indx_to_label,
-                    device, ckpt_path, prefix_text, save_individual_images=False,
-                    anticlassification=False):
+                    device, ckpt_path, prefix_text, save_individual_images=False):
     
     
     list_of_created_sequence = []
-    list_of_created_nonattribute_sequence = []     
+    list_of_created_nonattribute_sequence = []    
+    
+    anticlassification = model.phylo_disentangler.loss_anticlassification is not None 
             
     # for all images
     generated_imgs = []

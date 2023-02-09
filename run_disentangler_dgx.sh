@@ -1,9 +1,9 @@
 #!/bin/bash
 
-#SBATCH --account=mabrownlab   #ml4science
+#SBATCH --account=imageomics-biosci  #mabrownlab   #ml4science
 #SBATCH --partition=dgx_normal_q
-#SBATCH --time=2-00:00:00 
-#SBATCH --gres=gpu:3
+#SBATCH --time=0-05:00:00 
+#SBATCH --gres=gpu:8
 #SBATCH --nodes=1 --ntasks-per-node=1 --cpus-per-task=16
 #SBATCH -o /fastscratch/elhamod/projects/taming-transformers/SLURM/slurm-%j.out
 ##########SBATCH -o ./SLURM/slurm-%j.out
@@ -92,6 +92,34 @@ which python
 # python main.py --resume /fastscratch/elhamod/logs/2023-01-13T15-13-08_Phylo-VQVAE-phase8256img-4phylo-4nonphylo --prefix /fastscratch/elhamod --postfix 256img-4phylo-4nonphylo --base /home/elhamod/projects/taming-transformers/configs/custom_vqgan-256emb-256img-phylo-vqvae-phase8-4phylo-4nonphylo.yaml -t True --gpus 0,1
 
 # python main.py --prefix /fastscratch/elhamod --name Phylo-VQVAE-phase8 --postfix 256img-morecodeslevel --base /home/elhamod/projects/taming-transformers/configs/custom_vqgan-256emb-256img-phylo-vqvae-phase8-4phylo-4nonphylo-morecodeslevel.yaml -t True --gpus 0,1,2
+
+# python main.py --prefix /fastscratch/elhamod --name Phylo-VQVAE-phase8 --postfix 256img-4phylo-4nonphylo-selfattention --base /home/elhamod/projects/taming-transformers/configs/custom_vqgan-256emb-256img-phylo-vqvae-phase8-4phylo-4nonphylo-selfattention.yaml -t True --gpus 0,1,2
+
+# python main.py --prefix /fastscratch/elhamod --name Phylo-VQVAE-phase8 --postfix 256img-4phylo-4nonphylo-CUB --base /home/elhamod/projects/taming-transformers/configs/custom_vqgan-256emb-256img-phylo-vqvae-phase8-4phylo-4nonphylo-CUB.yaml -t True --gpus 0,1,2
+
+# python main.py --resume /fastscratch/elhamod/logs/2023-01-28T01-01-57_Phylo-VQVAE-phase8256img-4phylo-4nonphylo-CUB --prefix /fastscratch/elhamod --postfix 256img-4phylo-4nonphylo-CUB --base /home/elhamod/projects/taming-transformers/configs/custom_vqgan-256emb-256img-phylo-vqvae-phase8-4phylo-4nonphylo-CUB.yaml -t True --gpus 0,1,2 #,3,4,5
+
+
+# python main.py --prefix /fastscratch/elhamod --name Phylo-VQVAE-phase8 --postfix 256img-4phylo-4nonphylo-CUB-faster --base /home/elhamod/projects/taming-transformers/configs/custom_vqgan-256emb-256img-phylo-vqvae-phase8-4phylo-4nonphylo-CUB-faster.yaml -t True --gpus 0,1,2
+
+# python main.py --prefix /fastscratch/elhamod --name Phylo-VQVAE-phase8 --postfix 256img-4phylo-4nonphylo-CUB-round2 --base /home/elhamod/projects/taming-transformers/configs/custom_vqgan-256emb-256img-phylo-vqvae-phase8-4phylo-4nonphylo-CUB-round2.yaml -t True --gpus 0,1,2
+
+
+
+
+
+python main.py --prefix /fastscratch/elhamod --name Phylo-VQVAE-phase8 --postfix 256img-4phylo-4nonphylo-CUB-round3 --base /home/elhamod/projects/taming-transformers/configs/custom_vqgan-256emb-256img-phylo-vqvae-phase8-4phylo-4nonphylo-CUB-round3.yaml -t True --gpus 0,1,2,3,4,5,6,7
+
+# python main.py --prefix /fastscratch/elhamod --name Phylo-VQVAE-phase8 --postfix 256img-4phylo-4nonphylo-fewercodes --base /home/elhamod/projects/taming-transformers/configs/custom_vqgan-256emb-256img-phylo-vqvae-phase8-4phylo-4nonphylo-fewercodes.yaml -t True --gpus 0,1,2,3,4
+
+# python main.py --prefix /fastscratch/elhamod --name Phylo-VQVAE-phase8 --postfix 256img-4phylo-4nonphylo-fewernonphylodim --base /home/elhamod/projects/taming-transformers/configs/custom_vqgan-256emb-256img-phylo-vqvae-phase8-4phylo-4nonphylo-fewernonphylodim.yaml -t True --gpus 0,1,2,3,4
+
+# python main.py --resume /fastscratch/elhamod/logs/2023-01-31T22-56-46_Phylo-VQVAE-phase8256img-4phylo-4nonphylo-fewernonphylodim-speciesout --prefix /fastscratch/elhamod --postfix 256img-4phylo-4nonphylo-fewernonphylodim-speciesout --base /home/elhamod/projects/taming-transformers/configs/custom_vqgan-256emb-256img-phylo-vqvae-phase8-4phylo-4nonphylo-fewernonphylodim-speciesout.yaml -t True --gpus 0,1,2,3,4
+
+# python main.py --name Phylo-VQVAE-phase8 --prefix /fastscratch/elhamod /fastscratch/elhamod/logs/2023-01-31T22-56-46_Phylo-VQVAE-phase8256img-4phylo-4nonphylo-fewernonphylodim-withdisc --postfix 256img-4phylo-4nonphylo-fewernonphylodim-speciesout --base /home/elhamod/projects/taming-transformers/configs/custom_vqgan-256emb-256img-phylo-vqvae-phase8-4phylo-4nonphylo-fewernonphylodim-withdisc.yaml -t True --gpus 0,1,2,3,4
+
+
+
 
 exit;
 
