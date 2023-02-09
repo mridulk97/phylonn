@@ -96,7 +96,7 @@ def avg_distances(fine_label, indexes, phylogeny, dataset):
     for i in indexes:
         lbl = dataset[i]['class']
         dist = dist + phylogeny.get_distance(label_list[fine_label], label_list[lbl])
-        # print(fine_label, i, lbl, dist)
+
     result = dist/len(indexes)
     return result
 
@@ -217,7 +217,7 @@ def plot_tsne_dots(dataloader, tx, ty, path, file_prefix, legend_labels=[CONSTAN
             hue=j,
             palette=sns.color_palette("hls", len(set(labels[j]))),
             data=df,
-            legend= False#"full"
+            legend= False
         )
         fig = sns_plot.get_figure()
         fig.savefig(os.path.join(path, file_prefix+"_legend_" + j +"_tsne_dots.png"))
