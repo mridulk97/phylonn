@@ -1,6 +1,5 @@
 from taming.loading_utils import load_config, load_CWVQGAN
-from taming.modules.losses.phyloloss import get_loss_name
-from taming.plotting_utils import save_image, save_image_grid, save_to_cvs
+from taming.plotting_utils import save_image
 from taming.models.cond_transformer import Net2NetTransformer
 from taming.data.custom import CustomTest as CustomDataset
 from main import instantiate_from_config
@@ -39,10 +38,7 @@ def main_cw(configs_yaml):
     data = instantiate_from_config(config.data)
     data.prepare_data()
     data.setup()
-    # if model.cond_stage_model.phylo_mapper is not None:
-    #     indices = sorted(list(set(model.cond_stage_model.phylo_mapper.get_original_indexing_truth(indices))))
-        # outputname = model.cond_stage_model.phylo_mapper.outputname
-        # F1 = F1Score(num_classes=model.first_stage_model.phylo_disentangler.loss_phylo.classifier_output_sizes[model.cond_stage_model.level], multiclass=True) 
+   
         
     print('generating images...')
 
