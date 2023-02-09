@@ -7,17 +7,17 @@ from scripts.plotting_utils import get_fig_pth
 from scripts.data.utils import custom_collate
 from scripts.data.custom import CustomTest as CustomDataset
 import scripts.constants as CONSTANTS
+from scripts.models.LSFautoencoder import LSFVQVAE
+from scripts.models.cwautoencoder import CWmodelVQGAN
 
 import argparse
 import numpy as np
 from sklearn.manifold import TSNE
 from sklearn.decomposition import PCA
-from torchvision import transforms
 from tqdm import tqdm
 import torch
-from PIL import Image, ImageDraw, ImageFont
 import matplotlib
-from matplotlib.pyplot import imshow, show, plt
+from matplotlib.pyplot import show, plt
 import os
 import pandas as pd
 import seaborn as sns
@@ -36,11 +36,18 @@ def get_output(model, image):
     elif type(model) == VQModel: 
         quant, _, _ = model.encode(image)
         return quant
+    elif type(model) == CWmodelVQGAN:
+        h = model.encoder(image)
+        h = model.quant_conv(h)
+        return h
+    elif type(model) == LSFVQVAE:
+        z, _, _= model.image2encoding(image)
+        z = (z @ model.LSF_disentangler.M.t())[:, :38]
+        return z
     else:
         raise "Model type unknown"
     
     
-
 
 
 ##############
@@ -87,19 +94,9 @@ def get_tsne(dataloader, model, path,
         else:
             phylogeny_knn = Phylogeny(phylogeny_knn)
             plot_phylo_KNN(dataloader, tx, ty, path, file_prefix, phylogeny_knn)
-            
-
-    
-
+        
     show(block=False)
     print('--------')
-    
-
-
-
-
-
-
 
 
 def avg_distances(fine_label, indexes, phylogeny, dataset):
@@ -110,7 +107,6 @@ def avg_distances(fine_label, indexes, phylogeny, dataset):
         dist = dist + phylogeny.get_distance(label_list[fine_label], label_list[lbl])
     result = dist/len(indexes)
     return result
-
 
 
 def plot_phylo_KNN(dataloader, tx, ty, path, file_prefix, phylogeny_knn, n_neighbors=5):
@@ -166,7 +162,6 @@ def plot_tsne_dots(dataloader, tx, ty, path, file_prefix, phylomapper=None):
         labels[CLASS_LABEL] = batch[CLASS_LABEL] if CLASS_LABEL not in labels else torch.cat([labels[CLASS_LABEL], batch[CLASS_LABEL]]).detach()
         file_names = file_names + file_name
 
-
     df = pd.DataFrame()
     df['tsne-x'] = tx
     df['tsne-y'] = ty
@@ -194,9 +189,6 @@ def plot_tsne_dots(dataloader, tx, ty, path, file_prefix, phylomapper=None):
 
 
 
-
-
-
 def main(configs_yaml):
     yaml_path = configs_yaml.yaml_path
     ckpt_path = configs_yaml.ckpt_path
@@ -210,7 +202,7 @@ def main(configs_yaml):
     phylogeny_knn = configs_yaml.phylogeny_knn
     phylogeny_path = configs_yaml.phylogeny_path
     
-    isOriginalVQGAN = configs_yaml.isOriginalVQGAN if "isOriginalVQGAN" in configs_yaml.keys() else False
+    model_name = configs_yaml.model_name if "model_name" in configs_yaml.keys() else 'PhyloNN'
     
     # get phylogeny
     phylomapper=None
@@ -224,8 +216,12 @@ def main(configs_yaml):
     dataloader = DataLoader(dataset.data, batch_size=batch_size, num_workers=num_workers, collate_fn=custom_collate)
     
     # Load model
-    if isOriginalVQGAN:
+    if model_name=='VQGAN':
         model_type=VQModel
+    elif model_name=='CW':
+        model_type=CWmodelVQGAN
+    elif model_name=='LSF':
+        model_type=LSFVQVAE
     else:
         model_type=PhyloVQVAE
         

@@ -3,6 +3,7 @@ from scripts.loading_utils import load_config, load_model
 from scripts.data.custom import CustomTest as CustomDataset
 from scripts.models.vqgan import VQModel
 from scripts.plotting_utils import get_fig_pth
+from scripts.models.cwautoencoder import CWmodelVQGAN
 
 import os
 import numpy as np
@@ -50,13 +51,20 @@ def main(configs_yaml):
     size= configs_yaml.size
     file_list_path= configs_yaml.file_list_path
     keyimgrate= configs_yaml.keyimgrate
+    model_name = configs_yaml.model_name if "model_name" in configs_yaml.keys() else 'VQGAN'
+
+    # Load model
+    if model_name=='CW':
+        model_type=CWmodelVQGAN
+    else :
+        model_type=VQModel
     
     # load image
     dataset = CustomDataset(size, file_list_path, add_labels=True)
     
     # Load model
     config = load_config(yaml_path, display=False)
-    model = load_model(config, ckpt_path=ckpt_path, cuda=(DEVICE is not None), model_type=VQModel)
+    model = load_model(config, ckpt_path=ckpt_path, cuda=(DEVICE is not None), model_type=model_type)
     
     for indx__ in tqdm.tqdm(range(count)):
         image_index1 = image_index1_+indx__

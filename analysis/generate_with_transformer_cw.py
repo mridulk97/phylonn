@@ -1,13 +1,16 @@
+import os
 from scripts.loading_utils import load_config, load_model
 from scripts.models.cond_transformer import Net2NetTransformer
 from scripts.data.custom import CustomTest as CustomDataset
+from scripts.plotting_utils import save_image
 from main import instantiate_from_config
 
 import torch
 from tqdm import tqdm
-
 from omegaconf import OmegaConf
 import argparse
+
+GENERATED_DATASET = "transformer_generated_dataset"
 
 ##########
 
@@ -21,6 +24,7 @@ def main_cw(configs_yaml):
     num_specimen_generated = configs_yaml.num_specimen_generated
     top_k = configs_yaml.top_k
     outputdatasetdir = configs_yaml.outputdatasetdir
+    save_individual_images = configs_yaml.save_individual_images
 
     # load image
     dataset = CustomDataset(size, file_list_path, add_labels=True)
@@ -40,13 +44,13 @@ def main_cw(configs_yaml):
         generate_images_cw(index, species_true_indx,
                 num_specimen_generated, top_k,
                 model, dataset.indx_to_label,
-                DEVICE, ckpt_path, outputdatasetdir)
+                DEVICE, ckpt_path, outputdatasetdir, save_individual_images=save_individual_images)
 
 
 def generate_images_cw(index, species_true_indx, 
                     num_specimen_generated, top_k,
                     model, indx_to_label,
-                    device, ckpt_path, prefix_text):
+                    device, ckpt_path, prefix_text, save_individual_images):
     sequence_length = model.transformer.block_size-1
 
     # for all images
@@ -64,7 +68,12 @@ def generate_images_cw(index, species_true_indx,
     code_sampled = model.sample(z_start, c, steps=steps, sample=True, top_k=top_k)
 
     # decodeing the image from the sequence
-    x_sample = model.decode_to_img(code_sampled, z_shape) #TODO: Mridul fix this.
+    x_sample = model.decode_to_img(code_sampled, z_shape)
+
+    for j in range(num_specimen_generated): 
+        if save_individual_images:
+            save_image(x_sample[j, :, :, :], str(j), ckpt_path, subfolder= os.path.join(GENERATED_DATASET,prefix_text,"{}".format(indx_to_label[species_true_indx])))
+
     return None
 
 

@@ -81,6 +81,7 @@ Use the following script:
 python analysis/generate_histograms_matrix.py --config <path to analysis yaml file>
 ```
 
+
 ## Calculating aggregate JS-divergence between two species 
 Use the following script:
 ```
@@ -137,6 +138,38 @@ In the analysis `yaml` file:
 * **level** : If `phylogeny_path` is provided, specify which ancestral level
 * **phyloDistances_string** : If `phylogeny_path` is provided, specify the phylogenetic quantization distances for each level. defaults are included in the default files.
 * **which_tsne_plots** : `standard` will color code the t-SNE plot based on the species or ancestral level of interest. `knn` will plot the same t-SNE plot but color-coded based on the phylo-distance error compared to a point's KNN-neighbors.
+
+
+
+
+## Baselines
+
+### Latent Space Factorization (LSF)
+LSF is a method for disentangling latent space, described in the paper [Latent Space Factorisation and Manipulation via Matrix Subspace Projection](https://arxiv.org/abs/1907.12385)
+
+### Image translation - LSF
+```
+python analysis/translateLSF.py --config <yaml file>
+```
+* **config**: the `yaml` config file.
+Under `analysis/configs` directory, we have prepopulated the `yaml` files we have used in our own experiment for image translation under the name `translateLSF.yaml`.
+
+### TSNE plots - LSF
+Use the following script:
+```
+python analysis/tsneLSF.py --config <yaml file>
+```
+
+### Heatmap of cosine distance between latent representations - LSF
+Use the following script:
+```
+python analysis/heatmapLSF.py --name <name> --postfix <postfix> --base <yaml file> -t True --gpus <comma-separated GPU indices>
+```
+* **prefix** : The path to where the model will be saved
+* **name** : run name
+* **postfix**: a postfix for the run's name
+* **base**: the `yaml` config file.
+Under `configs` directory, the config file used for generating this plot is provided under the name `lsf_inference.yaml`.
 
 
 

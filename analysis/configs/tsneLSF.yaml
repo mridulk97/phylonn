@@ -1,0 +1,18 @@
+DEVICE: 0
+
+num_workers: 8
+batch_size: 200
+
+model_name: 'LSF'
+
+file_prefix: "LSF-test-set"
+img_res: 256
+dataset_path: "/fastscratch/elhamod/data/Fish/taming_transforms_fish_test_padded_256_imagenetmeancolor.txt"
+
+ckpt_path: /home/harishbabu/projects/taming-transformers/logs/2023-02-01T23-38-48_LSF2-VQVAE1024emb-256img_imagenetmean_noaug-base_noaug_withimgnet/checkpoints/last.ckpt
+yaml_path: /home/harishbabu/projects/taming-transformers/logs/2023-02-01T23-38-48_LSF2-VQVAE1024emb-256img_imagenetmean_noaug-base_noaug_withimgnet/configs/2023-02-01T23-38-48-project.yaml
+
+phylogeny_knn: /fastscratch/elhamod/data/Fish
+
+which_tsne_plots: ['standard', 'images', 'knn'] #  
+legend_labels: ['class']
