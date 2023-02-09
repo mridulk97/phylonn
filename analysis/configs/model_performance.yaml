@@ -1,0 +1,16 @@
+
+DEVICE: 0
+
+num_workers: 8
+batch_size: 200 #200 for tinkercliffs
+
+load_model: CW
+
+
+size: 256
+# file_list_path: "/home/elhamod/data/Fish/taming_transforms_fish_train_padded_256.txt"
+file_list_path: "/fastscratch/elhamod/data/Fish/taming_transforms_fish_test_padded_256.txt"
+
+ckpt_path: /fastscratch/elhamod/logs/2022-11-11T02-12-49_Phylo-VQVAE256img-phase5-speciesout-final/checkpoints/last.ckpt
+yaml_path: /fastscratch/elhamod/logs/2022-11-11T02-12-49_Phylo-VQVAE256img-phase5-speciesout-final/configs/2022-11-11T02-12-49-project.yaml
+
