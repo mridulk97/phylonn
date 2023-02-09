@@ -1,21 +1,10 @@
-
-# import copy
 import os
-import pickle
-from analysis.replace_codes import get_entropy_ordering
 import numpy as np
-from taming.analysis_utils import Embedding_Code_converter
-# import os
-# from taming.data.phylogeny import Phylogeny
-from taming.loading_utils import load_config, load_phylovqvae, load_CWVQGAN
+from taming.loading_utils import load_config, load_CWVQGAN
 from taming.data.custom import CustomTest as CustomDataset
-# from taming.models.cond_transformer import Phylo_Net2NetTransformer
 
-import taming.constants as CONSTANTS
-from taming.models.vqgan import VQModel
+
 from taming.models.cwautoencoder import CWmodelVQGAN
-from taming.modules.losses.lpips import LPIPS
-# from taming.modules.losses.phyloloss import parse_phyloDistances
 from taming.plotting_utils import get_fig_pth
 
 
@@ -245,7 +234,7 @@ if __name__ == "__main__":
         type=str,
         nargs="?",
         const=True,
-        default="analysis/configs/specimen_diff_vqgan.yaml",
+        default="analysis/configs/specimen_translation_cw.yaml",
     )
     
     cfg, _ = parser.parse_known_args()
