@@ -219,10 +219,7 @@ def plot_tsne_dots(dataloader, tx, ty, path, file_prefix, legend_labels=[CONSTAN
             data=df,
             legend= False#"full"
         )
-        # tooltip_label = [str(j) for i in range(len(labels))] #TODO: is this i a j?
-        # tooltip = mpld3.plugins.PointLabelTooltip(sns_plot, labels=tooltip_label)
         fig = sns_plot.get_figure()
-        # mpld3.plugins.connect(fig, tooltip)
         fig.savefig(os.path.join(path, file_prefix+"_legend_" + j +"_tsne_dots.png"))
 
 
@@ -256,25 +253,18 @@ def visualize_tsne_images(dataloader, tx, ty, img_res, path, file_prefix, phylom
     
     for img, x, y, file_name, fine_label in tqdm(zip(images, tx, ty, file_names, fine_labels), total=tx.shape[0]):
         tile = transforms.ToPILImage()(img).convert("RGB")
-        # print(img.shape)
-        # print(tile.size, tile.mode)
         
         draw = ImageDraw.Draw(tile)
-        # draw.text((0, int(img_res*0.8)), "true: " + str(fine_label.item())+"\npredicted: "+str(pred.item()), (255,0,0), font=font)
         draw.text((0, int(img_res*0.8)), str(fine_label.item()), (255,0,0), font=font)
         
         rs = max(1, tile.width/max_dim, tile.height/max_dim)
-        # print(rs, tile.width, tile.height, max_dim)
         tile = tile.resize((int(tile.width/rs), int(tile.height/rs)), Image.Resampling.LANCZOS)
-        # print(tile.size, tile.mode)
-        full_image.paste(tile, (int((width-max_dim)*x), height - int((height-max_dim)*y)))#, mask=tile.convert('RGBA'))
-        # raise
+        full_image.paste(tile, (int((width-max_dim)*x), height - int((height-max_dim)*y)))
 
     if phylomapper is not None:
         file_prefix = file_prefix+"_level"+str(phylomapper.level)
     
     matplotlib.pyplot.figure(figsize = (16,12))
-    # full_image = full_image.transpose(Image.FLIP_TOP_BOTTOM)
     imshow(full_image)
     full_image.save(os.path.join(path, file_prefix+"_tsne_images.png")) 
     
