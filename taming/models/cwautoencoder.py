@@ -43,14 +43,7 @@ class CWmodelVQGAN(VQModel):
             self.encoder.norm_out = cw_layer(self.encoder.block_in)
             print("Changed to cw layer after loading base VQGAN")
 
-        # self.freeze()
 
-        # self.verbose = phylo_args.get('verbose', False)
-
-        # print model
-        # print('totalmodel', self)
-        # summary(self.cuda(), (1, 3, 512, 512))
-    
     def training_step(self, batch, batch_idx, optimizer_idx):
         if (batch_idx+1)%30==0 and optimizer_idx==0:
             print('cw module')
@@ -66,10 +59,9 @@ class CWmodelVQGAN(VQModel):
                         X_var = X_var.float()
                         self(X_var)
                         break
-                # model.module.update_rotation_matrix()
+
                 self.encoder.norm_out.update_rotation_matrix()
-                # change to ordinary mode
-                # model.module.change_mode(-1)
+
                 self.encoder.norm_out.mode = -1
             self.train()
 
@@ -118,14 +110,13 @@ class CWmodelVQGAN(VQModel):
         sorted_zq_cw = z_cw[sorting_indices, :]
         
         z_cosine_distances = get_CosineDistance_matrix(sorted_zq_cw)
-        plot_heatmap(z_cosine_distances.cpu(), '/home/mridul/taming-transformers/paper_plots/', title='Cosine_distances_tinker', postfix='test_data_infer_model')
+        plot_heatmap(z_cosine_distances.cpu(), self.test_chkpt_path, title='Cosine_distances_tinker', postfix='test_data_infer_model')
 
         classnames = list(itertools.chain.from_iterable([x['class_name'] for x in in_out]))
         sorted_class_names_according_to_class_indx = [classnames[i] for i in sorting_indices]
         z_cosine_distances_avg_over_classes = aggregate_metric_from_specimen_to_species(sorted_class_names_according_to_class_indx, z_cosine_distances)
        
-        # phylo_dist = aggregate_metric_from_specimen_to_species(sorting_indices, z_cosine_distances)
-        plot_heatmap(z_cosine_distances_avg_over_classes.cpu(), '/home/mridul/taming-transformers/paper_plots', title='Cosine_distances_aggregated_tinker', postfix='test_data_infer_model')
+        plot_heatmap(z_cosine_distances_avg_over_classes.cpu(), self.test_chkpt_path, title='Cosine_distances_aggregated_tinker', postfix='test_data_infer_model')
 
         z_cosine_distances_avg_over_classes_np = z_cosine_distances_avg_over_classes.cpu().numpy()
         df_avg = pd.DataFrame(z_cosine_distances_avg_over_classes_np)
