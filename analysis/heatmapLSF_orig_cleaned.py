@@ -154,9 +154,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-
-# python analysis/heatmapLSF.py --name LSF2-VQVAE --postfix 1024emb-256img_imagenetmean_noaug-base_noaug_withimagenet-heatmap --base configs/custom_vqgan-1024emb-256img_imagenetmean_noaug-batch5-LSF2-vqvae-base_noaug_withimgnet-inference.yaml -t True --gpus 0
-
-# python analysis/heatmapLSF.py --config configs/custom_vqgan-1024emb-256img_imagenetmean_noaug-batch5-LSF2-vqvae-base_noaug_withimgnet-inference.yaml
-
-# python analysis/heatmapLSF_cleaned.py --config configs/custom_vqgan-1024emb-256img_imagenetmean_noaug-batch5-LSF2-vqvae-base_noaug_withimgnet-inference.yaml
