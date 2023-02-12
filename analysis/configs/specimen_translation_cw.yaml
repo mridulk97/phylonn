@@ -10,7 +10,7 @@ count: 15
 model_name: 'CW'
 
 size: 256
-file_list_path: "/fastscratch/elhamod/data/Fish/taming_transforms_fish_train_padded_256_imagenetmeancolor.txt"
+file_list_path: "/fastscratch/elhamod/data/Fish/taming_transforms_fish_test_padded_256_imagenetmeancolor.txt"
 
 keyimgrate: 70
 
