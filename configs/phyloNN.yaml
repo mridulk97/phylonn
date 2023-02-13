@@ -3,7 +3,7 @@ model:
   target: scripts.models.phyloautoencoder.PhyloVQVAE
   project: PhyloNN
   params:
-    ckpt_path: /fastscratch/elhamod/logs/2023-01-09T18-13-38_Phylo-VQVAE-phase7256img-originalvqgan-imagenetbg-aug/checkpoints/last.ckpt
+    ckpt_path: /fastscratch/elhamod/logs/vanilla_vqgan/checkpoints/last.ckpt
     embed_dim: 256
     n_embed: 1024
     ddconfig:
@@ -66,13 +66,11 @@ model:
           weight: 1.0
           padding: 0
           stride: 1
-          verbose: false
       lossconfig_adversarial:
-        target: scripts.modules.losses.adversarialLoss.AdversarialLoss
+        target: scripts.modules.losses.adversarialloss.AdversarialLoss
         params:
           weight: 0.1
           beta: 0.7
-          v3: true
 data:
   target: main.DataModuleFromConfig
   params:

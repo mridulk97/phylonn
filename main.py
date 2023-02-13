@@ -10,7 +10,7 @@ from torch.utils.data import DataLoader, Dataset
 import pytorch_lightning as pl
 from pytorch_lightning import seed_everything
 from pytorch_lightning.trainer import Trainer
-from pytorch_lightning.callbacks import Callback
+from pytorch_lightning.callbacks import Callback, LearningRateMonitor
 from pytorch_lightning.utilities.distributed import rank_zero_only
 
 from scripts.analysis_utils import aggregate_metric_from_specimen_to_species, get_HammingDistance_matrix

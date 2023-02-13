@@ -217,23 +217,13 @@ class Net2NetTransformer(pl.LightningModule):
 
         # sample
         z_start_indices = z_indices[:, :0]
-        if isinstance(self, PhyloNN_transformer) and self.PhyloNN_transformer:
-            codes_per_phylolevel = self.first_stage_model.phylo_disentangler.codes_per_phylolevel
-            n_phylolevels = self.first_stage_model.phylo_disentangler.n_phylolevels
-            attr_codes_range = codes_per_phylolevel*n_phylolevels
-            z_indices_samples = z_indices[:, attr_codes_range:]
-        else:
-            z_indices_samples = z_indices.clone()
+        z_indices_samples = z_indices.clone()
         index_sample = self.sample(z_start_indices, c_indices,
                                 steps=z_indices_samples.shape[1],
                                 temperature=temperature if temperature is not None else 1.0,
                                 sample=True,
                                 top_k=top_k if top_k is not None else 100,
                                 callback=callback if callback is not None else lambda k: None)
-        if isinstance(self, PhyloNN_transformer) and self.PhyloNN_transformer:
-            codes_per_phylolevel = self.first_stage_model.phylo_disentangler.codes_per_phylolevel
-            n_levels_non_attribute = self.first_stage_model.phylo_disentangler.n_levels_non_attribute
-            index_sample = torch.cat([c_indices[:, -n_levels_non_attribute*codes_per_phylolevel:], index_sample], dim=-1)
         x_sample_nopix = self.decode_to_img(index_sample, quant_z.shape)
 
         # det sample
@@ -242,10 +232,6 @@ class Net2NetTransformer(pl.LightningModule):
                                 steps=z_indices_samples.shape[1],
                                 sample=False,
                                 callback=callback if callback is not None else lambda k: None)
-        if isinstance(self, PhyloNN_transformer) and self.PhyloNN_transformer:
-            codes_per_phylolevel = self.first_stage_model.phylo_disentangler.codes_per_phylolevel
-            n_levels_non_attribute = self.first_stage_model.phylo_disentangler.n_levels_non_attribute
-            index_sample = torch.cat([c_indices[:, -n_levels_non_attribute*codes_per_phylolevel:], index_sample], dim=-1)
         x_sample_det = self.decode_to_img(index_sample, quant_z.shape)
 
         # reconstruction
@@ -296,12 +282,6 @@ class Net2NetTransformer(pl.LightningModule):
     def get_xc(self, batch, N=None):
         x = self.get_input(self.first_stage_key, batch)
         c = self.get_input(self.cond_stage_key, batch)
-        
-        if isinstance(self, PhyloNN_transformer) and self.PhyloNN_transformer:
-            zq_phylo, _, _, _, _, _, _, _ = self.first_stage_model.encode(x.to(device=self.device))
-            zq_phylo = self.first_stage_model.phylo_disentangler.embedding_converter.get_phylo_codes(zq_phylo, verify=False)
-            c =torch.cat((c.view(c.shape[0], 1).to(device=self.device), zq_phylo), 1)
-            
             
         if N is not None:
             x = x[:N]
@@ -481,10 +461,6 @@ class PhyloNN_transformer(Net2NetTransformer):
                 index_sample = self.sample(z_start_indices, c_indices,
                                         steps=z_indices.shape[1],
                                         sample=False)
-                if self.PhyloNN_transformer:
-                    codes_per_phylolevel = self.first_stage_model.phylo_disentangler.codes_per_phylolevel
-                    n_levels_non_attribute = self.first_stage_model.phylo_disentangler.n_levels_non_attribute
-                    index_sample = torch.cat([c_indices[:, -n_levels_non_attribute*codes_per_phylolevel:], index_sample], dim=-1)
                 x_sample_det = self.decode_to_img(index_sample, quant_z.shape)
                     
                 truth = quant_c[:, 0]

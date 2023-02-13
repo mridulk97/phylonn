@@ -1,4 +1,4 @@
-path: /home/elhamod/projects/phylonn/analysis/baseline results # where to fine files in arrays1
+path: /home/elhamod/projects/phylonn/results/baselines/cosine distances # where to fine files in arrays1
 file_name: "baseline phylo"
 
 output_names: [
@@ -7,8 +7,8 @@ output_names: [
 ]
 
 arrays1: [
-  LSF_distances.csv,
-  CW_distances.csv
+  LSF.csv,
+  CW.csv
 ]
 
 arrays2: [

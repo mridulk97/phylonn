@@ -3,7 +3,7 @@ model:
   base_learning_rate: 4.5e-06
   project: Phylo-VQVAE-transformer-phase7
   target: scripts.models.cond_transformer.PhyloNN_transformer
-  posttraining_ckpt: /fastscratch/elhamod/logs/2023-01-31T15-12-29_Phylo-VQVAE-phase8256img-4phylo-4nonphylo-fewernonphylodim/checkpoints/epoch=000719.ckpt
+  posttraining_ckpt: /fastscratch/elhamod/logs/unseen_species/checkpoints/last.ckpt
   params:
     cond_stage_key: class
     top_k: 5
@@ -82,13 +82,11 @@ model:
               weight: 1.0
               padding: 0
               stride: 1
-              verbose: false
           lossconfig_adversarial:
-            target: scripts.modules.losses.adversarialLoss.AdversarialLoss
+            target: scripts.modules.losses.adversarialloss.AdversarialLoss
             params:
               weight: 0.1
               beta: 0.7
-              v3: true
                 
     cond_stage_config:
       target: scripts.modules.misc.label_conditioner.LabelCond

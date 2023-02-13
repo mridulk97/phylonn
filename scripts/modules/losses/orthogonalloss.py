@@ -5,7 +5,7 @@ import torch
 import numpy as np
 
 class OrthogonalLoss(nn.Module):
-    def __init__(self, weight, stride = 1, padding = 0, verbose=False):
+    def __init__(self, weight, stride = 1, padding = 0):
         super().__init__()
 
         self.weight=weight

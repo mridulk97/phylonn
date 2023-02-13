@@ -8,7 +8,6 @@ from scripts.plotting_utils import get_fig_pth
 
 import os
 import pickle
-from analysis.replace_codes import get_entropy_ordering
 import numpy as np
 import matplotlib.pyplot as plt
 from mpl_toolkits.axes_grid1 import ImageGrid
@@ -17,6 +16,20 @@ from omegaconf import OmegaConf
 import argparse
 import tqdm
 from pathlib import Path
+from scipy.stats import entropy
+
+
+# indexing of hist_arr: [code_location][raw list of codes of that location from all images]
+# lowest entropy to highest entropy
+def get_entropy_ordering(hist_arr_for_species):
+    entropies = []
+    for codes_forcode_location in hist_arr_for_species:
+        value,counts = np.unique(codes_forcode_location, return_counts=True)
+        entropies.append(entropy(counts))
+    reverse_ordered_entropy_indices = np.argsort(entropies)
+    # print(entropies, reverse_ordered_entropy_indices)
+    return reverse_ordered_entropy_indices
+
 
 class KeyImageEntropyHelper:
     def __init__(self, cb_per_level, n_phylolevels, n_nonphylocodes, get_code_reshaped_index):

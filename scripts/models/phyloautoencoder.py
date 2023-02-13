@@ -168,7 +168,6 @@ class PhyloDisentangler(torch.nn.Module):
 
         self.loss_kernelorthogonality = None
         if lossconfig_kernelorthogonality is not None:
-            lossconfig_kernelorthogonality['params'] = {**lossconfig_kernelorthogonality['params'], **{'verbose': verbose}}
             self.loss_kernelorthogonality= instantiate_from_config(lossconfig_kernelorthogonality)
 
 
@@ -189,7 +188,6 @@ class PhyloDisentangler(torch.nn.Module):
         # Create adversarial loss
         self.loss_adversarial = None
         if lossconfig_adversarial is not None:
-            lossconfig_adversarial['params'] = {**lossconfig_adversarial['params'], **{'verbose': verbose}}
             self.loss_adversarial= instantiate_from_config(lossconfig_adversarial)
             self.codebook_mapping_layers = make_MLP([embed_dim, codes_per_phylolevel, n_levels_non_attribute], [embed_dim, codes_per_phylolevel, n_phylolevels], n_mlp_layers, normalize=False)    
         

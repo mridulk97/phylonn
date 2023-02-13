@@ -1,4 +1,4 @@
-path: /home/elhamod/projects/phylonn/analysis/baseline results # where to fine files in arrays1
+path: /home/elhamod/projects/phylonn/results/baselines/cosine distances # where to fine files in arrays1
 file_name: "baseline morpho" # output file name
 
 output_names: [
@@ -7,11 +7,11 @@ output_names: [
 ]
 
 arrays1: [
-  LSF_distances.csv,
-  CW_distances.csv
+  LSF.csv,
+  CW.csv
 ]
 
 arrays2: [
-  /home/elhamod/projects/phylonn/analysis/ancestor analysis/ancestor_distance_level3 heat_map.csv,
-  /home/elhamod/projects/phylonn/analysis/ancestor analysis/ancestor_distance_level3 heat_map.csv,
+  /home/elhamod/projects/phylonn/analysis/ancestor analysis/level3.csv,
+  /home/elhamod/projects/phylonn/analysis/ancestor analysis/level3.csv,
 ]

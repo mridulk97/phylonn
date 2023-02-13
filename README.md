@@ -57,7 +57,7 @@ In the analysis `yaml` file:
 For vanilla VQGAN, use the same script that was provided by [taming-transformers](https://github.com/CompVis/taming-transformers)
 
 ```
-python analysis/make_samples.py -r <path to ckpt file> -c <path to model's yaml file> --outdir <directory where to save the images> 
+python analysis/make_samples_vanilla_vqgan.py -r <path to ckpt file> -c <path to model's yaml file> --outdir <directory where to save the images> 
 ```
 * **ckpt file** : The saved model
 
@@ -81,7 +81,7 @@ In the analysis `yaml` file:
 * **per_phylo_level** : whether to generate species level histograms only, or higher ancestral levels as well.
 * **visualize_histograms**: whether to save the calculated histograms as images or just calculate them and save them as pkl files.
 
-For this, and most other scripts, the analysis (e.g., images, JSON files, etc.) will be save under the same path as the model's directory.
+For this, and most other scripts, the analysis (e.g., images, JSON files, etc.) is saved under the same path as the model's directory.
 
 ## Calculating histogram JS-divergence matrices 
 Use the following script:
@@ -155,7 +155,7 @@ In the analysis `yaml` file:
 ### Latent Space Factorization (LSF)
 LSF is a method for disentangling latent space, described in the paper [Latent Space Factorisation and Manipulation via Matrix Subspace Projection](https://arxiv.org/abs/1907.12385)
 
-### Image translation - LSF
+### Image translation
 ```
 python analysis/translateLSF.py --config <yaml file>
 ```
@@ -170,7 +170,7 @@ python analysis/tsneLSF.py --config <yaml file>
 * **config**: the `yaml` config file.
 Under `analysis/configs` directory, the config file used for generating this plot is provided under the name `tsneLSF.yaml`.
 
-### Heatmap of cosine distance between latent representations - LSF
+### Heatmap of cosine distance between latent representations
 Use the following script:
 ```
 python analysis/heatmapLSF.py --config <yaml file>
@@ -178,22 +178,24 @@ python analysis/heatmapLSF.py --config <yaml file>
 * **config**: the `yaml` config file.
 Under `analysis/configs` directory, the config file used for generating this plot is provided under the name `heatmapLSF.yaml`.
 
+
+
 ### Concept Whiteneing (CW)
 CW is a method for disentangling latent space and aligning it to the concept vectors, described in the paper [Concept Whitening for Interpretable Image Recognition](https://arxiv.org/abs/2002.01650)
 
-### Heatmap of cosine distance between latent representations - CW
+### Heatmap of cosine distance between latent representations
 Use the following script:
 ```
 python analysis/model_performance.py
 ```
 
-### TSNE plots - CW
+### TSNE plots
 Use the following script:
 ```
 python analysis/tsne.py --config analysis/configs/tsne-cw.yaml
 ```
 
-### Specimen Translation - CW
+### Specimen Translation
 Use the following script:
 ```
 python analysis/specimen_translation.py --config analysis/configs/specimen_translation_cw.yaml

@@ -19,7 +19,7 @@
         params:
           embed_dim: 256
           n_embed: 1024
-          ckpt_path: /fastscratch/elhamod/logs/2023-01-09T18-13-38_Phylo-VQVAE-phase7256img-originalvqgan-imagenetbg-aug/checkpoints/last.ckpt
+          ckpt_path: /fastscratch/elhamod/logs/vanilla_vqgan/checkpoints/last.ckpt
           ddconfig:
             double_z: False
             z_channels: 256

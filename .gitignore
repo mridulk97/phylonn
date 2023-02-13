@@ -11,3 +11,5 @@ plot/**
 **events.out.tfevents.*
 lightning_logs/**
 analysis/figs/**
+**vanilla_vqgan_generated
+phylonn.egg-info*

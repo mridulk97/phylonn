@@ -85,7 +85,7 @@ def save_image(torch_image, image_name, ckpt_path=None, subfolder=None):
     path = os.path.join(root, filename)
     os.makedirs(os.path.split(path)[0], exist_ok=True)
     fig = plt.figure()
-    plt.imshow(torch_image[0].numpy().squeeze())
+    plt.imshow(torch_image[0].squeeze())
     fig.savefig(path,bbox_inches='tight',dpi=300)
     
     

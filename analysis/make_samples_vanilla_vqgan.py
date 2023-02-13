@@ -1,7 +1,8 @@
 # Code based on https://github.com/CompVis/taming-transformers
 
-import argparse, os, sys, glob
 from scripts.import_utils import instantiate_from_config
+
+import argparse, os, sys, glob
 import torch
 import numpy as np
 from omegaconf import OmegaConf
@@ -27,9 +28,6 @@ def run_conditional(model, dsets, outdir, top_k, temperature, batch_size=1):
         dset = next(iter(dsets.datasets.values()))
     print("Dataset: ", dset.__class__.__name__)
     
-    
-    n_phylolevels = model.first_stage_model.phylo_disentangler.n_phylolevels
-
     for start_idx in trange(0,len(dset)-batch_size+1,batch_size):
         indices = list(range(start_idx, start_idx+batch_size))
         example = default_collate([dset[i] for i in indices])
@@ -45,52 +43,89 @@ def run_conditional(model, dsets, outdir, top_k, temperature, batch_size=1):
             save_image(x[i], d, "{:06}.png".format(indices[i]))
 
         
+
+        scale_factor = 1.0
         quant_z, z_indices = model.encode_to_z(x)
         quant_c, c_indices = model.encode_to_c(c)
 
         cshape = quant_z.shape
-        
-        quant_z_phylo = quant_z[:, :, :, :n_phylolevels]
-        quant_z_nonphylo = quant_z[:, :, :, n_phylolevels:]
 
-        xrec, _, _, _ = model.first_stage_model.decode(quant_z_phylo, quant_z_nonphylo)
+        xrec = model.first_stage_model.decode(quant_z)
         
         d = os.path.join(outdir, "reconstructions", str(dset.indx_to_label[c.item()]))
         os.makedirs(d, exist_ok=True)
         for i in range(xrec.shape[0]):
             save_image(xrec[i], d,  "{:06}.png".format(indices[i]))
 
-        idx = z_indices.clone()
+        if cond_key == "segmentation":
+            # get image from segmentation mask
+            num_classes = c.shape[1]
+            c = torch.argmax(c, dim=1, keepdim=True)
+            c = torch.nn.functional.one_hot(c, num_classes=num_classes)
+            c = c.squeeze(1).permute(0, 3, 1, 2).float()
+            c = model.cond_stage_model.to_rgb(c)
 
-        idx[:,:] = 0
+        idx = z_indices
+
+        half_sample = False
+        if half_sample:
+            start = idx.shape[1]//2
+        else:
+            start = 0
+
+        idx[:,start:] = 0
+        idx = idx.reshape(cshape[0],cshape[2],cshape[3])
+        start_i = start//cshape[3]
+        start_j = start %cshape[3]
 
         cidx = c_indices
+        # cidx = cidx.reshape(quant_c.shape[0],quant_c.shape[2],quant_c.shape[3])
+
         sample = True
 
-        for i in range(0,idx.shape[1]):
-            
-            patch = idx
-            patch = patch.reshape(patch.shape[0],-1)
-            cpatch = cidx
-            cpatch = cpatch.reshape(cpatch.shape[0], -1)
-            patch = torch.cat((cpatch, patch), dim=1)
-            logits,_ = model.transformer(patch[:,:-1])
-            logits = logits[:,i,:]
-
-            logits = logits/temperature
-
-            if top_k is not None:
-                logits = model.top_k_logits(logits, top_k)
-            # apply softmax to convert to probabilities
-            probs = torch.nn.functional.softmax(logits, dim=-1)
-            # sample from the distribution or take the most likely
-            if sample:
-                ix = torch.multinomial(probs, num_samples=1)
+        for i in range(start_i,cshape[2]-0):
+            if i <= 8:
+                local_i = i
+            elif cshape[2]-i < 8:
+                local_i = 16-(cshape[2]-i)
             else:
-                _, ix = torch.topk(probs, k=1, dim=-1)
-            idx[:,i] = ix.squeeze()
+                local_i = 8
+            for j in range(start_j,cshape[3]-0):
+                if j <= 8:
+                    local_j = j
+                elif cshape[3]-j < 8:
+                    local_j = 16-(cshape[3]-j)
+                else:
+                    local_j = 8
 
-        xsample = model.decode_to_img(idx, cshape)
+                i_start = i-local_i
+                i_end = i_start+16
+                j_start = j-local_j
+                j_end = j_start+16
+                patch = idx[:,i_start:i_end,j_start:j_end]
+                patch = patch.reshape(patch.shape[0],-1)
+                cpatch = cidx#[:, i_start:i_end, j_start:j_end]
+                cpatch = cpatch.reshape(cpatch.shape[0], -1)
+                patch = torch.cat((cpatch, patch), dim=1)
+                logits,_ = model.transformer(patch[:,:-1])
+                logits = logits[:, -256:, :]
+                logits = logits.reshape(cshape[0],16,16,-1)
+                logits = logits[:,local_i,local_j,:]
+
+                logits = logits/temperature
+
+                if top_k is not None:
+                    logits = model.top_k_logits(logits, top_k)
+                # apply softmax to convert to probabilities
+                probs = torch.nn.functional.softmax(logits, dim=-1)
+                # sample from the distribution or take the most likely
+                if sample:
+                    ix = torch.multinomial(probs, num_samples=1)
+                else:
+                    _, ix = torch.topk(probs, k=1, dim=-1)
+                idx[:,i,j] = ix
+
+        xsample = model.decode_to_img(idx[:,:cshape[2],:cshape[3]], cshape)
         
         d = os.path.join(outdir, "samples", str(dset.indx_to_label[c.item()]))
         os.makedirs(d, exist_ok=True)
@@ -141,7 +176,7 @@ def get_parser():
     parser.add_argument(
         "--top_k",
         type=int,
-        default=5,
+        default=100,
         help="Sample from among top-k predictions.",
     )
     parser.add_argument(
@@ -193,7 +228,7 @@ def get_data(config):
 
 def load_model_and_dset(config, ckpt, gpu, eval_mode):
     # get data
-    dsets = get_data(config)
+    dsets = get_data(config)   # calls data.config ...
 
     # now load the specified checkpoint
     if ckpt:
@@ -225,7 +260,7 @@ if __name__ == "__main__":
             try:
                 idx = len(paths)-paths[::-1].index("logs")+1
             except ValueError:
-                idx = -2
+                idx = -2 # take a guess: path/to/logdir/checkpoints/model.ckpt
             logdir = "/".join(paths[:idx])
             ckpt = opt.resume
         else:
@@ -252,6 +287,9 @@ if __name__ == "__main__":
     print(ckpt)
     gpu = True
     eval_mode = True
+    show_config = False
+    if show_config:
+        print(OmegaConf.to_container(config))
 
     dsets, model, global_step = load_model_and_dset(config, ckpt, gpu, eval_mode)
     print(f"Global step: {global_step}")
@@ -262,4 +300,4 @@ if __name__ == "__main__":
     print("Writing samples to ", outdir)
     for k in ["originals", "reconstructions", "samples"]:
         os.makedirs(os.path.join(outdir, k), exist_ok=True)
-    run_conditional(model, dsets, outdir, opt.top_k, opt.temperature, batch_size=1)
+    run_conditional(model, dsets, outdir, opt.top_k, opt.temperature)

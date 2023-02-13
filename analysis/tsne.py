@@ -17,7 +17,8 @@ from sklearn.decomposition import PCA
 from tqdm import tqdm
 import torch
 import matplotlib
-from matplotlib.pyplot import show, plt
+from matplotlib.pyplot import show
+import matplotlib.pyplot as plt
 import os
 import pandas as pd
 import seaborn as sns

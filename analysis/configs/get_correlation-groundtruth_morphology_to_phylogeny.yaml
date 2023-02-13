@@ -3,22 +3,13 @@ path: /home/elhamod/projects/phylonn/analysis/phylo analysis # where to fine fil
 file_name: "phylo-to-morph-groundtruth"
 
 output_names: [
-  level0,
-  level1,
-  level2,
   level3
 ]
 
 arrays1: [
-  level0.csv,
-  level1.csv,
-  level2.csv,
   level3.csv,
 ]
 
 arrays2: [
-  /home/elhamod/projects/phylonn/analysis/ancestor analysis/ancestor_distance_level0 heat_map.csv,
-  /home/elhamod/projects/phylonn/analysis/ancestor analysis/ancestor_distance_level1 heat_map.csv, #TODO: fix all ancestor analysis
-  /home/elhamod/projects/phylonn/analysis/ancestor analysis/ancestor_distance_level2 heat_map.csv,
-  /home/elhamod/projects/phylonn/analysis/ancestor analysis/ancestor_distance_level3 heat_map.csv,
+  /home/elhamod/projects/phylonn/analysis/ancestor analysis/level3.csv
 ]
