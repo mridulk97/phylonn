@@ -154,7 +154,7 @@ def main(configs_yaml):
                     if img_index==1:
                         title="reconstruction"
                     else:
-                        title="translation complete" #TODO: hardcoded!
+                        title="translation complete"
                 
             axes.set_title(title, fontdict=None, loc='center', color = "k")
             axes.tick_params(left=False, bottom=False, labelbottom=False, labelleft=False)
