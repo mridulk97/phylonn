@@ -78,7 +78,7 @@ class CWmodelVQGAN(VQModel):
             return discloss
             
 
-    @torch.no_grad() #TODO: maybe put this for all analysis scritps?
+    @torch.no_grad()
     def test_step(self, batch, batch_idx):
         x = self.get_input(batch, self.image_key)
         h = self.encoder(x)

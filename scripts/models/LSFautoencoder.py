@@ -77,7 +77,6 @@ class LSFVQVAE(VQModel):
         dec = self.decode(quant)
         return dec, base_loss_dic, in_out_disentangler
     
-    #TODO: make this only for debugging.
     def forward_hypothetical(self, input):
         encoder_out = self.encoder(input)
         h = self.quant_conv(encoder_out)
@@ -88,7 +87,6 @@ class LSFVQVAE(VQModel):
     def step(self, batch, batch_idx, prefix):
         x = self.get_input(batch, self.image_key)
         xrec, base_loss_dic, in_out_disentangler = self(x)
-        out_disentangler = {i:in_out_disentangler[i] for i in in_out_disentangler if i not in [DISENTANGLER_ENCODER_INPUT, DISENTANGLER_DECODER_OUTPUT]}
 
         if self.verbose:
             xrec_hypthetical, base_hypothetical_quantizer_loss = self.forward_hypothetical(x)
