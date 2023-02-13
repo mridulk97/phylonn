@@ -1,4 +1,4 @@
-path: /fastscratch/elhamod/logs/2023-01-09T18-13-38_Phylo-VQVAE-phase7256img-originalvqgan-imagenetbg-aug/figs/results_summary # where to fine files in arrays1
+path: /fastscratch/elhamod/logs/vanilla_vqgan/figs/results_summary # where to fine files in arrays1
 
 file_name: "js-divergence to phylo"
 
@@ -11,6 +11,6 @@ arrays1: [
 ]
 
 arrays2: [
-  /home/elhamod/projects/phylonn/analysis/phylo analysis/phylo species distances for level 3 heat_map.csv,
+  /home/elhamod/projects/phylonn/analysis/phylo analysis/level3.csv,
 ]
 

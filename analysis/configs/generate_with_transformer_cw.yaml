@@ -11,5 +11,5 @@ save_individual_images: True
 outputdatasetdir: species_transfromer_generated
 ##############################
 
-ckpt_path: /home/mridul/taming-transformers/logs/2023-02-02T18-56-56_CW-VQGAN-transformercw_imagenet_no_aug_base_model_transformer/checkpoints/last.ckpt
-yaml_path: /home/mridul/taming-transformers/logs/2023-02-02T18-56-56_CW-VQGAN-transformercw_imagenet_no_aug_base_model_transformer/configs/2023-02-02T18-56-56-project.yaml
+ckpt_path: /home/mridul/taming-transformers/logs/cw_transformer/checkpoints/last.ckpt
+yaml_path: /home/mridul/taming-transformers/logs/cw_transformer/configs/2023-02-02T18-56-56-project.yaml

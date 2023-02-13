@@ -14,5 +14,5 @@ DEVICE: 0
 ##############################
 
 #Unseen species
-ckpt_path: /fastscratch/elhamod/logs/2023-01-31T22-56-46_Phylo-VQVAE-phase8256img-4phylo-4nonphylo-fewernonphylodim-speciesout/checkpoints/last.ckpt
-yaml_path: /fastscratch/elhamod/logs/2023-01-31T22-56-46_Phylo-VQVAE-phase8256img-4phylo-4nonphylo-fewernonphylodim-speciesout/configs/2023-01-31T22-56-46-project.yaml
+ckpt_path: /fastscratch/elhamod/logs/unseen_species/checkpoints/last.ckpt
+yaml_path: /fastscratch/elhamod/logs/unseen_species/configs/2023-01-31T22-56-46-project.yaml

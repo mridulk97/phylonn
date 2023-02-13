@@ -1,4 +1,4 @@
-path: /fastscratch/elhamod/logs/2023-01-15T00-45-57_Phylo-VQVAE-phase8256img-4phylo-4nonphylo/figs/results_summary # where to fine files in arrays1
+path: /fastscratch/elhamod/logs/PhyloNN/figs/results_summary # where to fine files in arrays1
 
 file_name: "baseline phylo"
 
@@ -19,9 +19,9 @@ arrays1: [
 ]
 
 arrays2: [
-  /home/elhamod/projects/phylonn/analysis/phylo analysis/stances for level 3 heat_map.csv,
-  /home/elhamod/projects/phylonn/analysis/phylo analysis/phylo species distances for level 0 heat_map.csv,
-  /home/elhamod/projects/phylonn/analysis/phylo analysis/phylo species distances for level 1 heat_map.csv,
-  /home/elhamod/projects/phylonn/analysis/phylo analysis/phylo species distances for level 2 heat_map.csv,
-  /home/elhamod/projects/phylonn/analysis/phylo analysis/phylo species distances for level 3 heat_map.csv,
+  /home/elhamod/projects/phylonn/analysis/phylo analysis/level3.csv,
+  /home/elhamod/projects/phylonn/analysis/phylo analysis/level0.csv,
+  /home/elhamod/projects/phylonn/analysis/phylo analysis/level1.csv,
+  /home/elhamod/projects/phylonn/analysis/phylo analysis/level2.csv,
+  /home/elhamod/projects/phylonn/analysis/phylo analysis/level3.csv,
 ]

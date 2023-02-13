@@ -11,5 +11,5 @@ save_individual_images: True
 outputdatasetdir: species_transfromer_generated
 ##############################
 
-ckpt_path: /fastscratch/elhamod/logs/2023-01-28T17-44-33_Phylo-VQVAE-transformer-phase8256img-phase8-4phylo-4nonphylo-idea1-lvl3/checkpoints/epoch=000653.ckpt
-yaml_path: /fastscratch/elhamod/logs/2023-01-28T17-44-33_Phylo-VQVAE-transformer-phase8256img-phase8-4phylo-4nonphylo-idea1-lvl3/configs/2023-01-28T17-44-33-project.yaml
+ckpt_path: /fastscratch/elhamod/logs/PhyloNN_transformer/checkpoints/epoch=000653.ckpt
+yaml_path: /fastscratch/elhamod/logs/PhyloNN_transformer/configs/2023-01-28T17-44-33-project.yaml
