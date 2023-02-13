@@ -167,18 +167,16 @@ Use the following script:
 ```
 python analysis/tsneLSF.py --config <yaml file>
 ```
+* **config**: the `yaml` config file.
+Under `analysis/configs` directory, the config file used for generating this plot is provided under the name `tsneLSF.yaml`.
 
 ### Heatmap of cosine distance between latent representations - LSF
 Use the following script:
 ```
-python analysis/heatmapLSF.py --name <name> --postfix <postfix> --base <yaml file> -t True --gpus <comma-separated GPU indices>
+python analysis/heatmapLSF.py --config <yaml file>
 ```
-* **prefix** : The path to where the model will be saved
-* **name** : run name
-* **postfix**: a postfix for the run's name
-* **base**: the `yaml` config file.
-Under `configs` directory, the config file used for generating this plot is provided under the name `lsf_inference.yaml`.
-
+* **config**: the `yaml` config file.
+Under `analysis/configs` directory, the config file used for generating this plot is provided under the name `heatmapLSF.yaml`.
 
 ### Concept Whiteneing (CW)
 CW is a method for disentangling latent space and aligning it to the concept vectors, described in the paper [Concept Whitening for Interpretable Image Recognition](https://arxiv.org/abs/2002.01650)
