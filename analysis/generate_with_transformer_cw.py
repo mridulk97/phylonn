@@ -86,7 +86,7 @@ if __name__ == "__main__":
         type=str,
         nargs="?",
         const=True,
-        default="analysis/configs/generate_with_transformer.yaml",
+        default="analysis/configs/generate_with_transformer_cw.yaml",
     )
     
     cfg, _ = parser.parse_known_args()

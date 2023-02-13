@@ -1,3 +1,4 @@
+import os
 import torch
 import numpy as np
 import pandas as pd
@@ -100,21 +101,23 @@ class CWmodelVQGAN(VQModel):
         sorted_zq_cw = z_cw[sorting_indices, :]
         
         z_cosine_distances = get_CosineDistance_matrix(sorted_zq_cw)
-        plot_heatmap(z_cosine_distances.cpu(), self.test_chkpt_path, title='Cosine_distances_tinker', postfix='test_data_infer_model')
+        plot_heatmap(z_cosine_distances.cpu(), self.test_chkpt_path, title='Cosine_distances', postfix='testset')
 
         classnames = list(itertools.chain.from_iterable([x['class_name'] for x in in_out]))
         sorted_class_names_according_to_class_indx = [classnames[i] for i in sorting_indices]
         z_cosine_distances_avg_over_classes = aggregate_metric_from_specimen_to_species(sorted_class_names_according_to_class_indx, z_cosine_distances)
        
-        plot_heatmap(z_cosine_distances_avg_over_classes.cpu(), self.test_chkpt_path, title='Cosine_distances_aggregated_tinker', postfix='test_data_infer_model')
+        plot_heatmap(z_cosine_distances_avg_over_classes.cpu(), self.test_chkpt_path, title='Cosine_distances_aggregated', postfix='testset')
+
+        figs_folder = self.test_chkpt_path.replace('checkpoints/last.ckpt', 'figs')
 
         z_cosine_distances_avg_over_classes_np = z_cosine_distances_avg_over_classes.cpu().numpy()
         df_avg = pd.DataFrame(z_cosine_distances_avg_over_classes_np)
-        df_avg.to_csv("/home/mridul/figs/test_data_infer_model/CW_z_cosine_distances_avg_over_classes.csv",index=False)
+        df_avg.to_csv(os.path.join(figs_folder, 'CW_z_cosine_distances_avg_over_classes.csv'),index=False)
 
         z_cosine_distancess_np = z_cosine_distances.cpu().numpy()
         df = pd.DataFrame(z_cosine_distancess_np)
-        df.to_csv("/home/mridul/figs/test_data_infer_model/CW_z_cosine_distances.csv",index=False) 
+        df_avg.to_csv(os.path.join(figs_folder, 'CW_z_cosine_distances.csv'),index=False)
         
         return None
 

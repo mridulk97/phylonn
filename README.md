@@ -61,6 +61,14 @@ python analysis/make_samples.py -r <path to ckpt file> -c <path to model's yaml 
 ```
 * **ckpt file** : The saved model
 
+For CW, use the same script that was provided by [taming-transformers](https://github.com/CompVis/taming-transformers)
+
+```
+python analysis/generate_with_transformer.py --config <path to analysis yaml file>
+```
+* **ckpt_path** : The saved CW model
+* **yaml_path** : The saved CW model's config
+
 
 ## Generating sequence histograms 
 
@@ -172,6 +180,26 @@ python analysis/heatmapLSF.py --name <name> --postfix <postfix> --base <yaml fil
 Under `configs` directory, the config file used for generating this plot is provided under the name `lsf_inference.yaml`.
 
 
+### Concept Whiteneing (CW)
+CW is a method for disentangling latent space and aligning it to the concept vectors, described in the paper [Concept Whitening for Interpretable Image Recognition](https://arxiv.org/abs/2002.01650)
+
+### Heatmap of cosine distance between latent representations - CW
+Use the following script:
+```
+python analysis/model_performance.py
+```
+
+### TSNE plots - CW
+Use the following script:
+```
+python analysis/tsne.py --config analysis/configs/tsne-cw.yaml
+```
+
+### Specimen Translation - CW
+Use the following script:
+```
+python analysis/specimen_translation.py --config analysis/configs/specimen_translation_cw.yaml
+```
 
 
 # Meaning of different parameters for PhyloNN

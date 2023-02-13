@@ -3,7 +3,7 @@ DEVICE: 0
 num_workers: 8
 batch_size: 200
 
-isOriginalVQGAN: VQGAN
+model_name: VQGAN
 
 file_prefix: "vanilla-vqgan-test-set"
 
