@@ -217,7 +217,7 @@ def main(configs_yaml):
         plt.show()
                 
         fig_path = get_fig_pth(ckpt_path)
-        filename = "entropy from {} to {}.png".format(image_index1, image_index2)
+        filename = "{} to {}.png".format(image_index1, image_index2)
         fig_path = os.path.join(str(fig_path), "transitions", dataset.indx_to_label[classes[0]] + ' to ' + dataset.indx_to_label[classes[1]])
         Path(fig_path).mkdir(parents=True, exist_ok=True)
         fig.savefig(os.path.join(fig_path, filename),bbox_inches='tight',dpi=300)
