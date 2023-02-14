@@ -1,4 +1,4 @@
-path: /home/elhamod/projects/phylonn/results/PhyloNN/results_summary # where to fine files in arrays1
+path: /home/elhamod/projects/phylonn/results/vanilla_vqgan/results_summary # where to fine files in arrays1
 
 file_name: "js-divergence to phylo"
 
@@ -7,7 +7,7 @@ output_names: [
 ]
 
 arrays1: [
-  js-divergence for phylo attributes heat_map.csv
+  js-divergence.csv
 ]
 
 arrays2: [
