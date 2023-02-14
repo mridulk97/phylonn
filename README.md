@@ -19,10 +19,10 @@ Make sure to use the following torch versions:
 ## Dataset
 In this work, we used a curated dataset of Teleost fish images from five ichthyological research collections that participated in  [the Great Lakes Invasives Network Project](https://greatlakesinvasives.org/portal/index.php) (GLIN). After obtaining the raw images from these collections, we handpicked a subset of about $11,000$ images and pre-processed them by resizing and appropriately padding each image to be of a $256\times256$ pixel resolution. Finally, we split the subset into a training set and a validation set of ratios $80\%$ and $20\%$, respectively. Our dataset includes images from 38 species of Teleost fishes with an average number of $200$ images per species.
 
-These images can be found [here](https://drive.google.com/drive/folders/1gkau9TOP6hi76hY8FgP6VpII871SUHRD?usp=share_link).
+These images can be found [here](https://drive.google.com/drive/folders/1f7g8CB79Iv-36v1_XthCAHU9N7Y5wNqf?usp=share_link). Copy the *dataset* directory to your local machine and reference it in the *yaml* files as described below.
 
 ## Overview of pretrained models
-The pretrained model used in our experiments can be found [here](https://drive.google.com/drive/folders/1g-7LL6iPtqaUbQKAgxS8E8I5GvWW8gDZ?usp=share_link). 
+The pretrained model used in our experiments can be found [here](https://drive.google.com/drive/folders/1f7g8CB79Iv-36v1_XthCAHU9N7Y5wNqf?usp=share_link) under the *models* directory. 
 
 
 ## Training a model
