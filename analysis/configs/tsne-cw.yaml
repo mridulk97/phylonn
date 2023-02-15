@@ -1,0 +1,21 @@
+DEVICE: 0
+
+num_workers: 8
+batch_size: 200
+
+model_name: CW
+
+file_prefix: "CW"
+img_res: 256
+dataset_path: "/fastscratch/elhamod/data/Fish/taming_transforms_fish_test_padded_256_imagenetmeancolor.txt"
+
+ckpt_path: /home/mridul/debug/taming-transformers/logs/2023-02-02T13-37-50_CW-VQVAE-debugcw_imagenet_no_aug_base_model_no_aug_lr_4.5/checkpoints/last.ckpt
+yaml_path: /home/mridul/debug/taming-transformers/logs/2023-02-02T13-37-50_CW-VQVAE-debugcw_imagenet_no_aug_base_model_no_aug_lr_4.5/configs/2023-02-02T13-37-50-project.yaml
+
+# Just set phylogeny_path to None when not applicable
+phylogeny_path: None
+
+phylogeny_knn: /fastscratch/elhamod/data/Fish
+
+which_tsne_plots: ['standard', 'knn']
+legend_labels: ['class']

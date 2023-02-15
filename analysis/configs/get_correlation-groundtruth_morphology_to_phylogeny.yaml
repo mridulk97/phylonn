@@ -1,0 +1,15 @@
+path: /home/elhamod/projects/phylonn/analysis/phylo analysis # where to fine files in arrays1
+
+file_name: "phylo-to-morph-groundtruth"
+
+output_names: [
+  level3
+]
+
+arrays1: [
+  level3.csv,
+]
+
+arrays2: [
+  /home/elhamod/projects/phylonn/analysis/ancestor analysis/level3.csv
+]

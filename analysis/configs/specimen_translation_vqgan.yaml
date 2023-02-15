@@ -1,0 +1,14 @@
+ckpt_path: /fastscratch/elhamod/logs/vanilla_vqgan/checkpoints/last.ckpt
+yaml_path: /fastscratch/elhamod/logs/vanilla_vqgan/configs/2023-01-09T18-13-38-project.yaml
+
+DEVICE: 0
+
+image_index1: 40 # index of first image in source in dataset
+image_index2: 734 # index of first image in target in dataset
+count: 15 # number of consequitive images to run the script for
+
+size: 256
+file_list_path: "/fastscratch/elhamod/data/Fish/fish_train.txt"
+
+keyimgrate: 70 # rate at which a key image is printed.
+

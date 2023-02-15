@@ -1,0 +1,16 @@
+path: /home/elhamod/projects/phylonn/results/vanilla_vqgan/results_summary  # where to fine files in arrays1
+
+file_name: "js-divergence to morpho"
+
+output_names: [
+  all,
+]
+
+
+arrays1: [
+  js-divergence.csv
+]
+
+arrays2: [
+  /home/elhamod/projects/phylonn/analysis/ancestor analysis/level3.csv,
+]

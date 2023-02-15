@@ -1,0 +1,22 @@
+# data 
+size: 256 # resolution
+file_list_path:  /fastscratch/elhamod/data/Fish/fish_test.txt
+unique_skipped_labels: #unseen species ids
+- 13
+- 26
+- 35
+
+DEVICE: 0
+num_workers: 8
+batch_size: 1 # DO NOT CHANGE! 
+ 
+per_phylo_level: True # whether to calculate the histograms for ancestor levels as well
+
+visualize_histograms: True # whether to plot the histpgrams
+
+##############################
+
+#unseen species
+ckpt_path: /fastscratch/elhamod/logs/unseen_species/checkpoints/last.ckpt
+yaml_path: /fastscratch/elhamod/logs/unseen_species/configs/2023-01-31T22-56-46-project.yaml
+

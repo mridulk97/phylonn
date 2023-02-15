@@ -1,26 +1,20 @@
-from taming.loading_utils import load_config, load_phylovqvae
-from taming.data.custom import CustomTest as CustomDataset
-from taming.analysis_utils import DISTANCE_DICT, Embedding_Code_converter, HistogramParser
-from taming.plotting_utils import dump_to_json, get_fig_pth
+from scripts.loading_utils import load_config, load_model
+from scripts.data.custom import CustomTest as CustomDataset
+from scripts.analysis_utils import Embedding_Code_converter, HistogramParser
+from scripts.plotting_utils import dump_to_json, get_fig_pth
+import scripts.constants as CONSTANTS
 
 import torch
-
-import taming.constants as CONSTANTS
-
 import os
-
 from omegaconf import OmegaConf
 import argparse
-
 import pickle
-
-GENERATED_FOLDER = "most_likely_generations"
 
 ##########
 
 def generate_report(species_names, ckpt_path, attr_info, nonattr_info, converter, hist_parser):
-    attr_distances, attr_most_common1, attr_most_common2 = [attr_info[i] for i in attr_info] 
-    nonattr_distances, non_attr_most_common1, non_attr_most_common2 = [nonattr_info[i] for i in nonattr_info] 
+    attr_distances, attr_most_common1, attr_most_common2 = attr_info  
+    nonattr_distances, non_attr_most_common1, non_attr_most_common2 = nonattr_info 
     
     all_distances = torch.cat((attr_distances, nonattr_distances), dim=0)
     
@@ -76,23 +70,23 @@ def main(configs_yaml):
     species2_name = configs_yaml.species2
     size = configs_yaml.size
     file_list_path = configs_yaml.file_list_path
-    distance_used = configs_yaml.distance_used
 
     dataset = CustomDataset(size, file_list_path, add_labels=True)
     
     # Load model
     config = load_config(yaml_path, display=False)
-    model = load_phylovqvae(config, ckpt_path=ckpt_path, cuda=(DEVICE is not None))
+    model = load_model(config, ckpt_path=ckpt_path, cuda=(DEVICE is not None))
     
-
+    # load histograms
     histograms_file = os.path.join(get_fig_pth(ckpt_path, postfix=CONSTANTS.HISTOGRAMS_FOLDER), CONSTANTS.HISTOGRAMS_FILE)
     histogram_file_exists = os.path.exists(histograms_file)
     if not histogram_file_exists:
         raise "histograms have not been generated. Run code_histogram.py first! Defaulting to index ordering"
     hist_arr, hist_arr_nonattr = pickle.load(open(histograms_file, "rb"))
     
-    hist_parser = HistogramParser(model, DISTANCE_DICT[distance_used])
-    converter = Embedding_Code_converter(model.phylo_disentangler.quantize.get_codebook_entry_index, model.phylo_disentangler.quantize.embedding, (1, model.phylo_disentangler.embed_dim, hist_parser.codebooks_per_phylolevel, hist_parser.n_phylolevels))
+    # parse histograms
+    hist_parser = HistogramParser(model)
+    converter = Embedding_Code_converter(model.phylo_disentangler.quantize.get_codebook_entry_index, model.phylo_disentangler.quantize.embedding, (1, model.phylo_disentangler.embed_dim, hist_parser.codes_per_phylolevel, hist_parser.n_phylolevels))
     
     species1_indx = dataset.labels_to_idx[species1_name]
     species2_indx = dataset.labels_to_idx[species2_name]
@@ -118,7 +112,6 @@ if __name__ == "__main__":
     )
     
     cfg, _ = parser.parse_known_args()
-    # cfg = parser.config
     configs = OmegaConf.load(cfg.config)
     cli = OmegaConf.from_cli()
     config = OmegaConf.merge(configs, cli)

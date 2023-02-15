@@ -1,7 +1,5 @@
 size: 256
-file_list_path: "/fastscratch/elhamod/data/Fish/taming_transforms_fish_train_padded_256.txt"
-# size= 512
-# file_list_path = "/home/elhamod/data/Fish/taming_transforms_fish_train_padded_512.txt"
+file_list_path: "/fastscratch/elhamod/data/Fish/fish_test.txt"
 
 DEVICE: 0
 
@@ -10,33 +8,8 @@ top_k: 5
 num_specimen_generated: 40
 save_individual_images: True
 
-
-## CW
-# outputdatasetdir: species_top_40
+outputdatasetdir: species_transfromer_generated
 ##############################
 
-# # class weights
-# ckpt_path: /home/mridul/taming-transformers/logs/2022-11-11T17-46-51_CW-VQGAN-transformernew-tinker-latest/checkpoints/last.ckpt
-# yaml_path: /home/mridul/taming-transformers/logs/2022-11-11T17-46-51_CW-VQGAN-transformernew-tinker-latest/configs/2022-11-11T17-46-51-project.yaml
-
-
-
-outputdatasetdir: species
-##############################
-
-# class weights
-# ckpt_path: /fastscratch/elhamod/logs/2022-11-05T15-32-30_Phylo-VQVAE-transformer/checkpoints/last.ckpt
-# yaml_path: /fastscratch/elhamod/logs/2022-11-05T15-32-30_Phylo-VQVAE-transformer/configs/2022-11-05T15-32-30-project.yaml
-
-
-# strongeranti
-# ckpt_path: /fastscratch/elhamod/logs/2022-11-10T02-23-40_Phylo-VQVAE-transformer256img-phase4-transformer-species-finalstronger/checkpoints/last.ckpt
-# yaml_path: /fastscratch/elhamod/logs/2022-11-10T02-23-40_Phylo-VQVAE-transformer256img-phase4-transformer-species-finalstronger/configs/2022-11-10T02-23-40-project.yaml
-
-
-# ckpt_path: /fastscratch/elhamod/logs/2022-12-17T16-37-17_Phylo-VQVAE-transformer-phase7256img-phase7-uncoditional/checkpoints/epoch=000914.ckpt
-# yaml_path: /fastscratch/elhamod/logs/2022-12-17T16-37-17_Phylo-VQVAE-transformer-phase7256img-phase7-uncoditional/configs/2022-12-17T16-37-17-project.yaml
-
-
-ckpt_path: /fastscratch/elhamod/logs/2022-12-14T16-50-57_Phylo-VQVAE-transformer-phase7256img-phase7-level3/checkpoints/epoch=000848.ckpt
-yaml_path: /fastscratch/elhamod/logs/2022-12-14T16-50-57_Phylo-VQVAE-transformer-phase7256img-phase7-level3/configs/2022-12-14T16-50-57-project.yaml
+ckpt_path: /fastscratch/elhamod/logs/PhyloNN_transformer/checkpoints/last.ckpt
+yaml_path: /fastscratch/elhamod/logs/PhyloNN_transformer/configs/2023-01-28T17-44-33-project.yaml

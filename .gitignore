@@ -1,4 +1,4 @@
-taming/modules/losses/__pycache__/vqperceptual.cpython-38.pyc
+scripts/modules/losses/__pycache__/vqperceptual.cpython-38.pyc
 **__pycache__**
 logs/**
 slurm*
@@ -10,3 +10,7 @@ plot/**
 *.log
 **events.out.tfevents.*
 lightning_logs/**
+analysis/figs/**
+**vanilla_vqgan_generated
+phylonn.egg-info*
+list.txt

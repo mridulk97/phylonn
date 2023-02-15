@@ -1,23 +1,17 @@
-from taming.loading_utils import load_config, load_phylovqvae
-from taming.data.custom import CustomTest as CustomDataset
-from taming.data.utils import custom_collate
-from taming.analysis_utils import Embedding_Code_converter, HistogramFrequency
-from taming.models.vqgan import VQModel
-from taming.plotting_utils import get_fig_pth
+from scripts.loading_utils import load_config, load_model
+from scripts.data.custom import CustomTest as CustomDataset
+from scripts.data.utils import custom_collate
+from scripts.analysis_utils import Embedding_Code_converter, HistogramFrequency
+from scripts.models.vqgan import VQModel
+from scripts.plotting_utils import get_fig_pth
+import scripts.constants as CONSTANTS
 
 from torch.utils.data import DataLoader
 import torch
 from tqdm import tqdm
-
-import taming.constants as CONSTANTS
-
 import os
-
 from omegaconf import OmegaConf
 import argparse
-
-GENERATED_FOLDER = "most_likely_generations"
-GENERATED_DATASET = "generated_dataset"
 
 ##########
 
@@ -37,16 +31,16 @@ def main(configs_yaml):
     
     # Load model
     config = load_config(yaml_path, display=False)
-    model = load_phylovqvae(config, ckpt_path=ckpt_path, cuda=(DEVICE is not None), model_type=VQModel)
+    model = load_model(config, ckpt_path=ckpt_path, cuda=(DEVICE is not None), model_type=VQModel)
         
     # create the converter.
     item = next(iter(dataloader))
     img = model.get_input(item, model.image_key).to(DEVICE)
     lbl = item[CONSTANTS.DISENTANGLER_CLASS_OUTPUT]
     q_phylo_output = model.encode(img)[0]
-    
     converter_phylo = Embedding_Code_converter(model.quantize.get_codebook_entry_index, model.quantize.embedding, q_phylo_output[0, :, :, :].shape)
     
+    # create histogram frequency counter
     q_phylo_output_indices = converter_phylo.get_phylo_codes(q_phylo_output[0, :, :, :].unsqueeze(0), verify=False)
     hist_freq = HistogramFrequency(len(dataset.indx_to_label.keys()), q_phylo_output_indices.shape[1])
         
@@ -84,7 +78,6 @@ if __name__ == "__main__":
     )
     
     cfg, _ = parser.parse_known_args()
-    # cfg = parser.config
     configs = OmegaConf.load(cfg.config)
     cli = OmegaConf.from_cli()
     config = OmegaConf.merge(configs, cli)

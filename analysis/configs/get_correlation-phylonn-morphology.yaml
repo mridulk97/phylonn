@@ -1,0 +1,27 @@
+path: /home/elhamod/projects/phylonn/results/PhyloNN/results_summary # where to fine files in arrays1
+
+file_name: "phylonn morpho"
+
+output_names: [
+  non-attr to level3,
+  level0,
+  level1,
+  level2,
+  level3,
+]
+
+arrays1: [
+  js-divergence for non-attributes heat_map.csv,
+  js-divergence for phylo attributes for level 0 heat_map.csv,
+  js-divergence for phylo attributes for level 1 heat_map.csv,
+  js-divergence for phylo attributes for level 2 heat_map.csv,
+  js-divergence for phylo attributes heat_map.csv
+]
+
+arrays2: [
+  /home/elhamod/projects/phylonn/analysis/ancestor analysis/level3.csv,
+  /home/elhamod/projects/phylonn/analysis/ancestor analysis/level0.csv,
+  /home/elhamod/projects/phylonn/analysis/ancestor analysis/level1.csv,
+  /home/elhamod/projects/phylonn/analysis/ancestor analysis/level2.csv,
+  /home/elhamod/projects/phylonn/analysis/ancestor analysis/level3.csv
+]
