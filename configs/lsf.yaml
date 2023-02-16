@@ -57,5 +57,5 @@ data:
 
 lightning:
   trainer:
-    max_epochs: 5
+    max_epochs: 200
     profiler: advanced
