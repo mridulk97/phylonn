@@ -9,8 +9,8 @@ file_prefix: "LSF-test-set"
 img_res: 256
 dataset_path: "/fastscratch/elhamod/data/Fish/fish_test.txt"
 
-ckpt_path: /home/harishbabu/projects/taming-transformers/logs/LSF/checkpoints/last.ckpt
-yaml_path: /home/harishbabu/projects/taming-transformers/logs/LSF/configs/2023-02-01T23-38-48-project.yaml
+ckpt_path: /home/harishbabu/projects/phylonn/logs/LSF/checkpoints/last.ckpt
+yaml_path: /home/harishbabu/projects/phylonn/logs/LSF/configs/2023-02-01T23-38-48-project.yaml
 
 phylogeny_knn: /fastscratch/elhamod/data/Fish
 

@@ -28,7 +28,7 @@ model:
         
     LSF_params:
       # This ckpt_path is to load the entire VQGAN+LSF model (typically for retraining the model or for performing inference)
-      ckpt_path: /home/harishbabu/projects/taming-transformers/logs/LSF/checkpoints/last.ckpt
+      ckpt_path: /home/harishbabu/projects/phylonn/logs/LSF/checkpoints/last.ckpt
       learning_rate: 1.0e-4
       image_size: 16 # not the actual image, input from the base encoder to disentangler (256x16x16)
       label_size: 38
