@@ -92,7 +92,6 @@ class DataModuleFromConfig(pl.LightningDataModule):
                           num_workers=self.num_workers, collate_fn=custom_collate)
 
 
-# @torch.no_grad()
 def distance_matrix(model, dataset, plot_save_dir):
 
     idx_to_label = {y:x for x, y in dataset.labels_to_idx.items()}
