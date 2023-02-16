@@ -10,7 +10,6 @@ from main import instantiate_from_config
 from scripts.modules.vqvae.quantize import VectorQuantizer2 as VectorQuantizer
 from scripts.models.vqgan import VQModel
 
-# from torchsummary import summary
 from torchinfo import summary
 import collections
 
@@ -57,13 +56,11 @@ class LSFVQVAE(VQModel):
 
     def encode(self, x):
         encoder_out = self.encoder(x)
-        #phylo_quantizer_loss, classification_phylo_loss
         disentangler_outputs = self.LSF_disentangler(encoder_out)
         disentangler_out = disentangler_outputs[DISENTANGLER_DECODER_OUTPUT]
         h = self.quant_conv(disentangler_out)
         quant, base_quantizer_loss, info = self.quantize(h)
 
-        # consolidate dicts
         base_loss_dic = {'quantizer_loss': base_quantizer_loss}
         in_out_disentangler = {
             DISENTANGLER_ENCODER_INPUT: encoder_out,
@@ -144,78 +141,3 @@ class LSFVQVAE(VQModel):
         quant, base_quantizer_loss, info = self.quantize(h)
         rec = self.decode(quant)
         return rec
-
-    def image_translate(self, x, current_label, target_label, n_labels):
-        """
-        Based on the approach mentioned in paper -
-        'Latent Space Factorisation and Manipulation via Matrix Subspace Projection'
-        Link: https://arxiv.org/abs/1907.12385
-        """
-        quant, base_loss_dic, in_out_disentangler, _ = self.encode(x)
-        z = in_out_disentangler[DISENTANGLER_EMBEDDING]
-        U = self.LSF_disentangler.get_U()
-        y_cap = z @ U.t()[:,:n_labels]
-        s_cap = z @ U.t()[:,n_labels:]
-
-        y_cap_current_pure = torch.zeros_like(y_cap)
-        y_cap_current_pure[:,current_label] = 2
-        z_current_pure = torch.cat([y_cap_current_pure, s_cap], -1) @ U
-
-        y_cap_target = torch.zeros_like(y_cap)
-        y_cap_target[:,target_label] = 2
-        z_target = torch.cat([y_cap_target, s_cap], -1) @ U
-
-        rec_current = self.encoding2image(z)
-        rec_current_pure = self.encoding2image(z_current_pure)
-        rec_target = self.encoding2image(z_target)
-
-        return rec_current, rec_current_pure, rec_target
-
-
-    def image_translate2(self, x, current_label, target_label, n_labels, target_percentage=1):
-        quant, base_loss_dic, in_out_disentangler, _ = self.encode(x)
-        z = in_out_disentangler[DISENTANGLER_EMBEDDING]
-
-        U = self.LSF_disentangler.get_U()
-        y_cap = z @ U.t()[:,:n_labels]
-        s_cap = z @ U.t()[:,n_labels:]
-
-        a = 0
-        b = 2.6
-        y_cap_new = torch.zeros_like(y_cap)
-        y_cap_new[:,current_label] = a + ((b-a) * (1-target_percentage))
-        y_cap_new[:,target_label] = a + ((b-a) * (target_percentage))
-        z_new = torch.cat([y_cap_new, s_cap], -1) @ U
-
-        rec_new = self.encoding2image(z_new)
-
-        return rec_new
-
-    def generate(self, output_dir, labels, dataset, n_images=16, n_labels=38):
-        label_dataset = collections.defaultdict(list)
-        for d in dataset:
-            if d['class'].item() in labels:
-                label_dataset[d['class'].item()].append(d)
-
-        U = self.LSF_disentangler.get_U()
-
-        for label in label_dataset:
-            d = label_dataset[label][0]
-            x = d['image'].permute(0, 3, 1, 2)
-            z, mu, logvar = self.image2encoding(x)
-            s_cap = mu @ U.t()[:,n_labels:]
-            y_cap = torch.zeros_like(z[:,:n_labels])
-            y_cap[:,label] = 2
-            z_new = torch.cat([y_cap, s_cap], -1) @ U
-            imgs = []
-            for i in range(n_images):
-                z_gen = self.LSF_disentangler.reparameterize(z_new, logvar)
-                gen_img = self.encoding2image(z_gen)
-                imgs.append(gen_img.add(1.0).div(2.0).squeeze())
-
-            img = torch.stack(imgs)
-            vutils.save_image(img, f'{output_dir}/gen_with_{label}.jpg', nrow=4, padding=4)
-            
-            rec = self.encoding2image(z).add(1.0).div(2.0).squeeze()
-            img = torch.stack([d['image'].permute(0, 3, 1, 2).add(1.0).div(2.0).squeeze(), rec])
-            vutils.save_image(img, f'{output_dir}/orig-rec_with_{label}.jpg', nrow=4, padding=4)

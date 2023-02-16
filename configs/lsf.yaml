@@ -45,17 +45,17 @@ data:
     train:
       target: scripts.data.custom.CustomTrain
       params:
-        training_images_list_file: /fastscratch/elhamod/data/Fish/taming_transforms_fish_train_padded_256_imagenetmeancolor.txt
+        training_images_list_file: /fastscratch/elhamod/data/Fish/fish_train.txt
         size: 256
         add_labels: true
     validation:
       target: scripts.data.custom.CustomTest
       params:
-        test_images_list_file: /fastscratch/elhamod/data/Fish/taming_transforms_fish_test_padded_256_imagenetmeancolor.txt
+        test_images_list_file: /fastscratch/elhamod/data/Fish/fish_test.txt
         size: 256
         add_labels: true
 
 lightning:
   trainer:
-    max_epochs: 200
+    max_epochs: 5
     profiler: advanced
