@@ -1,5 +1,5 @@
-ckpt_path: /home/harishbabu/projects/taming-transformers/logs/2023-02-01T23-38-48_LSF2-VQVAE1024emb-256img_imagenetmean_noaug-base_noaug_withimgnet/checkpoints/last.ckpt
-yaml_path: /home/harishbabu/projects/taming-transformers/logs/2023-02-01T23-38-48_LSF2-VQVAE1024emb-256img_imagenetmean_noaug-base_noaug_withimgnet/configs/2023-02-01T23-38-48-project.yaml
+ckpt_path: /home/harishbabu/projects/phylonn/logs/LSF/checkpoints/last.ckpt
+yaml_path: /home/harishbabu/projects/phylonn/logs/LSF/configs/2023-02-01T23-38-48-project.yaml
 
 DEVICE: 0
 
@@ -16,6 +16,6 @@ image_index2: 3407
 count: 15
 
 size: 256
-file_list_path: "/fastscratch/elhamod/data/Fish/taming_transforms_fish_train_padded_256_imagenetmeancolor.txt"
+file_list_path: "/fastscratch/elhamod/data/Fish/fish_train.txt"
 
 

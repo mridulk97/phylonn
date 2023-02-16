@@ -28,7 +28,7 @@ model:
         
     LSF_params:
       # This ckpt_path is to load the entire VQGAN+LSF model (typically for retraining the model or for performing inference)
-      ckpt_path: /home/harishbabu/projects/taming-transformers/logs/2023-02-01T23-38-48_LSF2-VQVAE1024emb-256img_imagenetmean_noaug-base_noaug_withimgnet/checkpoints/last.ckpt
+      ckpt_path: /home/harishbabu/projects/phylonn/logs/LSF/checkpoints/last.ckpt
       learning_rate: 1.0e-4
       image_size: 16 # not the actual image, input from the base encoder to disentangler (256x16x16)
       label_size: 38
@@ -45,12 +45,12 @@ data:
     train:
       target: scripts.data.custom.CustomTrain
       params:
-        training_images_list_file: /fastscratch/elhamod/data/Fish/taming_transforms_fish_train_padded_256_imagenetmeancolor.txt
+        training_images_list_file: /fastscratch/elhamod/data/Fish/fish_train.txt
         size: 256
         add_labels: true
     validation:
       target: scripts.data.custom.CustomTest
       params:
-        test_images_list_file: /fastscratch/elhamod/data/Fish/taming_transforms_fish_test_padded_256_imagenetmeancolor.txt
+        test_images_list_file: /fastscratch/elhamod/data/Fish/fish_test.txt
         size: 256
         add_labels: true

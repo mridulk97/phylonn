@@ -4,7 +4,7 @@ model:
   project: LSF-VQVAE
   params:
     # This ckpt_path is to load only the base pretrained VQGAN model
-    ckpt_path: /fastscratch/elhamod/logs/2023-01-09T18-13-39_Phylo-VQVAE-phase7256img-originalvqgan-imagenetbg/checkpoints/last.ckpt
+    ckpt_path: /fastscratch/elhamod/logs/vanilla_vqgan/checkpoints/last.ckpt
     embed_dim: 256
     n_embed: 1024
     ddconfig:
@@ -45,13 +45,13 @@ data:
     train:
       target: scripts.data.custom.CustomTrain
       params:
-        training_images_list_file: /fastscratch/elhamod/data/Fish/taming_transforms_fish_train_padded_256_imagenetmeancolor.txt
+        training_images_list_file: /fastscratch/elhamod/data/Fish/fish_train.txt
         size: 256
         add_labels: true
     validation:
       target: scripts.data.custom.CustomTest
       params:
-        test_images_list_file: /fastscratch/elhamod/data/Fish/taming_transforms_fish_test_padded_256_imagenetmeancolor.txt
+        test_images_list_file: /fastscratch/elhamod/data/Fish/fish_test.txt
         size: 256
         add_labels: true
 
