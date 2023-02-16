@@ -176,7 +176,7 @@ Use the following script:
 python analysis/heatmapLSF.py --config <yaml file>
 ```
 * **config**: the `yaml` config file.
-Under `analysis/configs` directory, the config file used for generating this plot is provided under the name `heatmapLSF.yaml`.
+Under `configs` directory, the config file used here for loading the model is provided under the name `lsf_inference.yaml`.
 
 
 
