@@ -37,7 +37,7 @@ def distance_matrix(model, dataset, plot_save_dir):
         for d in dataset:
             img = torch.tensor(d['image']).unsqueeze(0).permute(0, 3, 1, 2).cuda()
             z, _, _ = model.image2encoding(img)
-            z = (z @ model.LSF_disentangler.M.t())[:, :38]
+            z = (z @ model.LSF_disentangler.M.t())[:, :model.LSF_disentangler.M.shape[0]]
             encodings.append(z)
             classes.append(d['class'])
 
