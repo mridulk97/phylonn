@@ -1,5 +1,5 @@
-ckpt_path: /home/mridul/debug/taming-transformers/logs/2023-02-02T13-37-50_CW-VQVAE-debugcw_imagenet_no_aug_base_model_no_aug_lr_4.5/checkpoints/last.ckpt
-yaml_path: /home/mridul/debug/taming-transformers/logs/2023-02-02T13-37-50_CW-VQVAE-debugcw_imagenet_no_aug_base_model_no_aug_lr_4.5/configs/2023-02-02T13-37-50-project.yaml
+ckpt_path: /fastscratch/mridul/kdd/cw_model/checkpoints/last.ckpt
+yaml_path: /fastscratch/mridul/kdd/cw_model/configs/2023-02-02T13-37-50-project.yaml
 
 DEVICE: 0
 
@@ -10,7 +10,7 @@ count: 15
 model_name: 'CW'
 
 size: 256
-file_list_path: "/fastscratch/elhamod/data/Fish/taming_transforms_fish_test_padded_256_imagenetmeancolor.txt"
+file_list_path: "/fastscratch/elhamod/data/Fish/fish_test.txt"
 
 keyimgrate: 70
 

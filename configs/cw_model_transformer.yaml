@@ -16,7 +16,7 @@ model:
       target: scripts.models.cwautoencoder.CWmodelVQGAN
       project: CW-VQGAN
       params:
-        ckpt_path: /home/mridul/debug/taming-transformers/logs/2023-02-02T13-37-50_CW-VQVAE-debugcw_imagenet_no_aug_base_model_no_aug_lr_4.5/checkpoints/last.ckpt
+        ckpt_path: /fastscratch/mridul/kdd/cw_model_transformer/checkpoints/last.ckpt
         embed_dim: 256
         n_embed: 1024
         cw_module_transformers: True
@@ -47,13 +47,13 @@ model:
             train:
               target: scripts.data.custom.CustomTrain
               params:
-                training_images_list_file: /fastscratch/elhamod/data/Fish/taming_transforms_fish_train_padded_256_imagenetmeancolor.txt
+                training_images_list_file: /fastscratch/elhamod/data/Fish/fish_train.txt
                 size: 256
                 add_labels: True
             validation:
               target: scripts.data.custom.CustomTest
               params:
-                test_images_list_file: /fastscratch/elhamod/data/Fish/taming_transforms_fish_test_padded_256_imagenetmeancolor.txt
+                test_images_list_file: /fastscratch/elhamod/data/Fish/fish_test.txt
                 size: 256
                 add_labels: True
     cond_stage_config:
@@ -68,12 +68,12 @@ data:
     train:
       target: scripts.data.custom.CustomTrain
       params:
-        training_images_list_file: /fastscratch/elhamod/data/Fish/taming_transforms_fish_train_padded_256_imagenetmeancolor.txt
+        training_images_list_file: /fastscratch/elhamod/data/Fish/fish_train.txt
         size: 256
         add_labels: True
     validation:
       target: scripts.data.custom.CustomTest
       params:
-        test_images_list_file: /fastscratch/elhamod/data/Fish/taming_transforms_fish_test_padded_256_imagenetmeancolor.txt
+        test_images_list_file: /fastscratch/elhamod/data/Fish/fish_test.txt
         size: 256
         add_labels: True
