@@ -109,7 +109,7 @@ class CWmodelVQGAN(VQModel):
        
         plot_heatmap(z_cosine_distances_avg_over_classes.cpu(), self.test_chkpt_path, title='Cosine_distances_aggregated', postfix='testset')
 
-        figs_folder = self.test_chkpt_path.replace('checkpoints/last.ckpt', 'figs')
+        figs_folder = self.test_chkpt_path.replace('checkpoints/last.ckpt', 'figs/testset')
 
         z_cosine_distances_avg_over_classes_np = z_cosine_distances_avg_over_classes.cpu().numpy()
         df_avg = pd.DataFrame(z_cosine_distances_avg_over_classes_np)

@@ -6,6 +6,7 @@ model:
     embed_dim: 256
     n_embed: 1024
     cw_module_transformers: False
+    ckpt_path: /fastscratch/elhamod/logs/vanilla_vqgan/checkpoints/last.ckpt
     ddconfig:
       double_z: False
       z_channels: 256
@@ -35,13 +36,13 @@ model:
         train:
           target: scripts.data.custom.CustomTrain
           params:
-            training_images_list_file: /fastscratch/elhamod/data/Fish/taming_transforms_fish_train_padded_256_imagenetmeancolor.txt
+            training_images_list_file: /fastscratch/elhamod/data/Fish/fish_train.txt
             size: 256
             add_labels: True
         validation:
           target: scripts.data.custom.CustomTest
           params:
-            test_images_list_file: /fastscratch/elhamod/data/Fish/taming_transforms_fish_test_padded_256_imagenetmeancolor.txt
+            test_images_list_file: /fastscratch/elhamod/data/Fish/fish_test.txt
             size: 256
             add_labels: True
 
@@ -54,13 +55,13 @@ data:
     train:
       target: scripts.data.custom.CustomTrain
       params:
-        training_images_list_file: /fastscratch/elhamod/data/Fish/taming_transforms_fish_train_padded_256_imagenetmeancolor.txt
+        training_images_list_file: /fastscratch/elhamod/data/Fish/fish_train.txt
         size: 256
         add_labels: True
     validation:
       target: scripts.data.custom.CustomTest
       params:
-        test_images_list_file: /fastscratch/elhamod/data/Fish/taming_transforms_fish_test_padded_256_imagenetmeancolor.txt
+        test_images_list_file: /fastscratch/elhamod/data/Fish/fish_test.txt
         size: 256
         add_labels: True
 
