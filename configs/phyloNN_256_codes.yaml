@@ -3,8 +3,7 @@ model:
   target: scripts.models.phyloautoencoder.PhyloVQVAE
   project: CUB-PhyloNN
   params:
-    # ckpt_path: /home/mridul/debug/taming-transformers/logs/2023-02-20T15-35-06_CUB-VQGANcub_segmented_white_padding_bb_crop_aug_epoch_567/checkpoints/last.ckpt
-    ckpt_path: /home/mridul/debug/taming-transformers/logs/2023-02-17T19-30-32_CUB-VQGANcub_segmented_white_padding_bb_crop/checkpoints/last.ckpt
+    ckpt_path: /home/mridul/debug/taming-transformers/logs/2023-02-20T15-35-06_CUB-VQGANcub_segmented_white_padding_bb_crop_aug_epoch_567/checkpoints/last.ckpt
     embed_dim: 256
     n_embed: 1024
     ddconfig:
@@ -27,14 +26,14 @@ model:
     lossconfig:
       target: scripts.modules.losses.DummyLoss
     phylomodel_params:
-      embed_dim: 16
-      n_embed: 64
+      embed_dim: 128
+      n_embed: 1024
       n_phylolevels: 4
-      n_levels_non_attribute: 16
-      codes_per_phylolevel: 8
-      n_phylo_channels: 64
+      n_levels_non_attribute: 4
+      codes_per_phylolevel: 32
+      n_phylo_channels: 150
       verbose: false
-      ch: 128
+      ch: 256
       resolution: 16
       in_channels: 256
       out_ch: 256
@@ -89,5 +88,3 @@ data:
         test_images_list_file: /fastscratch/mridul/cub_190_split_resized/official/CUB_200_2011/test_segmented_white_background_bb_crop_256.txt
         size: 256
         add_labels: true
-
-
