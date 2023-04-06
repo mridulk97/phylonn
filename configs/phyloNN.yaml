@@ -3,8 +3,8 @@ model:
   target: scripts.models.phyloautoencoder.PhyloVQVAE
   project: CUB-PhyloNN
   params:
-    # ckpt_path: /home/mridul/debug/taming-transformers/logs/2023-02-20T15-35-06_CUB-VQGANcub_segmented_white_padding_bb_crop_aug_epoch_567/checkpoints/last.ckpt
-    ckpt_path: /home/mridul/debug/taming-transformers/logs/2023-02-17T19-30-32_CUB-VQGANcub_segmented_white_padding_bb_crop/checkpoints/last.ckpt
+    ckpt_path: /home/mridul/debug/taming-transformers/logs/2023-02-20T15-35-06_CUB-VQGANcub_segmented_white_padding_bb_crop_aug_epoch_567/checkpoints/last.ckpt
+    # ckpt_path: /home/mridul/debug/taming-transformers/logs/2023-02-17T19-30-32_CUB-VQGANcub_segmented_white_padding_bb_crop/checkpoints/last.ckpt
     embed_dim: 256
     n_embed: 1024
     ddconfig:

@@ -133,9 +133,9 @@ class Reshape(nn.Module):
         assert x.shape[1] == self.embed_dim
         assert x.shape[3] == self.levels
         
-        x = x.view(x.shape[0], self.embed_dim, -1, self.levels)
-        x = x.permute(0, 1, 3, 2)
-        x = x.view(x.shape[0], self.embed_dim, self.levels, -1)
+        x = x.view(x.shape[0], self.embed_dim, -1, self.resolution*self.resolution, self.levels)
+        x = x.permute(0, 1, 4, 2, 3)
+        x = x.view(x.shape[0], self.embed_dim, self.levels, -1, self.resolution, self.resolution)
         x = x.reshape((x.shape[0], -1, self.resolution, self.resolution))
         
 
@@ -146,19 +146,261 @@ class Reshape(nn.Module):
         if self.reverse:
             return self.reverse_forward(x)
         
-        # assert x.shape[1] == self.embed_dim*self.levels*self.codes_perlevel_perkernel
-        assert x.shape[1] == self.embed_dim
+        assert x.shape[1] == self.embed_dim*self.levels*self.codes_perlevel_perkernel
         assert x.shape[2] == self.resolution
         assert x.shape[3] == self.resolution
         
         x = x.view(x.shape[0], x.shape[1], -1)
-        # x = x.view(x.shape[0], self.embed_dim, self.levels, -1, self.resolution*self.resolution)
-        x = x.view(x.shape[0], self.embed_dim, self.levels, -1)
-        x = x.permute(0, 1, 3, 2)
-        # x = x.permute(0, 1, 3, 4, 2)
+        x = x.view(x.shape[0], self.embed_dim, self.levels, -1, self.resolution*self.resolution)
+        x = x.permute(0, 1, 3, 4, 2)
         x = x.view(x.shape[0], self.embed_dim, -1 , self.levels)
         
         return x
+
+class PhyloDisentanglerConv(torch.nn.Module):
+    def __init__(self, 
+                in_channels, ch, out_ch, resolution, ## same as ddconfigs for autoencoder
+                embed_dim, n_embed, # same as codebook configs
+                n_phylo_channels, n_phylolevels, codes_per_phylolevel, # The dimensions for the phylo descriptors.
+                lossconfig, 
+                n_mlp_layers=1, n_levels_non_attribute=None, use_multiclass=False,
+                lossconfig_phylo=None, lossconfig_kernelorthogonality=None, lossconfig_adversarial=None, verbose=False): 
+        super().__init__()
+
+        self.ch = ch
+        self.n_phylo_channels = n_phylo_channels
+        self.n_phylolevels = n_phylolevels
+        self.codes_per_phylolevel = codes_per_phylolevel
+        self.embed_dim = embed_dim
+        self.n_embed = n_embed
+        self.n_levels_non_attribute = n_levels_non_attribute
+        self.verbose = verbose
+        self.resolution = resolution
+
+        self.loss = instantiate_from_config(lossconfig)
+
+        # downsampling
+        self.conv_in = nn.Sequential(
+            nn.SiLU(),
+            torch.nn.Conv2d(in_channels,
+                            self.ch,
+                            kernel_size=1,
+                            stride=1,
+                            padding=0),
+        )
+
+        # phylo conv
+        self.conv_phylo_in = nn.Sequential(
+            nn.SiLU(),
+            nn.LayerNorm((self.n_phylo_channels, resolution, resolution)),
+            torch.nn.Conv2d(self.n_phylo_channels,
+                            n_phylolevels*self.codes_per_phylolevel*embed_dim, # embed_dim ? 
+                            kernel_size=1,
+                            stride=1,
+                            padding=0),
+            nn.SiLU(),
+        )
+        self.conv_phylo_out = nn.Sequential(
+            torch.nn.Conv2d(n_phylolevels*self.codes_per_phylolevel*embed_dim, # embed_dim ? 
+                            self.n_phylo_channels,
+                            kernel_size=1,
+                            stride=1,
+                            padding=0),
+            nn.SiLU(),
+        )
+
+        
+        # non-phylo conv
+        self.conv_nonattr_in = nn.Sequential(
+            nn.SiLU(),
+            nn.LayerNorm((self.ch - self.n_phylo_channels, resolution, resolution)),
+            torch.nn.Conv2d(self.ch - self.n_phylo_channels,
+                            self.n_levels_non_attribute*embed_dim, # embed_dim ? 
+                            kernel_size=1,
+                            stride=1,
+                            padding=0),
+            nn.SiLU(),
+        )
+        self.conv_nonattr_out = nn.Sequential(
+            torch.nn.Conv2d(self.n_levels_non_attribute*embed_dim, # embed_dim ? 
+                            self.ch - self.n_phylo_channels,
+                            kernel_size=1,
+                            stride=1,
+                            padding=0),
+            nn.SiLU(),
+        )
+        
+        # reshapers
+        self.reshape_in_phylo = Reshape(self.embed_dim, resolution, self.codes_per_phylolevel, self.n_phylolevels)
+        self.reshape_out_phylo = Reshape(self.embed_dim, resolution, self.codes_per_phylolevel, n_phylolevels, reverse=True)
+        self.reshape_in_nonattr = Reshape(self.embed_dim, resolution, self.n_levels_non_attribute)
+        self.reshape_out_nonattr = Reshape(self.embed_dim, resolution, self.n_levels_non_attribute, reverse=True)
+        
+
+        # quantizer
+        self.quantize = VectorQuantizer(n_embed, embed_dim, beta=0.25)
+
+        self.embedding_converter = Embedding_Code_converter(self.quantize.get_codebook_entry_index, self.quantize.embedding, (self.embed_dim, self.codes_per_phylolevel*resolution*resolution, self.n_phylolevels))
+
+
+        # upsampling
+        self.conv_out = nn.Sequential(
+            nn.SiLU(),
+            torch.nn.Conv2d(self.ch,
+                            out_ch,
+                            kernel_size=1,
+                            stride=1,
+                            padding=0),
+        )
+
+        self.loss_kernelorthogonality = None
+        if lossconfig_kernelorthogonality is not None:
+            self.loss_kernelorthogonality= instantiate_from_config(lossconfig_kernelorthogonality)
+
+        self.loss_phylo = None
+        if lossconfig_phylo is not None:
+            # get loss and parse params
+            lossconfig_phylo['params'] = {**lossconfig_phylo['params'], **{'verbose': verbose}}
+            self.loss_phylo = instantiate_from_config(lossconfig_phylo)
+            len_features = resolution*resolution*embed_dim
+            # len_features = n_phylolevels*self.codes_per_phylolevel*embed_dim*resolution*resolution
+            assert n_phylolevels==len(self.loss_phylo.phylo_distances)+1, "Number of phylo distances should be consistent in the settings."
+            
+            # Create classification layers.
+            num_fc_layers = self.loss_phylo.fc_layers
+            self.classification_layers = create_phylo_classifier_layers(len_features, self.loss_phylo.classifier_output_sizes, num_fc_layers, n_phylolevels, self.loss_phylo.phylo_distances)
+            # self.classification_layers = create_phylo_classifier_layers(len_features, self.loss_phylo.classifier_output_sizes, num_fc_layers, n_phylolevels, self.loss_phylo.phylo_distances, repeatInput=False, relu_last_layer=True)
+
+
+        ################# done till here
+
+        # Create adversarial loss
+        self.loss_adversarial = None
+        if lossconfig_adversarial is not None:
+            self.loss_adversarial= instantiate_from_config(lossconfig_adversarial)
+            self.codebook_mapping_layers = nn.Sequential(
+                torch.nn.Conv2d(self.embed_dim,
+                                self.embed_dim,
+                                kernel_size=1,
+                                stride=1,
+                                padding=0),
+                nn.SiLU(),
+            )
+
+            
+            
+            
+            
+        # # Create anti-classification
+        # self.loss_anticlassification = None
+        # if lossconfig_anticlassification is not None:
+        #     lossconfig_anticlassification['params'] = {**lossconfig_anticlassification['params'], **{'verbose': verbose}}
+        #     self.loss_anticlassification= instantiate_from_config(lossconfig_anticlassification)
+        #     # assert self.ch - self.n_phylo_channels == self.n_phylo_channels, "Channels need to be split in half between phylo and nonphylo"
+
+        #     # TODO: let's use same quantizer for now. Maybe we need a different one later.
+        #     # self.anti_classification_layers = VectorQuantizer(n_embed, embed_dim, beta=0.25) #TODO: I think these are enough codes for now
+        #     # self.codebook_mapping_layers = make_MLP([embed_dim, codebooks_per_phylolevel, n_levels_non_attribute], [embed_dim, codebooks_per_phylolevel, n_phylolevels], n_mlp_layers, normalize=False)
+        #     self.codebook_mapping_layers = nn.Sequential(
+        #         torch.nn.Conv2d(nonattribute_codes_perkernel*embed_dim,
+        #                         n_phylolevels*attribute_codes_per_phylolevel_perkernel*embed_dim,
+        #                         kernel_size=1,
+        #                         stride=1,
+        #                         padding=0),
+        #         nn.SiLU(),
+        #     )
+
+
+        # print model
+        print('PhyloNN', self)
+        summary(self.cuda(), (1, in_channels, resolution, resolution))
+
+        ################# done till here
+    
+    # NOTE: This does not return losses. Only used for outputting!
+    def from_quant_only(self, quant_attribute, quant_nonattribute=None):        
+        hout_phylo = self.conv_phylo_out(quant_attribute)
+        
+        hout_non_phylo = self.conv_nonattr_out(quant_nonattribute)
+        h_ = torch.cat((hout_phylo, hout_non_phylo), 1)
+            
+        output = self.conv_out(h_)
+        
+        outputs = {CONSTANTS.DISENTANGLER_DECODER_OUTPUT: output}
+        
+        return outputs, {}
+    
+    def encode(self, input, overriding_quant_attr=None, overriding_quant_nonattr=None):
+        h = self.conv_in(input)
+
+        h_phylo, h_img = torch.split(h, [self.n_phylo_channels, self.ch - self.n_phylo_channels], dim=1)
+        z_phylo = self.conv_phylo_in(h_phylo)
+        z_phylo = self.reshape_in_phylo(z_phylo)
+        zq_phylo, q_phylo_loss, info_attr = self.quantize(z_phylo)
+
+        if overriding_quant_attr is not None:
+            assert zq_phylo.shape == overriding_quant_attr.shape, str(zq_phylo.shape) + "!=" + str(overriding_quant_attr.shape)
+            zq_phylo = overriding_quant_attr
+
+        # zq_phylo_reshaped = self.reshape_out_phylo(zq_phylo)
+        
+        
+        loss_dic = {'quantizer_loss': q_phylo_loss}
+        outputs = {CONSTANTS.QUANTIZED_PHYLO_OUTPUT: zq_phylo}
+
+        z_nonphylo = self.conv_nonattr_in(h_img)
+        z_nonphylo = self.reshape_in_nonattr(z_nonphylo)
+        zq_nonphylo, q_nonphylo_loss, info_nonattr = self.quantize(z_nonphylo)
+        if overriding_quant_nonattr is not None:
+            assert z_nonphylo.shape == overriding_quant_nonattr.shape, str(z_nonphylo.shape) + "!=" + str(overriding_quant_nonattr.shape)
+            z_nonphylo = overriding_quant_attr
+        
+        loss_dic = {'quantizer_loss': q_phylo_loss + q_nonphylo_loss}
+                
+        if self.loss_kernelorthogonality is not None:
+            kernel_orthogonality_loss = 0
+            for i in range(self.n_mlp_layers):
+                kernel_orthogonality_loss = kernel_orthogonality_loss + self.loss_kernelorthogonality(self.conv_in[i*2].weight)
+            loss_dic['kernel_orthogonality_loss'] = kernel_orthogonality_loss    
+                            
+        return zq_phylo, zq_nonphylo, loss_dic, outputs, h_img, info_attr, info_nonattr
+    
+    def decode(self, zq_phylo, zq_nonphylo, loss_dic={}, outputs={}):
+        zq_phylo_reshaped = self.reshape_out_phylo(zq_phylo)
+        zq_nonphylo_reshaped = self.reshape_out_nonattr(zq_nonphylo)
+
+        hout_phylo = self.conv_phylo_out(zq_phylo_reshaped)    
+        hout_non_phylo = self.conv_nonattr_out(zq_nonphylo_reshaped)
+        h_ = torch.cat((hout_phylo, hout_non_phylo), 1)
+        
+        if self.loss_adversarial is not None:
+            mapping_output, learning_output = self.loss_adversarial(self.codebook_mapping_layers, zq_nonphylo) # bit diff here
+        
+            outputs[CONSTANTS.DISENTANGLER_ADV_MAPPING_OUTPUT] = mapping_output
+            outputs[CONSTANTS.DISENTANGLER_ADV_LEARNING_OUTPUT] = learning_output            
+
+        output = self.conv_out(h_)
+        
+        outputs[CONSTANTS.DISENTANGLER_DECODER_OUTPUT]= output
+        outputs[CONSTANTS.QUANTIZED_PHYLO_NONATTRIBUTE_OUTPUT] = zq_nonphylo
+            
+        # Phylo networks
+        if self.loss_phylo is not None:
+            for name, layer in self.classification_layers.items():
+                num_of_levels_included = int(layer.get_inputsize()/(self.embed_dim * self.codes_per_phylolevel*2)) # bit diff here
+                o = zq_phylo[:, :, :, :num_of_levels_included]
+                outputs[name] = layer(o) # 0 for level 1, 0:1 for level 2, etc.
+        
+        if self.loss_adversarial is not None:
+            o = self.codebook_mapping_layers(zq_nonphylo)
+            outputs[CONSTANTS.DISENTANGLER_NON_ATTRIBUTE_CLASS_OUTPUT] = self.classification_layers[CONSTANTS.DISENTANGLER_CLASS_OUTPUT](o)
+        return outputs, loss_dic
+    
+    def forward(self, input, overriding_quant_attr=None, overriding_quant_nonattr=None):
+        zq_phylo, zq_nonphylo, loss_dic, outputs, _, _, _ = self.encode(input, overriding_quant_attr, overriding_quant_nonattr)
+        outputs, loss_dic = self.decode(zq_phylo, zq_nonphylo, loss_dic, outputs)
+    
+        return outputs, loss_dic
 
 class PhyloDisentangler(torch.nn.Module):
     def __init__(self, 
