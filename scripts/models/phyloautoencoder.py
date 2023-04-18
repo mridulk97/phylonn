@@ -176,6 +176,7 @@ class PhyloDisentanglerConv(torch.nn.Module):
         self.n_levels_non_attribute = n_levels_non_attribute
         self.verbose = verbose
         self.resolution = resolution
+        self.n_mlp_layers = n_mlp_layers
 
         self.loss = instantiate_from_config(lossconfig)
 
@@ -199,6 +200,7 @@ class PhyloDisentanglerConv(torch.nn.Module):
                             stride=1,
                             padding=0),
             nn.SiLU(),
+            nn.Dropout2d(0.2),
         )
         self.conv_phylo_out = nn.Sequential(
             torch.nn.Conv2d(n_phylolevels*self.codes_per_phylolevel*embed_dim, # embed_dim ? 
@@ -207,6 +209,7 @@ class PhyloDisentanglerConv(torch.nn.Module):
                             stride=1,
                             padding=0),
             nn.SiLU(),
+            nn.Dropout2d(0.2),
         )
 
         
@@ -220,6 +223,7 @@ class PhyloDisentanglerConv(torch.nn.Module):
                             stride=1,
                             padding=0),
             nn.SiLU(),
+            nn.Dropout2d(0.2),
         )
         self.conv_nonattr_out = nn.Sequential(
             torch.nn.Conv2d(self.n_levels_non_attribute*embed_dim, # embed_dim ? 
@@ -228,6 +232,7 @@ class PhyloDisentanglerConv(torch.nn.Module):
                             stride=1,
                             padding=0),
             nn.SiLU(),
+            nn.Dropout2d(0.2),
         )
         
         # reshapers
@@ -262,8 +267,7 @@ class PhyloDisentanglerConv(torch.nn.Module):
             # get loss and parse params
             lossconfig_phylo['params'] = {**lossconfig_phylo['params'], **{'verbose': verbose}}
             self.loss_phylo = instantiate_from_config(lossconfig_phylo)
-            len_features = resolution*resolution*embed_dim
-            # len_features = n_phylolevels*self.codes_per_phylolevel*embed_dim*resolution*resolution
+            len_features = n_phylolevels*self.codes_per_phylolevel*embed_dim*resolution*resolution
             assert n_phylolevels==len(self.loss_phylo.phylo_distances)+1, "Number of phylo distances should be consistent in the settings."
             
             # Create classification layers.
@@ -272,50 +276,24 @@ class PhyloDisentanglerConv(torch.nn.Module):
             # self.classification_layers = create_phylo_classifier_layers(len_features, self.loss_phylo.classifier_output_sizes, num_fc_layers, n_phylolevels, self.loss_phylo.phylo_distances, repeatInput=False, relu_last_layer=True)
 
 
-        ################# done till here
-
         # Create adversarial loss
         self.loss_adversarial = None
         if lossconfig_adversarial is not None:
             self.loss_adversarial= instantiate_from_config(lossconfig_adversarial)
             self.codebook_mapping_layers = nn.Sequential(
-                torch.nn.Conv2d(self.embed_dim,
-                                self.embed_dim,
+                torch.nn.Conv2d(self.n_levels_non_attribute*self.embed_dim,
+                                self.n_phylolevels*self.codes_per_phylolevel*self.embed_dim,
                                 kernel_size=1,
                                 stride=1,
                                 padding=0),
                 nn.SiLU(),
             )
 
-            
-            
-            
-            
-        # # Create anti-classification
-        # self.loss_anticlassification = None
-        # if lossconfig_anticlassification is not None:
-        #     lossconfig_anticlassification['params'] = {**lossconfig_anticlassification['params'], **{'verbose': verbose}}
-        #     self.loss_anticlassification= instantiate_from_config(lossconfig_anticlassification)
-        #     # assert self.ch - self.n_phylo_channels == self.n_phylo_channels, "Channels need to be split in half between phylo and nonphylo"
-
-        #     # TODO: let's use same quantizer for now. Maybe we need a different one later.
-        #     # self.anti_classification_layers = VectorQuantizer(n_embed, embed_dim, beta=0.25) #TODO: I think these are enough codes for now
-        #     # self.codebook_mapping_layers = make_MLP([embed_dim, codebooks_per_phylolevel, n_levels_non_attribute], [embed_dim, codebooks_per_phylolevel, n_phylolevels], n_mlp_layers, normalize=False)
-        #     self.codebook_mapping_layers = nn.Sequential(
-        #         torch.nn.Conv2d(nonattribute_codes_perkernel*embed_dim,
-        #                         n_phylolevels*attribute_codes_per_phylolevel_perkernel*embed_dim,
-        #                         kernel_size=1,
-        #                         stride=1,
-        #                         padding=0),
-        #         nn.SiLU(),
-        #     )
-
 
         # print model
         print('PhyloNN', self)
         summary(self.cuda(), (1, in_channels, resolution, resolution))
 
-        ################# done till here
     
     # NOTE: This does not return losses. Only used for outputting!
     def from_quant_only(self, quant_attribute, quant_nonattribute=None):        
@@ -342,6 +320,10 @@ class PhyloDisentanglerConv(torch.nn.Module):
             assert zq_phylo.shape == overriding_quant_attr.shape, str(zq_phylo.shape) + "!=" + str(overriding_quant_attr.shape)
             zq_phylo = overriding_quant_attr
 
+
+        # zq_phylo_reshaped = self.reshape_out_phylo(zq_phylo)
+        
+        
         # zq_phylo_reshaped = self.reshape_out_phylo(zq_phylo)
         
         
@@ -356,12 +338,17 @@ class PhyloDisentanglerConv(torch.nn.Module):
             z_nonphylo = overriding_quant_attr
         
         loss_dic = {'quantizer_loss': q_phylo_loss + q_nonphylo_loss}
-                
+
         if self.loss_kernelorthogonality is not None:
-            kernel_orthogonality_loss = 0
-            for i in range(self.n_mlp_layers):
-                kernel_orthogonality_loss = kernel_orthogonality_loss + self.loss_kernelorthogonality(self.conv_in[i*2].weight)
-            loss_dic['kernel_orthogonality_loss'] = kernel_orthogonality_loss    
+            kernel_orthogonality_loss = self.loss_kernelorthogonality(self.conv_in[1].weight)
+            loss_dic['kernel_orthogonality_loss'] = kernel_orthogonality_loss
+
+        ## for mlp or multiple layers   
+        # if self.loss_kernelorthogonality is not None:
+        #     kernel_orthogonality_loss = 0
+        #     for i in range(self.n_mlp_layers):
+        #         kernel_orthogonality_loss = kernel_orthogonality_loss + self.loss_kernelorthogonality(self.conv_in[i*2].weight)
+        #     loss_dic['kernel_orthogonality_loss'] = kernel_orthogonality_loss    
                             
         return zq_phylo, zq_nonphylo, loss_dic, outputs, h_img, info_attr, info_nonattr
     
@@ -372,9 +359,9 @@ class PhyloDisentanglerConv(torch.nn.Module):
         hout_phylo = self.conv_phylo_out(zq_phylo_reshaped)    
         hout_non_phylo = self.conv_nonattr_out(zq_nonphylo_reshaped)
         h_ = torch.cat((hout_phylo, hout_non_phylo), 1)
-        
+          
         if self.loss_adversarial is not None:
-            mapping_output, learning_output = self.loss_adversarial(self.codebook_mapping_layers, zq_nonphylo) # bit diff here
+            mapping_output, learning_output = self.loss_adversarial(self.codebook_mapping_layers, zq_nonphylo_reshaped) # bit diff here
         
             outputs[CONSTANTS.DISENTANGLER_ADV_MAPPING_OUTPUT] = mapping_output
             outputs[CONSTANTS.DISENTANGLER_ADV_LEARNING_OUTPUT] = learning_output            
@@ -383,16 +370,16 @@ class PhyloDisentanglerConv(torch.nn.Module):
         
         outputs[CONSTANTS.DISENTANGLER_DECODER_OUTPUT]= output
         outputs[CONSTANTS.QUANTIZED_PHYLO_NONATTRIBUTE_OUTPUT] = zq_nonphylo
-            
+        
         # Phylo networks
         if self.loss_phylo is not None:
             for name, layer in self.classification_layers.items():
-                num_of_levels_included = int(layer.get_inputsize()/(self.embed_dim * self.codes_per_phylolevel*2)) # bit diff here
+                num_of_levels_included = int(layer.get_inputsize()/(self.embed_dim * self.codes_per_phylolevel * self.resolution * self.resolution)) # bit diff here
                 o = zq_phylo[:, :, :, :num_of_levels_included]
                 outputs[name] = layer(o) # 0 for level 1, 0:1 for level 2, etc.
         
         if self.loss_adversarial is not None:
-            o = self.codebook_mapping_layers(zq_nonphylo)
+            o = self.codebook_mapping_layers(zq_nonphylo_reshaped)
             outputs[CONSTANTS.DISENTANGLER_NON_ATTRIBUTE_CLASS_OUTPUT] = self.classification_layers[CONSTANTS.DISENTANGLER_CLASS_OUTPUT](o)
         return outputs, loss_dic
     
@@ -424,68 +411,6 @@ class PhyloDisentangler(torch.nn.Module):
         self.verbose = verbose
 
         self.loss = instantiate_from_config(lossconfig)
-
-        ################# conv downsampling
-        # downsampling
-        self.conv_in = nn.Sequential(
-            nn.SiLU(),
-            torch.nn.Conv2d(in_channels,
-                            self.ch,
-                            kernel_size=1,
-                            stride=1,
-                            padding=0),
-        )
-        
-        # phylo conv
-        self.conv_phylo_in = nn.Sequential(
-            nn.SiLU(),
-            nn.LayerNorm((self.n_phylo_channels, resolution, resolution)),
-            torch.nn.Conv2d(self.n_phylo_channels,
-                            self.n_phylolevels*self.codes_per_phylolevel,
-                            kernel_size=1,
-                            stride=1,
-                            padding=0),
-            nn.SiLU(),
-            nn.Dropout2d(0.5),
-        )
-        self.conv_phylo_out = nn.Sequential(
-            torch.nn.Conv2d(self.n_phylolevels*self.codes_per_phylolevel,
-                            self.n_phylo_channels,
-                            kernel_size=1,
-                            stride=1,
-                            padding=0),
-            nn.SiLU(),
-        )
-        
-        # non-phylo conv
-        self.conv_nonattr_in = nn.Sequential(
-            nn.SiLU(),
-            nn.LayerNorm((self.ch - self.n_phylo_channels, resolution, resolution)),
-            torch.nn.Conv2d(self.ch - self.n_phylo_channels,
-                            embed_dim,
-                            kernel_size=1,
-                            stride=1,
-                            padding=0),
-            nn.SiLU(),
-            nn.Dropout2d(0.5),
-        )
-        self.conv_nonattr_out = nn.Sequential(
-            torch.nn.Conv2d(embed_dim,
-                            self.ch - self.n_phylo_channels,
-                            kernel_size=1,
-                            stride=1,
-                            padding=0),
-            nn.SiLU(),
-        )
-
-        ################
-
-        # self.reshape_in_phylo = Reshape(self.embed_dim, resolution, self.codes_per_phylolevel, self.n_phylolevels)
-        # reshapers
-        self.reshape_in_phylo = Reshape(self.embed_dim, resolution, self.codes_per_phylolevel, self.n_phylolevels)
-        self.reshape_out_phylo = Reshape(self.embed_dim, resolution, self.codes_per_phylolevel, n_phylolevels, reverse=True)
-        self.reshape_in_nonattr = Reshape(self.embed_dim, resolution, 2)
-        self.reshape_out_nonattr = Reshape(self.embed_dim, resolution, 2, reverse=True)
 
         # downsampling
         out_sizes = get_hidden_layer_sizes(in_channels, self.ch, n_mlp_layers)
@@ -586,9 +511,7 @@ class PhyloDisentangler(torch.nn.Module):
         h = self.conv_in(input)
 
         h_phylo, h_img = torch.split(h, [self.n_phylo_channels, self.ch - self.n_phylo_channels], dim=1)
-        # z_phylo = self.mlp_in(h_phylo)
-        z_phylo = self.conv_phylo_in(h_phylo)
-        z_phylo = self.reshape_in_phylo(z_phylo)
+        z_phylo = self.mlp_in(h_phylo)
         zq_phylo, q_phylo_loss, info_attr = self.quantize(z_phylo)
 
         if overriding_quant_attr is not None:
@@ -601,9 +524,7 @@ class PhyloDisentangler(torch.nn.Module):
         loss_dic = {'quantizer_loss': q_phylo_loss}
         outputs = {CONSTANTS.QUANTIZED_PHYLO_OUTPUT: zq_phylo}
 
-        # z_nonphylo = self.mlp_in_non_attribute(h_img)
-        z_nonphylo = self.conv_nonattr_in(h_img)
-        z_nonphylo = self.reshape_in_nonattr(z_nonphylo)
+        z_nonphylo = self.mlp_in_non_attribute(h_img)
         zq_nonphylo, q_nonphylo_loss, info_nonattr = self.quantize(z_nonphylo)
         if overriding_quant_nonattr is not None:
             assert z_nonphylo.shape == overriding_quant_nonattr.shape, str(z_nonphylo.shape) + "!=" + str(overriding_quant_nonattr.shape)
@@ -620,13 +541,8 @@ class PhyloDisentangler(torch.nn.Module):
         return zq_phylo, zq_nonphylo, loss_dic, outputs, h_img, info_attr, info_nonattr
     
     def decode(self, zq_phylo, zq_nonphylo, loss_dic={}, outputs={}):
-        # hout_phylo = self.mlp_out(zq_phylo)
-        # hout_non_phylo = self.mlp_out_non_attribute(zq_nonphylo)
-        zq_phylo_reshaped = self.reshape_out_phylo(zq_phylo)
-        zq_nonphylo_reshaped = self.reshape_out_nonattr(zq_nonphylo)
-
-        hout_phylo = self.conv_phylo_out(zq_phylo_reshaped)    
-        hout_non_phylo = self.conv_nonattr_out(zq_nonphylo_reshaped)
+        hout_phylo = self.mlp_out(zq_phylo)
+        hout_non_phylo = self.mlp_out_non_attribute(zq_nonphylo)
         h_ = torch.cat((hout_phylo, hout_non_phylo), 1)
         
         if self.loss_adversarial is not None:
@@ -684,8 +600,8 @@ class PhyloVQVAE(VQModel):
 
         self.freeze()
  
-        self.phylo_disentangler = PhyloDisentangler(**phylo_args)
-        # self.phylo_disentangler = PhyloDisentanglerConv(**phylo_args)
+        # self.phylo_disentangler = PhyloDisentangler(**phylo_args)
+        self.phylo_disentangler = PhyloDisentanglerConv(**phylo_args)
 
         self.verbose = phylo_args.get('verbose', False)
         
@@ -842,7 +758,8 @@ class PhyloVQVAE(VQModel):
         opt_ae = torch.optim.Adam(self.phylo_disentangler.parameters(), lr=lr, betas=(0.5, 0.9))
         opts = [opt_ae]
         if self.phylo_disentangler.loss_adversarial is not None:
-            opt_mapping = torch.optim.Adam(self.phylo_disentangler.codebook_mapping_layers.parameters(), lr=lr, betas=(0.5, 0.9))
+            # opt_mapping = torch.optim.Adam(self.phylo_disentangler.codebook_mapping_layers.parameters(), lr=lr, betas=(0.5, 0.9))
+            opt_mapping = torch.optim.Adam(self.phylo_disentangler.codebook_mapping_layers.parameters(), lr=lr, betas=(0.5, 0.9), weight_decay=0.001)
             opts.append(opt_mapping)
         else:
             opts.append(opt_ae)

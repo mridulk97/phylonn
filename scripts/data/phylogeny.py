@@ -212,8 +212,8 @@ class Phylogeny:
 class PhylogenyCUB:
     # Phylogeny class for CUB dataset
     def __init__(self, filePath, node_ids=None, verbose=False):
-        # cleaned_fine_tree_fileName = "1_tree-consensus-Hacket-AllSpecies-cub-names.phy"
-        cleaned_fine_tree_fileName = "1_tree-consensus-Hacket-AllSpecies.phy"
+        # cleaned_fine_tree_fileName = "1_tree-consensus-Hacket-AllSpecies.phy"
+        cleaned_fine_tree_fileName = "1_tree-consensus-Hacket-AllSpecies-cub-names.phy"
         self.node_ids = node_ids
         self.treeFileNameAndPath = os.path.join(filePath, cleaned_fine_tree_fileName)
         self.total_distance = -1 # -1 means we never calculated it before.
