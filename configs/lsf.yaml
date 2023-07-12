@@ -4,7 +4,7 @@ model:
   project: LSF-VQVAE
   params:
     # This ckpt_path is to load only the base pretrained VQGAN model
-    ckpt_path: /fastscratch/elhamod/logs/vanilla_vqgan/checkpoints/last.ckpt
+    ckpt_path: /fastscratch/elhamod/logs/base_vanilla_vqgan_LSF/checkpoints/last.ckpt
     embed_dim: 256
     n_embed: 1024
     ddconfig:
